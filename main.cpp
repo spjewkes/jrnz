@@ -15,8 +15,12 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	if(std::ifstream rom{argv[1], std::ios::in | std::ios::binary})
+	if(std::ifstream rom{argv[1], std::ios::binary | std::ios::ate})
 	{
+		auto size = rom.tellg();
+		std::string buffer(size, '\0');
+		rom.seekg(0);
+		rom.read(&buffer[0], size);
 		rom.close();
 	}
 	else
