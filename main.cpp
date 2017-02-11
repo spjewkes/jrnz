@@ -2,6 +2,7 @@
 #include <fstream>
 #include <cstdlib>
 #include <vector>
+#include <iomanip>
 
 /**
  * @brief Defines the memory of the device.
@@ -25,6 +26,33 @@ public:
 			}
 		}
 
+	void dump(size_t offset, size_t size) const
+		{
+			const auto end = offset + size;
+			const auto per_line = 16;
+			auto line_count = 0;
+			for(auto pos = offset; pos < end; pos++)
+			{
+				if(0 == line_count)
+				{
+					std::cout << std::hex << "0x" << std::setw(4) << std::setfill('0') << pos << ":";
+				}
+				
+				std::cout << std::hex << " " << std::setw(2) << std::setfill('0') << static_cast<unsigned int>(m_mem[pos]);
+				line_count++;
+
+				if(per_line == line_count)
+				{
+					line_count = 0;
+					std::cout << std::endl;
+				}
+			}
+			if(line_count != 0)
+			{
+				std::cout << std::endl;
+			}
+		}
+
 private:
 	std::vector<unsigned char> m_mem;
 };
@@ -43,6 +71,8 @@ int main(int argc, char **argv)
 	}
 
 	Memory mem(65536, argv[1]);
+
+	mem.dump(0, 32);
 
 	return EXIT_SUCCESS;
 }
