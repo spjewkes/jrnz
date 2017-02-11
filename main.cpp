@@ -15,14 +15,15 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	std::filebuf rom;
-	if(!rom.open(argv[1], std::ios::in | std::ios::binary))
+	if(std::ifstream rom{argv[1], std::ios::in | std::ios::binary})
+	{
+		rom.close();
+	}
+	else
 	{
 		std::cerr << "No file found called " << argv[1] << std::endl;
 		return EXIT_FAILURE;
 	}
-
-	rom.close();
 
 	return EXIT_SUCCESS;
 }
