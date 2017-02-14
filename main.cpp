@@ -2,6 +2,7 @@
 #include <fstream>
 #include <cstdlib>
 #include <vector>
+#include <map>
 #include <iomanip>
 
 /**
@@ -101,7 +102,10 @@ private:
 class Z80
 {
 public:
-	Z80(unsigned int ram_size, std::string &rom_file) : mem(ram_size, rom_file) {}
+	Z80(unsigned int ram_size, std::string &rom_file) : mem(ram_size, rom_file)
+		{
+			map_inst.emplace(0xf3, std::string("di"));
+		}
 
 	unsigned short i = { 0 };
 	unsigned short pc = { 0 };
@@ -119,10 +123,25 @@ public:
 
 	bool clock()
 		{
+			bool found = false;
+
 			unsigned char v = mem.read(pc);
-			std::cout << "Unknown byte: 0x" << std::setw(2) << std::hex << static_cast<unsigned int>(v) << std::endl;
-			return false;
+			auto search = map_inst.find(v);
+			if(search != map_inst.end())
+			{
+				std::cout << map_inst[v] << std::endl;
+				found = true;
+			}
+			else
+			{
+				std::cout << "Unknown byte: 0x" << std::setw(2) << std::hex << static_cast<unsigned int>(v) << std::endl;
+			}
+			pc++;
+			return found;
 		}
+
+private:
+	std::map<unsigned char, const std::string> map_inst;
 };
 
 /**
@@ -141,7 +160,9 @@ int main(int argc, char **argv)
 	std::string rom_file(argv[1]);
 	Z80 state(65536, rom_file);
 
-	state.clock();
+	while(state.clock())
+	{
+	}
 
 	return EXIT_SUCCESS;
 }
