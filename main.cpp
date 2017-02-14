@@ -121,7 +121,6 @@ public:
 		{
 			unsigned char v = mem.read(pc);
 			std::cout << "Unknown byte: 0x" << std::setw(2) << std::hex << static_cast<unsigned int>(v) << std::endl;
-			mem.dump(0, 32);
 			return false;
 		}
 };
