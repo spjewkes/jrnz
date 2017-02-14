@@ -27,8 +27,8 @@ public:
 			}
 		}
 
-	unsigned char read_byte(size_t pos) const { return mem[pos]; }
-	void write_byte(size_t pos, unsigned char v)
+	unsigned char read(size_t pos) const { return mem[pos]; }
+	void write(size_t pos, unsigned char v)
 		{
 			if(pos >= ram_start)
 			{
@@ -116,6 +116,13 @@ public:
 	bool int_on = { false };
 
 	Memory mem;
+
+	bool clock()
+		{
+			unsigned char v = mem.read(pc);
+			std::cout << "Unknown byte: 0x" << std::setw(2) << std::hex << static_cast<unsigned int>(v) << std::endl;
+			return false;
+		}
 };
 
 /**
@@ -133,6 +140,8 @@ int main(int argc, char **argv)
 
 	std::string rom_file(argv[1]);
 	Z80 state(65536, rom_file);
+
+	state.clock();
 
 	return EXIT_SUCCESS;
 }
