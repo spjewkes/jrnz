@@ -10,7 +10,7 @@
 class Memory
 {
 public:
-	Memory(size_t size, char *rom_file) : mem(size)
+	Memory(size_t size, std::string &rom_file) : mem(size)
 		{
 			if(std::ifstream rom{rom_file, std::ios::binary | std::ios::ate})
 			{
@@ -69,6 +69,56 @@ private:
 };
 
 /**
+ * @brief Class describing a 16-bit register.
+ */
+class Register
+{
+public:
+	void set_hi(unsigned char v)
+		{
+			reg &= 0x0f;
+			reg |= v << 8;
+		}
+	unsigned char get_hi() const { return static_cast<unsigned char>((reg >> 8) & 0xf); }
+	void set_lo(unsigned char v)
+		{
+			reg &= 0xf0;
+			reg |= v;
+		}
+	unsigned char get_lo() const { return static_cast<unsigned char>(reg & 0xf); }
+	void set(unsigned short v) { reg = v; }
+	unsigned short get() const { return reg; }
+	void swap() { std::swap(reg, alt_reg); }
+
+private:
+	unsigned short reg = 0;
+	unsigned short alt_reg = 0;
+};
+
+/**
+ * @brief Class describing a Z80 state.
+ */
+class Z80
+{
+public:
+	Z80(unsigned int ram_size, std::string &rom_file) : mem(ram_size, rom_file) {}
+
+	unsigned short i = { 0 };
+	unsigned short pc = { 0 };
+	unsigned short sp = { 0 };
+	unsigned short ix = { 0 };
+	unsigned short iy = { 0 };
+	
+	Register af;
+	Register hl;
+	Register bc;
+	Register de;
+	bool int_on = { false };
+
+	Memory mem;
+};
+
+/**
  * @brief Main entry-point into application.
  */
 int main(int argc, char **argv)
@@ -81,7 +131,8 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	Memory mem(65536, argv[1]);
+	std::string rom_file(argv[1]);
+	Z80 state(65536, rom_file);
 
 	return EXIT_SUCCESS;
 }
