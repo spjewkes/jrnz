@@ -10,19 +10,29 @@
 class Memory
 {
 public:
-	Memory(size_t size, char *rom_file) : m_mem(size)
+	Memory(size_t size, char *rom_file) : mem(size)
 		{
 			if(std::ifstream rom{rom_file, std::ios::binary | std::ios::ate})
 			{
 				auto rom_size = rom.tellg();
+				ram_start = rom_size;
 				rom.seekg(0);
-				rom.read(reinterpret_cast<char*>(&m_mem[0]), rom_size);
+				rom.read(reinterpret_cast<char*>(&mem[0]), rom_size);
 				rom.close();
 			}
 			else
 			{
 				std::cerr << "No file found called " << rom_file << std::endl;
 				std::cerr << "ROM uninitialized" << std::endl;
+			}
+		}
+
+	unsigned char read_byte(size_t pos) const { return mem[pos]; }
+	void write_byte(size_t pos, unsigned char v)
+		{
+			if(pos >= ram_start)
+			{
+				mem[pos] = v;
 			}
 		}
 
@@ -38,7 +48,7 @@ public:
 					std::cout << std::hex << "0x" << std::setw(4) << std::setfill('0') << pos << ":";
 				}
 				
-				std::cout << std::hex << " " << std::setw(2) << std::setfill('0') << static_cast<unsigned int>(m_mem[pos]);
+				std::cout << std::hex << " " << std::setw(2) << std::setfill('0') << static_cast<unsigned int>(mem[pos]);
 				line_count++;
 
 				if(per_line == line_count)
@@ -54,7 +64,8 @@ public:
 		}
 
 private:
-	std::vector<unsigned char> m_mem;
+	std::vector<unsigned char> mem;
+	size_t ram_start;
 };
 
 /**
@@ -71,8 +82,6 @@ int main(int argc, char **argv)
 	}
 
 	Memory mem(65536, argv[1]);
-
-	mem.dump(0, 32);
 
 	return EXIT_SUCCESS;
 }
