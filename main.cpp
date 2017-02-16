@@ -98,7 +98,25 @@ private:
 
 class Z80;
 
-typedef bool(*inst_fn)(Z80&,unsigned short);
+enum Operand
+{
+	BC,
+	DE,
+	HL,
+	SP,
+	A,
+	B,
+	C,
+	D,
+	E,
+	H,
+	L,
+	N,
+	NN,
+	UNUSED
+};
+
+typedef bool(*inst_fn)(Z80&,unsigned short, Operand, Operand);
 
 typedef struct Instruction
 {
@@ -106,13 +124,15 @@ public:
 	std::string name;
 	unsigned int size;
 	unsigned int cycles;
-	inst_fn inst;
+	inst_fn func;
+	Operand src;
+	Operand dst;
 } Instruction;
 
-bool inst_ld_nn(Z80 &state, unsigned short old_pc);
-bool inst_xor(Z80 &state, unsigned short old_pc);
-bool inst_jp_nn(Z80 &state, unsigned short old_pc);
-bool inst_di(Z80 &state, unsigned short old_pc);
+bool inst_ld_nn(Z80 &state, unsigned short old_pc, Operand dst, Operand src);
+bool inst_xor(Z80 &state, unsigned short old_pc, Operand dst, Operand src);
+bool inst_jp_nn(Z80 &state, unsigned short old_pc, Operand dst, Operand src);
+bool inst_di(Z80 &state, unsigned short old_pc, Operand dst, Operand src);
 
 /**
  * @brief Class describing a Z80 state.
@@ -122,10 +142,10 @@ class Z80
 public:
 	Z80(unsigned int ram_size, std::string &rom_file) : mem(ram_size, rom_file)
 		{
-			map_inst.emplace(0x11, Instruction{std::string("ld de,**"), 3, 10, inst_ld_nn});
-			map_inst.emplace(0xaf, Instruction{std::string("xor a"), 1, 4, inst_xor});
-			map_inst.emplace(0xc3, Instruction{std::string("jp **"), 3, 10, inst_jp_nn});
-			map_inst.emplace(0xf3, Instruction{std::string("di"), 1, 4, inst_di});
+			map_inst.emplace(0x11, Instruction{std::string("ld de,**"), 3, 10, inst_ld_nn, Operand::DE, Operand::NN});
+			map_inst.emplace(0xaf, Instruction{std::string("xor a"), 1, 4, inst_xor, Operand::A, Operand::UNUSED});
+			map_inst.emplace(0xc3, Instruction{std::string("jp **"), 3, 10, inst_jp_nn, Operand::NN, Operand::UNUSED});
+			map_inst.emplace(0xf3, Instruction{std::string("di"), 1, 4, inst_di, Operand::UNUSED, Operand::UNUSED});
 		}
 
 	unsigned short i = { 0 };
@@ -151,10 +171,11 @@ public:
 			auto search = map_inst.find(v);
 			if(search != map_inst.end())
 			{
-				mem.dump(curr_pc, search->second.size);
-				std::cout << search->second.name << std::endl;
-				pc.set(curr_pc + search->second.size);
-				found = search->second.inst(*this, curr_pc);
+				const Instruction &inst = search->second;
+				mem.dump(curr_pc, inst.size);
+				std::cout << inst.name << std::endl;
+				pc.set(curr_pc + inst.size);
+				found = inst.func(*this, curr_pc, inst.dst, inst.src);
 			}
 
 			if(!found)
@@ -169,7 +190,7 @@ private:
 	std::map<unsigned char, const Instruction> map_inst;
 };
 
-bool inst_ld_nn(Z80 &state, unsigned short old_pc)
+bool inst_ld_nn(Z80 &state, unsigned short old_pc, Operand dst, Operand src)
 {
 	bool handled = false;
 	
@@ -186,7 +207,7 @@ bool inst_ld_nn(Z80 &state, unsigned short old_pc)
 	return handled;
 }
 
-bool inst_xor(Z80 &state, unsigned short old_pc)
+bool inst_xor(Z80 &state, unsigned short old_pc, Operand dst, Operand src)
 {
 	bool handled = false;
 
@@ -203,7 +224,7 @@ bool inst_xor(Z80 &state, unsigned short old_pc)
 	return handled;
 }
 
-bool inst_jp_nn(Z80 &state, unsigned short old_pc)
+bool inst_jp_nn(Z80 &state, unsigned short old_pc, Operand dst, Operand src)
 {
 	bool handled = false;
 
@@ -220,7 +241,7 @@ bool inst_jp_nn(Z80 &state, unsigned short old_pc)
 	return handled;
 }
 
-bool inst_di(Z80 &state, unsigned short old_pc)
+bool inst_di(Z80 &state, unsigned short old_pc, Operand dst, Operand src)
 {
 	state.int_on = true;
 	return true;
