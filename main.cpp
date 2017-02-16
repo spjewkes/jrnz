@@ -125,11 +125,11 @@ public:
 	unsigned int size;
 	unsigned int cycles;
 	inst_fn func;
-	Operand src;
 	Operand dst;
+	Operand src;
 } Instruction;
 
-bool inst_ld_nn(Z80 &state, unsigned short old_pc, Operand dst, Operand src);
+bool inst_ld(Z80 &state, unsigned short old_pc, Operand dst, Operand src);
 bool inst_xor(Z80 &state, unsigned short old_pc, Operand dst, Operand src);
 bool inst_jp_nn(Z80 &state, unsigned short old_pc, Operand dst, Operand src);
 bool inst_di(Z80 &state, unsigned short old_pc, Operand dst, Operand src);
@@ -142,7 +142,8 @@ class Z80
 public:
 	Z80(unsigned int ram_size, std::string &rom_file) : mem(ram_size, rom_file)
 		{
-			map_inst.emplace(0x11, Instruction{std::string("ld de,**"), 3, 10, inst_ld_nn, Operand::DE, Operand::NN});
+			map_inst.emplace(0x11, Instruction{std::string("ld de,**"), 3, 10, inst_ld, Operand::DE, Operand::NN});
+			map_inst.emplace(0x47, Instruction{std::string("ld b, a"), 1, 4, inst_ld, Operand::B, Operand::DE});
 			map_inst.emplace(0xaf, Instruction{std::string("xor a"), 1, 4, inst_xor, Operand::A, Operand::UNUSED});
 			map_inst.emplace(0xc3, Instruction{std::string("jp **"), 3, 10, inst_jp_nn, Operand::NN, Operand::UNUSED});
 			map_inst.emplace(0xf3, Instruction{std::string("di"), 1, 4, inst_di, Operand::UNUSED, Operand::UNUSED});
@@ -190,18 +191,26 @@ private:
 	std::map<unsigned char, const Instruction> map_inst;
 };
 
-bool inst_ld_nn(Z80 &state, unsigned short old_pc, Operand dst, Operand src)
+bool inst_ld(Z80 &state, unsigned short old_pc, Operand dst, Operand src)
 {
-	bool handled = false;
+	bool handled = true;
 	
-	switch(state.mem.read(old_pc))
+	switch(dst)
 	{
-	case 0x11:
+	case Operand::DE:
 	{
 		state.de.lo(state.mem.read(old_pc+1));
 		state.de.hi(state.mem.read(old_pc+2));
-		handled = true;
+		break;
 	}
+	case Operand::B:
+	{
+		state.bc.lo(state.af.lo());
+		break;
+	}
+	default:
+		handled = false;
+		break;
 	}
 
 	return handled;
