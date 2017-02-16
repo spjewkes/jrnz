@@ -96,6 +96,14 @@ private:
 	unsigned short alt_reg = 0;
 };
 
+typedef struct Instruction
+{
+public:
+	std::string name;
+	unsigned int size;
+	unsigned int cycles;
+} Instruction;
+
 /**
  * @brief Class describing a Z80 state.
  */
@@ -104,7 +112,10 @@ class Z80
 public:
 	Z80(unsigned int ram_size, std::string &rom_file) : mem(ram_size, rom_file)
 		{
-			map_inst.emplace(0xf3, std::string("di"));
+			map_inst.emplace(0x11, Instruction{std::string("ld de,**"), 3, 10}),
+			map_inst.emplace(0xaf, Instruction{std::string("xor a"), 1, 4});
+			map_inst.emplace(0xc3, Instruction{std::string("jp **"), 3, 10});
+			map_inst.emplace(0xf3, Instruction{std::string("di"), 1, 4});
 		}
 
 	unsigned short i = { 0 };
@@ -129,19 +140,21 @@ public:
 			auto search = map_inst.find(v);
 			if(search != map_inst.end())
 			{
-				std::cout << map_inst[v] << std::endl;
+				mem.dump(pc, search->second.size);
+				std::cout << search->second.name << std::endl;
 				found = true;
+				pc += search->second.size;
 			}
 			else
 			{
-				std::cout << "Unknown byte: 0x" << std::setw(2) << std::hex << static_cast<unsigned int>(v) << std::endl;
+				std::cout << "Unknown byte:" << std::endl;
+				mem.dump(pc, 1);
 			}
-			pc++;
 			return found;
 		}
 
 private:
-	std::map<unsigned char, const std::string> map_inst;
+	std::map<unsigned char, const Instruction> map_inst;
 };
 
 /**
