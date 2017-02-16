@@ -75,18 +75,18 @@ private:
 class Register
 {
 public:
-	void set_hi(unsigned char v)
+	void hi(unsigned char v)
 		{
-			reg &= 0x0f;
+			reg &= 0x00ff;
 			reg |= v << 8;
 		}
-	unsigned char get_hi() const { return static_cast<unsigned char>((reg >> 8) & 0xf); }
-	void set_lo(unsigned char v)
+	unsigned char hi() const { return static_cast<unsigned char>((reg >> 8) & 0xff); }
+	void lo(unsigned char v)
 		{
-			reg &= 0xf0;
+			reg &= 0xff00;
 			reg |= v;
 		}
-	unsigned char get_lo() const { return static_cast<unsigned char>(reg & 0xf); }
+	unsigned char lo() const { return static_cast<unsigned char>(reg & 0xff); }
 	void set(unsigned short v) { reg = v; }
 	unsigned short get() const { return reg; }
 	void swap() { std::swap(reg, alt_reg); }
@@ -96,13 +96,23 @@ private:
 	unsigned short alt_reg = 0;
 };
 
+class Z80;
+
+typedef bool(*inst_fn)(Z80&,unsigned short);
+
 typedef struct Instruction
 {
 public:
 	std::string name;
 	unsigned int size;
 	unsigned int cycles;
+	inst_fn inst;
 } Instruction;
+
+bool inst_ld_nn(Z80 &state, unsigned short old_pc);
+bool inst_xor(Z80 &state, unsigned short old_pc);
+bool inst_jp_nn(Z80 &state, unsigned short old_pc);
+bool inst_di(Z80 &state, unsigned short old_pc);
 
 /**
  * @brief Class describing a Z80 state.
@@ -112,14 +122,14 @@ class Z80
 public:
 	Z80(unsigned int ram_size, std::string &rom_file) : mem(ram_size, rom_file)
 		{
-			map_inst.emplace(0x11, Instruction{std::string("ld de,**"), 3, 10}),
-			map_inst.emplace(0xaf, Instruction{std::string("xor a"), 1, 4});
-			map_inst.emplace(0xc3, Instruction{std::string("jp **"), 3, 10});
-			map_inst.emplace(0xf3, Instruction{std::string("di"), 1, 4});
+			map_inst.emplace(0x11, Instruction{std::string("ld de,**"), 3, 10, inst_ld_nn});
+			map_inst.emplace(0xaf, Instruction{std::string("xor a"), 1, 4, inst_xor});
+			map_inst.emplace(0xc3, Instruction{std::string("jp **"), 3, 10, inst_jp_nn});
+			map_inst.emplace(0xf3, Instruction{std::string("di"), 1, 4, inst_di});
 		}
 
 	unsigned short i = { 0 };
-	unsigned short pc = { 0 };
+	Register pc;
 	unsigned short sp = { 0 };
 	unsigned short ix = { 0 };
 	unsigned short iy = { 0 };
@@ -136,19 +146,21 @@ public:
 		{
 			bool found = false;
 
-			unsigned char v = mem.read(pc);
+			const unsigned short curr_pc = pc.get();
+			const unsigned char v = mem.read(curr_pc);
 			auto search = map_inst.find(v);
 			if(search != map_inst.end())
 			{
-				mem.dump(pc, search->second.size);
+				mem.dump(curr_pc, search->second.size);
 				std::cout << search->second.name << std::endl;
-				found = true;
-				pc += search->second.size;
+				pc.set(curr_pc + search->second.size);
+				found = search->second.inst(*this, curr_pc);
 			}
-			else
+
+			if(!found)
 			{
 				std::cout << "Unknown byte:" << std::endl;
-				mem.dump(pc, 1);
+				mem.dump(curr_pc, 1);
 			}
 			return found;
 		}
@@ -156,6 +168,63 @@ public:
 private:
 	std::map<unsigned char, const Instruction> map_inst;
 };
+
+bool inst_ld_nn(Z80 &state, unsigned short old_pc)
+{
+	bool handled = false;
+	
+	switch(state.mem.read(old_pc))
+	{
+	case 0x11:
+	{
+		state.de.lo(state.mem.read(old_pc+1));
+		state.de.hi(state.mem.read(old_pc+2));
+		handled = true;
+	}
+	}
+
+	return handled;
+}
+
+bool inst_xor(Z80 &state, unsigned short old_pc)
+{
+	bool handled = false;
+
+	switch(state.mem.read(old_pc))
+	{
+	case 0xaf:
+	{
+		unsigned char a = state.af.lo();
+		state.af.lo(a^a);
+		handled = true;
+	}
+	}
+
+	return handled;
+}
+
+bool inst_jp_nn(Z80 &state, unsigned short old_pc)
+{
+	bool handled = false;
+
+	switch(state.mem.read(old_pc))
+	{
+	case 0xc3:
+	{
+		state.pc.lo(state.mem.read(old_pc+1));
+		state.pc.hi(state.mem.read(old_pc+2));
+		handled = true;
+	}
+	}
+
+	return handled;
+}
+
+bool inst_di(Z80 &state, unsigned short old_pc)
+{
+	state.int_on = true;
+	return true;
+}
 
 /**
  * @brief Main entry-point into application.
