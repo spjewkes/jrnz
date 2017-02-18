@@ -12,15 +12,12 @@ buid: setup_build $(EXE)
 	@echo "Build finished"
 
 $(OBJ_DIR)/%.o: %.cpp $(DEPS)
-	@echo "Building objects"
 	$(CPP) $(CPPFLAGS) -c -o $@ $<
 
 $(EXE): $(OBJ)
-	@echo "Building executable"
 	$(CPP) $(CPPFLAGS) $^ -o $@
 
 setup_build:
-	@echo "Setting up build structure"
 	@mkdir -p $(OBJ_DIR)
 
 .PHONY: clean
