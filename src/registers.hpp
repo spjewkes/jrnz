@@ -10,30 +10,47 @@
 #include "instructions.hpp"
 
 /**
+ * @brief Class describing an 8-bit register.
+ */
+class Register8
+{
+public:
+	unsigned char get() const { return reg; }
+	void set(unsigned char v) { reg = v; }
+
+	void swap() { std::swap(reg, alt_reg); }
+
+private:
+	unsigned char reg = 0;
+	unsigned char alt_reg = 0;
+};
+
+/**
  * @brief Class describing a 16-bit register.
  */
 class Register16
 {
 public:
-	void hi(unsigned char v)
+	void hi(unsigned char v) { rh.set(v); }
+	unsigned char hi() const { return rh.get(); }
+	void lo(unsigned char v) { rl.set(v); }
+	unsigned char lo() const { return rl.get(); }
+	void set(unsigned short v)
 		{
-			reg &= 0x00ff;
-			reg |= v << 8;
+			rl.set(static_cast<unsigned char>(v&0xff));
+			rh.set(static_cast<unsigned char>((v>>8)&0xff));
 		}
-	unsigned char hi() const { return static_cast<unsigned char>((reg >> 8) & 0xff); }
-	void lo(unsigned char v)
+	unsigned short get() const
 		{
-			reg &= 0xff00;
-			reg |= v;
+			unsigned short v = rl.get();
+			v |= rh.get() << 8;
+			return v;
 		}
-	unsigned char lo() const { return static_cast<unsigned char>(reg & 0xff); }
-	void set(unsigned short v) { reg = v; }
-	unsigned short get() const { return reg; }
-	void swap() { std::swap(reg, alt_reg); }
+	void swap() { rl.swap(); rh.swap(); }
 
 private:
-	unsigned short reg = 0;
-	unsigned short alt_reg = 0;
+	Register8 rl;
+	Register8 rh;
 };
 
 /**
