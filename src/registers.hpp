@@ -12,7 +12,7 @@
 /**
  * @brief Class describing a 16-bit register.
  */
-class Register
+class Register16
 {
 public:
 	void hi(unsigned char v)
@@ -52,15 +52,15 @@ public:
 		}
 
 	unsigned short i = { 0 };
-	Register pc;
+	Register16 pc;
 	unsigned short sp = { 0 };
 	unsigned short ix = { 0 };
 	unsigned short iy = { 0 };
 	
-	Register af;
-	Register hl;
-	Register bc;
-	Register de;
+	Register16 af;
+	Register16 hl;
+	Register16 bc;
+	Register16 de;
 	bool int_on = { false };
 
 	Memory mem;
