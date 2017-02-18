@@ -3,15 +3,18 @@ CPPFLAGS=-std=c++11
 EXE=run_jrnz
 
 OBJ_DIR=obj
+SRC_DIR=src
 
-DEPS=memory.hpp registers.hpp instructions.hpp
+_DEPS=memory.hpp registers.hpp instructions.hpp
+DEPS=$(patsubst %,$(SRC_DIR)/%,$(_DEPS))
+
 _OBJ=main.o instructions.o
 OBJ=$(patsubst %,$(OBJ_DIR)/%,$(_OBJ))
 
 buid: setup_build $(EXE)
 	@echo "Build finished"
 
-$(OBJ_DIR)/%.o: %.cpp $(DEPS)
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(DEPS)
 	$(CPP) $(CPPFLAGS) -c -o $@ $<
 
 $(EXE): $(OBJ)
@@ -24,4 +27,4 @@ setup_build:
 
 clean:
 	@echo "Cleaning"
-	@rm -f $(OBJ_DIR)/*.o *~
+	@rm -f $(OBJ_DIR)/*.o *~ $(SRC_DIR)/*~
