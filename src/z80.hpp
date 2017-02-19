@@ -7,7 +7,7 @@
 
 #include <map>
 #include "memory.hpp"
-#include "registers.hpp"
+#include "register.hpp"
 #include "instructions.hpp"
 
 /**
