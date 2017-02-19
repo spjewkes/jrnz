@@ -9,6 +9,31 @@
 #include <fstream>
 #include <iomanip>
 #include <vector>
+#include <cassert>
+
+/**
+ * @brief Defines a standard storage element type to allow operations between registers/memory.
+ */
+class StorageElement
+{
+public:
+	StorageElement(unsigned char *_ptr, size_t _count, bool _readonly=false) : ptr(_ptr), count(_count), readonly(_readonly) {}
+
+	StorageElement& operator=(const StorageElement &rhs)
+		{
+			assert(count == rhs.count);
+			if ((this != &rhs) && (!readonly))
+			{
+				std::memcpy(ptr, rhs.ptr, count);
+			}
+			return *this;
+		}
+	
+private:
+	unsigned char *ptr;
+	size_t count;
+	bool readonly;
+};
 
 /**
  * @brief Defines the memory of the device.
@@ -41,6 +66,7 @@ public:
 				mem[pos] = v;
 			}
 		}
+	StorageElement element(size_t pos) { return StorageElement(&mem[pos], 1, pos<ram_start); }
 
 	void dump(size_t offset, size_t size) const
 		{

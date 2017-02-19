@@ -9,21 +9,27 @@
 #include "memory.hpp"
 #include "instructions.hpp"
 
-/**
- * @brief Class describing an 8-bit register.
- */
-class Register8
-{
-public:
-	unsigned char get() const { return reg; }
-	void set(unsigned char v) { reg = v; }
-
-	void swap() { std::swap(reg, alt_reg); }
-
-private:
-	unsigned char reg = 0;
-	unsigned char alt_reg = 0;
-};
+#if defined(__BYTE_ORDER) && __BYTE_ORDER == __BIG_ENDIAN || \
+	defined(__BIG_ENDIAN__) || \
+	defined(__ARMEB__) || \
+	defined(__THUMBEB__) || \
+	defined(__AARCH64EB__) || \
+	defined(_MIBSEB) || defined(__MIBSEB) || defined(__MIBSEB__)
+// It's a big-endian target architecture
+#define HI_REG8 (1)
+#define LO_REG8 (0)
+#elif defined(__BYTE_ORDER) && __BYTE_ORDER == __LITTLE_ENDIAN || \
+	defined(__LITTLE_ENDIAN__) || \
+	defined(__ARMEL__) || \
+	defined(__THUMBEL__) || \
+	defined(__AARCH64EL__) || \
+	defined(_MIPSEL) || defined(__MIPSEL) || defined(__MIPSEL__)
+// It's a little-endian target architecture
+#define HI_REG8 (0)
+#define LO_REG8 (1)
+#else
+#error "I don't know what architecture this is!"
+#endif
 
 /**
  * @brief Class describing a 16-bit register.
@@ -31,26 +37,25 @@ private:
 class Register16
 {
 public:
-	void hi(unsigned char v) { rh.set(v); }
-	unsigned char hi() const { return rh.get(); }
-	void lo(unsigned char v) { rl.set(v); }
-	unsigned char lo() const { return rl.get(); }
-	void set(unsigned short v)
-		{
-			rl.set(static_cast<unsigned char>(v&0xff));
-			rh.set(static_cast<unsigned char>((v>>8)&0xff));
-		}
-	unsigned short get() const
-		{
-			unsigned short v = rl.get();
-			v |= rh.get() << 8;
-			return v;
-		}
-	void swap() { rl.swap(); rh.swap(); }
+	void hi(unsigned char v) { reg = ((v << 8) & 0xff00) | (reg & 0xff); }
+	unsigned char hi() const { return static_cast<unsigned char>((reg>>8) & 0xff); }
+	void lo(unsigned char v) { reg = (reg & 0xff00) | (v & 0xff); }
+	unsigned char lo() const { return static_cast<unsigned char>(reg & 0xff); }
+	void set(unsigned short v) { reg = v; }
+	unsigned short get() const { return reg; }
+	void swap() { std::swap(reg, alt_reg); }
+
+	StorageElement element() { return StorageElement(&c_reg[0], 2); }
+	StorageElement element_hi() { return StorageElement(&c_reg[HI_REG8], 1); }
+	StorageElement element_lo() { return StorageElement(&c_reg[LO_REG8], 1); }
 
 private:
-	Register8 rl;
-	Register8 rh;
+	union
+	{
+		unsigned short reg = 0;
+		unsigned char c_reg[2];
+	};
+	unsigned short alt_reg = 0;
 };
 
 /**
