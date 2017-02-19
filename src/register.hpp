@@ -6,6 +6,7 @@
 #define __REGISTER_HPP__
 
 #include "memory.hpp"
+#include "storage_element.hpp"
 #include "common.hpp"
 
 /**
