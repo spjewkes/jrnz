@@ -6,32 +6,12 @@
 #define __INSTRUCTIONS_HPP__
 
 #include <string>
+#include "common.hpp"
 
 /**
  * @brief Forward declarations
  */
 class Z80;
-
-/**
- * @brief Defines the operands that can be passed into an instruction handling function
- */
-enum Operand
-{
-	BC,
-	DE,
-	HL,
-	SP,
-	A,
-	B,
-	C,
-	D,
-	E,
-	H,
-	L,
-	N,
-	NN,
-	UNUSED
-};
 
 /**
  * @brief Defines the callback function used to handle each instruction

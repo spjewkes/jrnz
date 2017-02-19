@@ -5,6 +5,9 @@
 #ifndef __COMMON_HPP__
 #define __COMMON_HPP__
 
+/**
+ * @brief Define the high and low bytes in a short word
+ */
 #if defined(__BYTE_ORDER) && __BYTE_ORDER == __BIG_ENDIAN ||	\
 	defined(__BIG_ENDIAN__) || \
 	defined(__ARMEB__) || \
@@ -26,5 +29,26 @@
 #else
 #error "I don't know what architecture this is!"
 #endif
+
+/**
+ * @brief Defines the operands that can be passed into an instruction handling function
+ */
+enum Operand
+{
+	BC,
+	DE,
+	HL,
+	SP,
+	A,
+	B,
+	C,
+	D,
+	E,
+	H,
+	L,
+	N,
+	NN,
+	UNUSED
+};
 
 #endif // __COMMON_HPP__
