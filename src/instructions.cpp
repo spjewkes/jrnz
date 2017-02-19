@@ -5,8 +5,14 @@
 #include "instructions.hpp"
 #include "z80.hpp"
 
-static StorageElement get_element(Z80 &state, Operand operand, size_t pos)
+static StorageElement get_element(Z80 &state, Operand operand, size_t pos, bool &handled)
 {
+	handled = true;
+
+	//! The N and NN are incorrect. We need to fetch the values from memory for
+	//! these and create new StorageElement objects that contain these values
+	//! These will be read only and stored in the StorageElement object
+
 	switch(operand)
 	{
 	case BC: return state.bc.element();
@@ -20,18 +26,19 @@ static StorageElement get_element(Z80 &state, Operand operand, size_t pos)
 	case E:  return state.de.element_lo();
 	case H:  return state.hl.element_hi();
 	case L:  return state.hl.element_lo();
-	case N:  return state.mem.element(pos, 1);
-	case NN: return state.mem.element(pos, 2);
+	case N:  handled = false; return state.mem.element(pos, 1);
+	case NN: handled = false; return state.mem.element(pos, 2);
 	case UNUSED:
 	default:
-		assert(false);
+		handled = false;
+		return StorageElement(nullptr, 0);
 	}
 }
 
 bool inst_ld(Z80 &state, unsigned short old_pc, Operand dst, Operand src)
 {
 	bool handled = true;
-	
+
 	switch(dst)
 	{
 	case Operand::DE:
