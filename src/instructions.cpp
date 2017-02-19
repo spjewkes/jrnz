@@ -5,13 +5,9 @@
 #include "instructions.hpp"
 #include "z80.hpp"
 
-static StorageElement get_element(Z80 &state, Operand operand, size_t pos, bool &handled)
+static StorageElement get_element(Z80 &state, Operand operand, unsigned short old_pc, bool &handled)
 {
 	handled = true;
-
-	//! The N and NN are incorrect. We need to fetch the values from memory for
-	//! these and create new StorageElement objects that contain these values
-	//! These will be read only and stored in the StorageElement object
 
 	switch(operand)
 	{
@@ -26,8 +22,8 @@ static StorageElement get_element(Z80 &state, Operand operand, size_t pos, bool 
 	case E:  return state.de.element_lo();
 	case H:  return state.hl.element_hi();
 	case L:  return state.hl.element_lo();
-	case N:  handled = false; return state.mem.element(pos, 1);
-	case NN: handled = false; return state.mem.element(pos, 2);
+	case N:  return StorageElement(state.mem.read(old_pc+1));
+	case NN: return StorageElement(state.mem.read(old_pc+1), state.mem.read(old_pc+2));
 	case UNUSED:
 	default:
 		handled = false;
@@ -39,24 +35,16 @@ bool inst_ld(Z80 &state, unsigned short old_pc, Operand dst, Operand src)
 {
 	bool handled = true;
 
-	switch(dst)
+	StorageElement dst_elem = get_element(state, dst, old_pc, handled);
+	if (handled)
 	{
-	case Operand::DE:
-	{
-		state.de.lo(state.mem.read(old_pc+1));
-		state.de.hi(state.mem.read(old_pc+2));
-		break;
+		StorageElement src_elem = get_element(state, src, old_pc, handled);
+		if (handled)
+		{
+			dst_elem.load(src_elem);
+		}
 	}
-	case Operand::B:
-	{
-		state.bc.lo(state.af.lo());
-		break;
-	}
-	default:
-		handled = false;
-		break;
-	}
-
+	
 	return handled;
 }
 
