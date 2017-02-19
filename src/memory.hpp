@@ -10,6 +10,7 @@
 #include <iomanip>
 #include <vector>
 #include <cassert>
+#include "common.hpp"
 
 /**
  * @brief Defines a standard storage element type to allow operations between registers/memory.
@@ -17,19 +18,38 @@
 class StorageElement
 {
 public:
-	StorageElement(unsigned char *_ptr, size_t _count, bool _readonly=false) : ptr(_ptr), count(_count), readonly(_readonly) {}
+	StorageElement(unsigned char *_ptr, size_t _count, bool _readonly=false) : ptr(_ptr), count(_count), readonly(_readonly)
+		{
+			if (readonly)
+			{
+				read_only.resize(count);
+				std::memcpy(&read_only[0], _ptr, _count);
+			}
+		}
+	StorageElement(unsigned char v) : ptr(nullptr), count(1), readonly(true)
+		{
+			read_only.push_back(v);
+		}
+	StorageElement(unsigned char lo, unsigned char hi) : ptr(nullptr), count(2), readonly(true)
+		{
+			read_only.resize(count);
+			read_only[LO_BYTE] = lo;
+			read_only[HI_BYTE] = hi;
+		}
 
 	void load(const StorageElement &rhs)
 		{
 			assert(count == rhs.count);
 			if ((this != &rhs) && (!readonly))
 			{
-				std::memcpy(ptr, rhs.ptr, count);
+				if( !rhs.readonly) std::memcpy(ptr, rhs.ptr, count);
+				else               std::memcpy(ptr, &rhs.read_only[0], count);
 			}
 		}
 	
 private:
 	unsigned char *ptr;
+	std::vector<unsigned char> read_only;
 	size_t count;
 	bool readonly;
 };
