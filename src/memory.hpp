@@ -19,14 +19,13 @@ class StorageElement
 public:
 	StorageElement(unsigned char *_ptr, size_t _count, bool _readonly=false) : ptr(_ptr), count(_count), readonly(_readonly) {}
 
-	StorageElement& operator=(const StorageElement &rhs)
+	void load(const StorageElement &rhs)
 		{
 			assert(count == rhs.count);
 			if ((this != &rhs) && (!readonly))
 			{
 				std::memcpy(ptr, rhs.ptr, count);
 			}
-			return *this;
 		}
 	
 private:
