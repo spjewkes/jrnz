@@ -1,7 +1,7 @@
 #include <iostream>
 #include <cstdlib>
 
-#include "registers.hpp"
+#include "z80.hpp"
 
 /**
  * @brief Main entry-point into application.

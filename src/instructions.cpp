@@ -3,7 +3,7 @@
  */
 
 #include "instructions.hpp"
-#include "registers.hpp"
+#include "z80.hpp"
 
 bool inst_ld(Z80 &state, unsigned short old_pc, Operand dst, Operand src)
 {
