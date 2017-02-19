@@ -8,19 +8,18 @@
 
 bool inst_ld(Z80 &state, unsigned short old_pc, Operand dst, Operand src)
 {
-	bool handled = true;
+	bool dst_handled = false;
+	bool src_handled = false;
 
-	StorageElement dst_elem = StorageElement::create_element(state, dst, old_pc, handled);
-	if (handled)
+	StorageElement dst_elem = StorageElement::create_element(state, dst, old_pc, dst_handled);
+	StorageElement src_elem = StorageElement::create_element(state, src, old_pc, src_handled);
+
+	if (dst_handled && src_handled)
 	{
-		StorageElement src_elem = StorageElement::create_element(state, src, old_pc, handled);
-		if (handled)
-		{
-			dst_elem.load(src_elem);
-		}
+		dst_elem.load(src_elem);
 	}
 	
-	return handled;
+	return dst_handled && src_handled;
 }
 
 bool inst_xor(Z80 &state, unsigned short old_pc, Operand dst, Operand src)
