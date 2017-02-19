@@ -27,9 +27,9 @@ public:
 
 	unsigned short i = { 0 };
 	Register16 pc;
-	unsigned short sp = { 0 };
-	unsigned short ix = { 0 };
-	unsigned short iy = { 0 };
+	Register16 sp;
+	Register16 ix;
+	Register16 iy;
 	
 	Register16 af;
 	Register16 hl;

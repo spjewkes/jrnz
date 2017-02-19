@@ -65,7 +65,7 @@ public:
 				mem[pos] = v;
 			}
 		}
-	StorageElement element(size_t pos) { return StorageElement(&mem[pos], 1, pos<ram_start); }
+	StorageElement element(size_t pos, size_t count) { return StorageElement(&mem[pos], count, (pos < ram_start)); }
 
 	void dump(size_t offset, size_t size) const
 		{

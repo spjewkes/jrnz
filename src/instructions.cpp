@@ -5,6 +5,29 @@
 #include "instructions.hpp"
 #include "z80.hpp"
 
+static StorageElement get_element(Z80 &state, Operand operand, size_t pos)
+{
+	switch(operand)
+	{
+	case BC: return state.bc.element();
+	case DE: return state.de.element();
+	case HL: return state.hl.element();
+	case SP: return state.sp.element();
+	case A:  return state.af.element_hi();
+	case B:  return state.bc.element_hi();
+	case C:  return state.bc.element_lo();
+	case D:  return state.de.element_hi();
+	case E:  return state.de.element_lo();
+	case H:  return state.hl.element_hi();
+	case L:  return state.hl.element_lo();
+	case N:  return state.mem.element(pos, 1);
+	case NN: return state.mem.element(pos, 2);
+	case UNUSED:
+	default:
+		assert(false);
+	}
+}
+
 bool inst_ld(Z80 &state, unsigned short old_pc, Operand dst, Operand src)
 {
 	bool handled = true;
