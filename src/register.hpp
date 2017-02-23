@@ -15,17 +15,17 @@
 class Register16
 {
 public:
-	void hi(unsigned char v) { reg = ((v << 8) & 0xff00) | (reg & 0xff); }
-	unsigned char hi() const { return static_cast<unsigned char>((reg>>8) & 0xff); }
-	void lo(unsigned char v) { reg = (reg & 0xff00) | (v & 0xff); }
-	unsigned char lo() const { return static_cast<unsigned char>(reg & 0xff); }
+	void hi(unsigned char v) { c_reg[WORD_HI_BYTE_IDX] = v; }
+	unsigned char hi() const { return c_reg[WORD_HI_BYTE_IDX]; }
+	void lo(unsigned char v) { c_reg[WORD_LO_BYTE_IDX] = v; }
+	unsigned char lo() const { return c_reg[WORD_LO_BYTE_IDX]; }
 	void set(unsigned short v) { reg = v; }
 	unsigned short get() const { return reg; }
 	void swap() { std::swap(reg, alt_reg); }
 
 	StorageElement element() { return StorageElement(&c_reg[0], 2); }
-	StorageElement element_hi() { return StorageElement(&c_reg[HI_BYTE], 1); }
-	StorageElement element_lo() { return StorageElement(&c_reg[LO_BYTE], 1); }
+	StorageElement element_hi() { return StorageElement(&c_reg[WORD_HI_BYTE_IDX], 1); }
+	StorageElement element_lo() { return StorageElement(&c_reg[WORD_LO_BYTE_IDX], 1); }
 
 private:
 	union

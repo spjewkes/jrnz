@@ -22,8 +22,8 @@ StorageElement::StorageElement(unsigned char v) : ptr(nullptr), count(1), readon
 StorageElement::StorageElement(unsigned char lo, unsigned char hi) : ptr(nullptr), count(2), readonly(true)
 {
 	read_only.resize(count);
-	read_only[LO_BYTE] = lo;
-	read_only[HI_BYTE] = hi;
+	read_only[WORD_LO_BYTE_IDX] = lo;
+	read_only[WORD_HI_BYTE_IDX] = hi;
 }
 
 StorageElement StorageElement::create_element(Z80 &state, Operand operand, unsigned short old_pc, bool &handled)

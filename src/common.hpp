@@ -14,18 +14,26 @@
 	defined(__THUMBEB__) || \
 	defined(__AARCH64EB__) || \
 	defined(_MIBSEB) || defined(__MIBSEB) || defined(__MIBSEB__)
+
 // It's a big-endian target architecture
-#define HI_BYTE (1)
-#define LO_BYTE (0)
+
+/* These defines are specifically for access a byte stream mapping onto a word */
+#define WORD_HI_BYTE_IDX (0)
+#define WORD_LO_BYTE_IDX (1)
+
 #elif defined(__BYTE_ORDER) && __BYTE_ORDER == __LITTLE_ENDIAN || \
 	defined(__LITTLE_ENDIAN__) || \
 	defined(__ARMEL__) || \
 	defined(__THUMBEL__) || \
 	defined(__AARCH64EL__) || \
 	defined(_MIPSEL) || defined(__MIPSEL) || defined(__MIPSEL__)
+
 // It's a little-endian target architecture
-#define HI_BYTE (0)
-#define LO_BYTE (1)
+
+/* These defines are specifically for access a byte stream mapping onto a word */
+#define WORD_HI_BYTE_IDX (1)
+#define WORD_LO_BYTE_IDX (0)
+
 #else
 #error "I don't know what architecture this is!"
 #endif
