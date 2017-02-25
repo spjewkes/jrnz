@@ -50,6 +50,7 @@ StorageElement StorageElement::create_element(Z80 &state, Operand operand, bool 
 	case PC:     return state.pc.element();
 	case PORT:   return state.ports.element(state.mem.read(state.curr_operand_pc));
 	case I:      return state.ir.element_hi();
+	case indHL:  return StorageElement(state.mem.read(state.hl.get()));
 	case UNUSED:
 	default:
 		handled = false;

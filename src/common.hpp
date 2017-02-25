@@ -59,6 +59,7 @@ enum Operand
 	PC,
 	PORT,
 	I,
+	indHL,
 	UNUSED
 };
 
