@@ -16,7 +16,7 @@ class Z80;
 /**
  * @brief Defines the callback function used to handle each instruction
  */
-typedef bool(*inst_fn)(Z80&,unsigned short, Operand, Operand);
+typedef bool(*inst_fn)(Z80&, Operand, Operand);
 
 /**
  * @brief Defines an instruction entry
@@ -35,10 +35,10 @@ public:
 /**
  * @brief Define protoypes for instruction callbacks
  */
-bool inst_ld(Z80 &state, unsigned short old_pc, Operand dst, Operand src);
-bool inst_xor(Z80 &state, unsigned short old_pc, Operand dst, Operand src);
-bool inst_jp(Z80 &state, unsigned short old_pc, Operand dst, Operand src);
-bool inst_di(Z80 &state, unsigned short old_pc, Operand dst, Operand src);
-bool inst_out(Z80 &state, unsigned short old_pc, Operand dst, Operand src);
+bool inst_ld(Z80 &state, Operand dst, Operand src);
+bool inst_xor(Z80 &state, Operand dst, Operand src);
+bool inst_jp(Z80 &state, Operand dst, Operand src);
+bool inst_di(Z80 &state, Operand dst, Operand src);
+bool inst_out(Z80 &state, Operand dst, Operand src);
 
 #endif // __INSTRUCTIONS_HPP__

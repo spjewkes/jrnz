@@ -20,7 +20,7 @@ public:
 	StorageElement(unsigned char v);
 	StorageElement(unsigned char lo, unsigned char hi);
 
-	static StorageElement create_element(Z80 &state, Operand operand, unsigned short old_pc, bool &handled);
+	static StorageElement create_element(Z80 &state, Operand operand, bool &handled);
 
 	void do_load(const StorageElement &rhs);
 	void do_xor(const StorageElement &rhs, Z80 &state);

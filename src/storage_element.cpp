@@ -28,7 +28,7 @@ StorageElement::StorageElement(unsigned char lo, unsigned char hi) : ptr(nullptr
 	ptr = &read_only[0];
 }
 
-StorageElement StorageElement::create_element(Z80 &state, Operand operand, unsigned short old_pc, bool &handled)
+StorageElement StorageElement::create_element(Z80 &state, Operand operand, bool &handled)
 {
 	handled = true;
 
@@ -45,10 +45,10 @@ StorageElement StorageElement::create_element(Z80 &state, Operand operand, unsig
 	case E:      return state.de.element_lo();
 	case H:      return state.hl.element_hi();
 	case L:      return state.hl.element_lo();
-	case N:      return StorageElement(state.mem.read(old_pc+1));
-	case NN:     return StorageElement(state.mem.read(old_pc+1), state.mem.read(old_pc+2));
+	case N:      return StorageElement(state.mem.read(state.curr_pc+1));
+	case NN:     return StorageElement(state.mem.read(state.curr_pc+1), state.mem.read(state.curr_pc+2));
 	case PC:     return state.pc.element();
-	case PORT:   return state.ports.element(state.mem.read(old_pc+1));
+	case PORT:   return state.ports.element(state.mem.read(state.curr_pc+1));
 	case UNUSED:
 	default:
 		handled = false;

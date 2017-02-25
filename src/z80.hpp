@@ -29,6 +29,7 @@ public:
 		}
 
 	unsigned short i = { 0 };
+	unsigned short curr_pc = { 0 }; // Stores the PC of the instruction being executed
 	Register16 pc;
 	Register16 sp;
 	Register16 ix;
@@ -47,7 +48,7 @@ public:
 		{
 			bool found = false;
 
-			const unsigned short curr_pc = pc.get();
+			curr_pc = pc.get();
 			const unsigned char v = mem.read(curr_pc);
 			auto search = map_inst.find(v);
 			if(search != map_inst.end())
@@ -56,13 +57,13 @@ public:
 				mem.dump(curr_pc, inst.size);
 				std::cout << inst.name << std::endl;
 				pc.set(curr_pc + inst.size);
-				found = inst.func(*this, curr_pc, inst.dst, inst.src);
+				found = inst.func(*this, inst.dst, inst.src);
 			}
 
 			if(!found)
 			{
-				std::cout << "Unknown byte:" << std::endl;
-				mem.dump(curr_pc, 1);
+				std::cout << "Unknown data:" << std::endl;
+				mem.dump(curr_pc, 4);
 			}
 			return found;
 		}
