@@ -36,4 +36,37 @@ private:
 	unsigned short alt_reg = 0;
 };
 
+/**
+ * @brief Specialization of Register16 for A and F registers.
+ */
+class RegisterAF : public Register16
+{
+public:
+	enum class Flags
+	{
+		Carry = 0,
+		AddSubtract = 1,
+		ParityOverflow = 2,
+		HalfCarry = 4,
+		Zero = 6,
+		Sign = 7
+	};
+
+	void accum(unsigned char v) { hi(v); }
+	unsigned char accum() const { return hi(); }
+	void flags(unsigned char v) { lo(v); }
+	unsigned char flags() const { return lo(); }
+
+	void flag(Flags f, bool v)
+		{
+			unsigned char bit = 0x1 << static_cast<unsigned int>(f);
+			flags((flags() & ~bit) | (v?bit:0));
+		}
+	bool flag(Flags f)
+		{
+			unsigned char bit = 0x1 << static_cast<unsigned int>(f);
+			return (flags() & bit) != 0;
+		}
+};
+
 #endif // __REGISTER_HPP__
