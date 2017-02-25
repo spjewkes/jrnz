@@ -21,6 +21,7 @@ public:
 		{
 			map_inst.emplace(0x00, Instruction{std::string("nop"), 1, 4, inst_nop, Operand::UNUSED, Operand::UNUSED});
 			map_inst.emplace(0x11, Instruction{std::string("ld de,**"), 3, 10, inst_ld, Operand::DE, Operand::NN});
+			map_inst.emplace(0x2b, Instruction{std::string("dec hl"), 1, 6, inst_sub, Operand::HL, Operand::UNUSED});
 			map_inst.emplace(0x36, Instruction{std::string("ld (hl),*"), 2, 10, inst_ld, Operand::indHL, Operand::N});
 			map_inst.emplace(0x3e, Instruction{std::string("ld a,*"), 2, 7, inst_ld, Operand::A, Operand::N});
 			map_inst.emplace(0x47, Instruction{std::string("ld b,a"), 1, 4, inst_ld, Operand::B, Operand::A});

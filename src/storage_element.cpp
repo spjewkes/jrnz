@@ -81,3 +81,9 @@ void StorageElement::do_xor(const StorageElement &rhs, Z80 &state)
 	state.af.set_zero(*ptr);
 	state.af.set_negative(*ptr);
 }
+
+void StorageElement::do_dec()
+{
+	(*ptr)--;
+}
+

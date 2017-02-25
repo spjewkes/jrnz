@@ -24,6 +24,7 @@ public:
 
 	void do_copy(const StorageElement &rhs);
 	void do_xor(const StorageElement &rhs, Z80 &state);
+	void do_dec();
 
 private:
 	unsigned char *ptr;

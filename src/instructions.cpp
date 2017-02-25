@@ -62,3 +62,17 @@ bool inst_out(Z80 &state, Operand dst, Operand src)
 	assert(PORT == dst);
 	return inst_ld(state, dst, src);
 }
+
+bool inst_sub(Z80 &state, Operand dst, Operand src)
+{
+	bool handled = false;
+
+	StorageElement dst_elem = StorageElement::create_element(state, dst, handled);
+
+	if (handled)
+	{
+		dst_elem.do_dec();
+	}
+	
+	return handled;
+}
