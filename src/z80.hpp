@@ -49,15 +49,13 @@ public:
 		{
 			bool found = false;
 
-			curr_opcode_pc = pc.get();
-			const unsigned char v = mem.read(curr_opcode_pc);
-			auto search = map_inst.find(v);
+			const auto opcode = get_opcode();
+			auto search = map_inst.find(opcode);
 			if(search != map_inst.end())
 			{
 				const Instruction &inst = search->second;
 				mem.dump(curr_opcode_pc, inst.size);
 				std::cout << inst.name << std::endl;
-				curr_operand_pc = curr_opcode_pc + 1;
 				pc.set(curr_opcode_pc + inst.size);
 				found = inst.func(*this, inst.dst, inst.src);
 			}
@@ -71,7 +69,37 @@ public:
 		}
 
 private:
-	std::map<unsigned char, const Instruction> map_inst;
+	unsigned int get_opcode()
+		{
+			curr_opcode_pc = pc.get();
+			curr_operand_pc = curr_opcode_pc + 1;
+			unsigned int opcode = mem.read(curr_opcode_pc);
+
+			// Handled extended instructions
+			switch(opcode)
+			{
+			case 0xed:
+			case 0xcd:
+			case 0xdd:
+			case 0xfd:
+			{
+				opcode = (opcode << 8) | mem.read(curr_operand_pc);
+				curr_operand_pc++;
+
+				// Handle IX and IY bit instructions
+				switch(opcode)
+				{
+				case 0xddcb:
+				case 0xfdcb:
+					opcode = (opcode << 8) | mem.read(curr_opcode_pc);
+					curr_operand_pc++;
+				}
+			}
+			}
+			
+			return opcode;
+		}
+	std::map<unsigned int, const Instruction> map_inst;
 };
 
 #endif // __Z80_HPP__
