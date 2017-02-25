@@ -22,10 +22,8 @@ public:
 
 	static StorageElement create_element(Z80 &state, Operand operand, bool &handled);
 
-	void do_load(const StorageElement &rhs);
+	void do_copy(const StorageElement &rhs);
 	void do_xor(const StorageElement &rhs, Z80 &state);
-	void do_jmp(const StorageElement &rhs);
-	void do_out(const StorageElement &rhs);
 
 private:
 	unsigned char *ptr;

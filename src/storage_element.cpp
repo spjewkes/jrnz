@@ -56,7 +56,7 @@ StorageElement StorageElement::create_element(Z80 &state, Operand operand, bool 
 	}
 }
 
-void StorageElement::do_load(const StorageElement &rhs)
+void StorageElement::do_copy(const StorageElement &rhs)
 {
 	assert(count == rhs.count);
 	if ((this != &rhs) && (!readonly))
@@ -79,26 +79,3 @@ void StorageElement::do_xor(const StorageElement &rhs, Z80 &state)
 	state.af.set_zero(*ptr);
 	state.af.set_negative(*ptr);
 }
-
-void StorageElement::do_jmp(const StorageElement &rhs)
-{
-	assert(count == rhs.count);
-
-	if ((this != &rhs) && (!readonly))
-	{
-		std::memcpy(ptr, rhs.ptr, count);
-	}
-}
-
-void StorageElement::do_out(const StorageElement &rhs)
-{
-	assert(count == rhs.count);
-	assert(1 == count);
-
-	if ((this != &rhs) && (!readonly))
-	{
-		std::memcpy(ptr, rhs.ptr, count);
-	}
-}
-
-
