@@ -6,6 +6,7 @@
 #define __MEMORY_HPP__
 
 #include <iostream>
+#include <sstream>
 #include <fstream>
 #include <iomanip>
 #include <vector>
@@ -46,8 +47,9 @@ public:
 		}
 	StorageElement element(size_t pos, size_t count) { return StorageElement(&mem[pos], count, (pos < ram_start)); }
 
-	void dump(size_t offset, size_t size) const
+	std::string dump(size_t offset, size_t size, bool add_eol=false) const
 		{
+			std::ostringstream output;
 			const auto end = offset + size;
 			const auto per_line = 16;
 			auto line_count = 0;
@@ -55,22 +57,23 @@ public:
 			{
 				if(0 == line_count)
 				{
-					std::cout << std::hex << "0x" << std::setw(4) << std::setfill('0') << pos << ":";
+					output << std::hex << "0x" << std::setw(4) << std::setfill('0') << pos << ":";
 				}
 				
-				std::cout << std::hex << " " << std::setw(2) << std::setfill('0') << static_cast<unsigned int>(mem[pos]);
+				output << std::hex << " " << std::setw(2) << std::setfill('0') << static_cast<unsigned int>(mem[pos]);
 				line_count++;
 
 				if(per_line == line_count)
 				{
 					line_count = 0;
-					std::cout << std::endl;
+					output << std::endl;
 				}
 			}
-			if(line_count != 0)
+			if(add_eol && line_count != 0)
 			{
-				std::cout << std::endl;
+				output << std::endl;
 			}
+			return output.str();
 		}
 
 private:

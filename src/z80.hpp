@@ -61,7 +61,7 @@ public:
 			if(search != map_inst.end())
 			{
 				const Instruction &inst = search->second;
-				mem.dump(curr_opcode_pc, inst.size);
+				std::cout << std::left << std::setw(20) << mem.dump(curr_opcode_pc, inst.size);
 				std::cout << inst.name << std::endl;
 				pc.set(curr_opcode_pc + inst.size);
 				found = inst.func(*this, inst.dst, inst.src);
@@ -69,8 +69,8 @@ public:
 
 			if(!found)
 			{
-				std::cout << "Unknown data:" << std::endl;
-				mem.dump(curr_opcode_pc, 4);
+				std::cerr << "Unhandled instruction error:" << std::endl;
+				std::cerr << mem.dump(curr_opcode_pc, 4) << std::endl;
 			}
 			return found;
 		}
