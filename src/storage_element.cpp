@@ -52,7 +52,7 @@ StorageElement StorageElement::create_element(Z80 &state, Operand operand, unsig
 	}
 }
 
-void StorageElement::load(const StorageElement &rhs)
+void StorageElement::do_load(const StorageElement &rhs)
 {
 	assert(count == rhs.count);
 	if ((this != &rhs) && (!readonly))
@@ -62,3 +62,12 @@ void StorageElement::load(const StorageElement &rhs)
 	}
 }
 
+void StorageElement::do_xor(const StorageElement &rhs, Z80 &state)
+{
+	assert(count == rhs.count);
+	assert(count == 1); // assume 1 byte size for now
+
+	*ptr ^= *rhs.ptr;
+
+	// Need to do the status registers
+}

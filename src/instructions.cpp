@@ -16,7 +16,7 @@ bool inst_ld(Z80 &state, unsigned short old_pc, Operand dst, Operand src)
 
 	if (dst_handled && src_handled)
 	{
-		dst_elem.load(src_elem);
+		dst_elem.do_load(src_elem);
 	}
 	
 	return dst_handled && src_handled;
@@ -24,19 +24,18 @@ bool inst_ld(Z80 &state, unsigned short old_pc, Operand dst, Operand src)
 
 bool inst_xor(Z80 &state, unsigned short old_pc, Operand dst, Operand src)
 {
-	bool handled = false;
+	bool dst_handled = false;
+	bool src_handled = false;
 
-	switch(state.mem.read(old_pc))
-	{
-	case 0xaf:
-	{
-		unsigned char a = state.af.lo();
-		state.af.lo(a^a);
-		handled = true;
-	}
-	}
+	StorageElement dst_elem = StorageElement::create_element(state, dst, old_pc, dst_handled);
+	StorageElement src_elem = StorageElement::create_element(state, src, old_pc, src_handled);
 
-	return handled;
+	if (dst_handled && src_handled)
+	{
+		dst_elem.do_xor(src_elem, state);
+	}
+	
+	return dst_handled && src_handled;
 }
 
 bool inst_jp_nn(Z80 &state, unsigned short old_pc, Operand dst, Operand src)
