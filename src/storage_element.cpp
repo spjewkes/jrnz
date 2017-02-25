@@ -17,6 +17,7 @@ StorageElement::StorageElement(unsigned char *_ptr, size_t _count, bool _readonl
 StorageElement::StorageElement(unsigned char v) : ptr(nullptr), count(1), readonly(true)
 {
 	read_only.push_back(v);
+	ptr = &read_only[0];
 }
 
 StorageElement::StorageElement(unsigned char lo, unsigned char hi) : ptr(nullptr), count(2), readonly(true)
@@ -24,6 +25,7 @@ StorageElement::StorageElement(unsigned char lo, unsigned char hi) : ptr(nullptr
 	read_only.resize(count);
 	read_only[WORD_LO_BYTE_IDX] = lo;
 	read_only[WORD_HI_BYTE_IDX] = hi;
+	ptr = &read_only[0];
 }
 
 StorageElement StorageElement::create_element(Z80 &state, Operand operand, unsigned short old_pc, bool &handled)
@@ -59,8 +61,7 @@ void StorageElement::do_load(const StorageElement &rhs)
 	assert(count == rhs.count);
 	if ((this != &rhs) && (!readonly))
 	{
-		if( !rhs.readonly) std::memcpy(ptr, rhs.ptr, count);
-		else               std::memcpy(ptr, &rhs.read_only[0], count);
+		std::memcpy(ptr, rhs.ptr, count);
 	}
 }
 
@@ -85,8 +86,7 @@ void StorageElement::do_jmp(const StorageElement &rhs)
 
 	if ((this != &rhs) && (!readonly))
 	{
-		if( !rhs.readonly) std::memcpy(ptr, rhs.ptr, count);
-		else               std::memcpy(ptr, &rhs.read_only[0], count);
+		std::memcpy(ptr, rhs.ptr, count);
 	}
 }
 
@@ -97,8 +97,7 @@ void StorageElement::do_out(const StorageElement &rhs)
 
 	if ((this != &rhs) && (!readonly))
 	{
-		if( !rhs.readonly) std::memcpy(ptr, rhs.ptr, count);
-		else               std::memcpy(ptr, &rhs.read_only[0], count);
+		std::memcpy(ptr, rhs.ptr, count);
 	}
 }
 
