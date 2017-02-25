@@ -38,7 +38,7 @@ bool inst_xor(Z80 &state, unsigned short old_pc, Operand dst, Operand src)
 	return dst_handled && src_handled;
 }
 
-bool inst_jp_nn(Z80 &state, unsigned short old_pc, Operand dst, Operand src)
+bool inst_jp(Z80 &state, unsigned short old_pc, Operand dst, Operand src)
 {
 	bool dst_handled = false;
 	bool src_handled = false;
