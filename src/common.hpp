@@ -56,6 +56,7 @@ enum Operand
 	L,
 	N,
 	NN,
+	PC,
 	UNUSED
 };
 

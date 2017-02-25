@@ -45,6 +45,7 @@ StorageElement StorageElement::create_element(Z80 &state, Operand operand, unsig
 	case L:  return state.hl.element_lo();
 	case N:  return StorageElement(state.mem.read(old_pc+1));
 	case NN: return StorageElement(state.mem.read(old_pc+1), state.mem.read(old_pc+2));
+	case PC: return state.pc.element();
 	case UNUSED:
 	default:
 		handled = false;
@@ -75,4 +76,15 @@ void StorageElement::do_xor(const StorageElement &rhs, Z80 &state)
 	state.af.flag(RegisterAF::Flags::HalfCarry, false);
 	state.af.set_zero(*ptr);
 	state.af.set_negative(*ptr);
+}
+
+void StorageElement::do_jmp(const StorageElement &rhs)
+{
+	assert(count == rhs.count);
+
+	if ((this != &rhs) && (!readonly))
+	{
+		if( !rhs.readonly) std::memcpy(ptr, rhs.ptr, count);
+		else               std::memcpy(ptr, &rhs.read_only[0], count);
+	}
 }

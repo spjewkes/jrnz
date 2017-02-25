@@ -24,6 +24,7 @@ public:
 
 	void do_load(const StorageElement &rhs);
 	void do_xor(const StorageElement &rhs, Z80 &state);
+	void do_jmp(const StorageElement &rhs);
 	
 private:
 	unsigned char *ptr;
