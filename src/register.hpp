@@ -5,6 +5,7 @@
 #ifndef __REGISTER_HPP__
 #define __REGISTER_HPP__
 
+#include <bitset>
 #include "memory.hpp"
 #include "storage_element.hpp"
 #include "common.hpp"
@@ -66,6 +67,20 @@ public:
 		{
 			unsigned char bit = 0x1 << static_cast<unsigned int>(f);
 			return (flags() & bit) != 0;
+		}
+
+	void set_parity(unsigned char v)
+		{
+			std::bitset<8> b(v);
+			flag(Flags::ParityOverflow, (b.count()&0x1)==0);
+		}
+	void set_zero(unsigned char v)
+		{
+			flag(Flags::Zero, v==0);
+		}
+	void set_negative(unsigned char v)
+		{
+			flag(Flags::Sign, (v&0x80)==1);
 		}
 };
 

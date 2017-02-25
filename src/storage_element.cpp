@@ -69,5 +69,10 @@ void StorageElement::do_xor(const StorageElement &rhs, Z80 &state)
 
 	*ptr ^= *rhs.ptr;
 
-	// Need to do the status registers
+	state.af.flag(RegisterAF::Flags::Carry, false);
+	state.af.flag(RegisterAF::Flags::AddSubtract, false);
+	state.af.set_parity(*ptr);
+	state.af.flag(RegisterAF::Flags::HalfCarry, false);
+	state.af.set_zero(*ptr);
+	state.af.set_negative(*ptr);
 }
