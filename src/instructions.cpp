@@ -40,7 +40,8 @@ bool inst_xor(Z80 &state, Operand dst, Operand src)
 
 bool inst_jp(Z80 &state, Operand dst, Operand src)
 {
-	// This is effectively a load instruction
+	// This is effectively a load instruction with PC being the destination
+	assert(PC == dst);
 	return inst_ld(state, dst, src);
 }
 
@@ -52,6 +53,7 @@ bool inst_di(Z80 &state, Operand dst, Operand src)
 
 bool inst_out(Z80 &state, Operand dst, Operand src)
 {
-	// This is effectively a load instruction
+	// This is effectively a load instruction with a port being the destination
+	assert(PORT == dst);
 	return inst_ld(state, dst, src);
 }
