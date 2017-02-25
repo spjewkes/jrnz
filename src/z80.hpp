@@ -26,9 +26,10 @@ public:
 			map_inst.emplace(0xc3, Instruction{std::string("jp **"), 3, 10, inst_jp, Operand::PC, Operand::NN});
 			map_inst.emplace(0xd3, Instruction{std::string("out (*),a"), 2, 11, inst_out, Operand::PORT, Operand::A});
 			map_inst.emplace(0xf3, Instruction{std::string("di"), 1, 4, inst_di, Operand::UNUSED, Operand::UNUSED});
+
+			map_inst.emplace(0xed47, Instruction{std::string("ED ld i,a"), 2, 9, inst_ld, Operand::I, Operand::A});
 		}
 
-	unsigned short i = { 0 };
 	unsigned short curr_opcode_pc = { 0 }; // Stores the PC of the opcode under execution
 	unsigned short curr_operand_pc = { 0 }; // Stores the PC of the expected first operand (if there are any) of the opcode under execution
 	Register16 pc;
@@ -44,6 +45,8 @@ public:
 
 	Memory mem;
 	Ports ports;
+
+	Register16 ir;
 
 	bool clock()
 		{

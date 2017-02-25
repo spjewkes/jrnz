@@ -58,6 +58,7 @@ enum Operand
 	NN,
 	PC,
 	PORT,
+	I,
 	UNUSED
 };
 
