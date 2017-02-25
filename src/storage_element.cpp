@@ -45,10 +45,10 @@ StorageElement StorageElement::create_element(Z80 &state, Operand operand, bool 
 	case E:      return state.de.element_lo();
 	case H:      return state.hl.element_hi();
 	case L:      return state.hl.element_lo();
-	case N:      return StorageElement(state.mem.read(state.curr_pc+1));
-	case NN:     return StorageElement(state.mem.read(state.curr_pc+1), state.mem.read(state.curr_pc+2));
+	case N:      return StorageElement(state.mem.read(state.curr_operand_pc));
+	case NN:     return StorageElement(state.mem.read(state.curr_operand_pc), state.mem.read(state.curr_operand_pc+1));
 	case PC:     return state.pc.element();
-	case PORT:   return state.ports.element(state.mem.read(state.curr_pc+1));
+	case PORT:   return state.ports.element(state.mem.read(state.curr_operand_pc));
 	case UNUSED:
 	default:
 		handled = false;

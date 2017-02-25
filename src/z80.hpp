@@ -29,7 +29,8 @@ public:
 		}
 
 	unsigned short i = { 0 };
-	unsigned short curr_pc = { 0 }; // Stores the PC of the instruction being executed
+	unsigned short curr_opcode_pc = { 0 }; // Stores the PC of the opcode under execution
+	unsigned short curr_operand_pc = { 0 }; // Stores the PC of the expected first operand (if there are any) of the opcode under execution
 	Register16 pc;
 	Register16 sp;
 	Register16 ix;
@@ -48,22 +49,23 @@ public:
 		{
 			bool found = false;
 
-			curr_pc = pc.get();
-			const unsigned char v = mem.read(curr_pc);
+			curr_opcode_pc = pc.get();
+			const unsigned char v = mem.read(curr_opcode_pc);
 			auto search = map_inst.find(v);
 			if(search != map_inst.end())
 			{
 				const Instruction &inst = search->second;
-				mem.dump(curr_pc, inst.size);
+				mem.dump(curr_opcode_pc, inst.size);
 				std::cout << inst.name << std::endl;
-				pc.set(curr_pc + inst.size);
+				curr_operand_pc = curr_opcode_pc + 1;
+				pc.set(curr_opcode_pc + inst.size);
 				found = inst.func(*this, inst.dst, inst.src);
 			}
 
 			if(!found)
 			{
 				std::cout << "Unknown data:" << std::endl;
-				mem.dump(curr_pc, 4);
+				mem.dump(curr_opcode_pc, 4);
 			}
 			return found;
 		}
