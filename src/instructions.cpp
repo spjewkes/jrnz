@@ -76,3 +76,19 @@ bool inst_sub(Z80 &state, Operand dst, Operand src)
 	
 	return handled;
 }
+
+bool inst_cp(Z80 &state, Operand dst, Operand src)
+{
+	bool dst_handled = false;
+	bool src_handled = false;
+
+	StorageElement dst_elem = StorageElement::create_element(state, dst, dst_handled);
+	StorageElement src_elem = StorageElement::create_element(state, src, src_handled);
+
+	if (dst_handled && src_handled)
+	{
+		dst_elem.do_compare(src_elem, state);
+	}
+	
+	return dst_handled && src_handled;
+}

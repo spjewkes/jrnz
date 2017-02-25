@@ -28,6 +28,7 @@ public:
 			map_inst.emplace(0x62, Instruction{std::string("ld h,d"), 1, 4, inst_ld, Operand::H, Operand::D});
 			map_inst.emplace(0x6b, Instruction{std::string("ld l,e"), 1, 4, inst_ld, Operand::L, Operand::E});
 			map_inst.emplace(0xaf, Instruction{std::string("xor a"), 1, 4, inst_xor, Operand::A, Operand::A});
+			map_inst.emplace(0xbc, Instruction{std::string("cp h"), 1, 4, inst_cp, Operand::A, Operand::H});
 			map_inst.emplace(0xc3, Instruction{std::string("jp **"), 3, 10, inst_jp, Operand::PC, Operand::NN});
 			map_inst.emplace(0xd3, Instruction{std::string("out (*),a"), 2, 11, inst_out, Operand::PORT, Operand::A});
 			map_inst.emplace(0xf3, Instruction{std::string("di"), 1, 4, inst_di, Operand::UNUSED, Operand::UNUSED});

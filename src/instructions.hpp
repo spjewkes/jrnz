@@ -42,5 +42,6 @@ bool inst_jp(Z80 &state, Operand dst, Operand src);
 bool inst_di(Z80 &state, Operand dst, Operand src);
 bool inst_out(Z80 &state, Operand dst, Operand src);
 bool inst_sub(Z80 &state, Operand dst, Operand src);
+bool inst_cp(Z80 &state, Operand dst, Operand src);
 
 #endif // __INSTRUCTIONS_HPP__

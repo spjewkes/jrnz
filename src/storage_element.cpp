@@ -70,7 +70,7 @@ void StorageElement::do_copy(const StorageElement &rhs)
 void StorageElement::do_xor(const StorageElement &rhs, Z80 &state)
 {
 	assert(count == rhs.count);
-	assert(count == 1); // assume 1 byte size for now
+	assert(count == 1); // Only handles 1 byte case
 
 	*ptr ^= *rhs.ptr;
 
@@ -85,5 +85,26 @@ void StorageElement::do_xor(const StorageElement &rhs, Z80 &state)
 void StorageElement::do_dec()
 {
 	(*ptr)--;
+}
+
+void StorageElement::do_compare(const StorageElement &rhs, Z80 &state)
+{
+	assert(count == rhs.count);
+	assert(count == 1); // Only handles 1 byte case
+
+	unsigned int a = *ptr;
+	unsigned int b = *rhs.ptr;
+
+	unsigned int res = a - b;
+	unsigned int half_res = (a & 0xf) - (b & 0xf);
+	int signed_res = a - b;
+	unsigned char final = res;
+
+	state.af.flag(RegisterAF::Flags::Carry, (res > 0xff));
+	state.af.flag(RegisterAF::Flags::AddSubtract, true);
+	state.af.flag(RegisterAF::Flags::ParityOverflow, (signed_res > 0x7f));
+	state.af.flag(RegisterAF::Flags::HalfCarry, (half_res > 0xf));
+	state.af.set_zero(final);
+	state.af.set_negative(final);
 }
 
