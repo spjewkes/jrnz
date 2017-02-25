@@ -39,5 +39,6 @@ bool inst_ld(Z80 &state, unsigned short old_pc, Operand dst, Operand src);
 bool inst_xor(Z80 &state, unsigned short old_pc, Operand dst, Operand src);
 bool inst_jp_nn(Z80 &state, unsigned short old_pc, Operand dst, Operand src);
 bool inst_di(Z80 &state, unsigned short old_pc, Operand dst, Operand src);
+bool inst_out(Z80 &state, unsigned short old_pc, Operand dst, Operand src);
 
 #endif // __INSTRUCTIONS_HPP__

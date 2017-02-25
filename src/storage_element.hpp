@@ -25,7 +25,8 @@ public:
 	void do_load(const StorageElement &rhs);
 	void do_xor(const StorageElement &rhs, Z80 &state);
 	void do_jmp(const StorageElement &rhs);
-	
+	void do_out(const StorageElement &rhs);
+
 private:
 	unsigned char *ptr;
 	std::vector<unsigned char> read_only;

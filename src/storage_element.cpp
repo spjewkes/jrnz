@@ -32,20 +32,21 @@ StorageElement StorageElement::create_element(Z80 &state, Operand operand, unsig
 
 	switch(operand)
 	{
-	case BC: return state.bc.element();
-	case DE: return state.de.element();
-	case HL: return state.hl.element();
-	case SP: return state.sp.element();
-	case A:  return state.af.element_hi();
-	case B:  return state.bc.element_hi();
-	case C:  return state.bc.element_lo();
-	case D:  return state.de.element_hi();
-	case E:  return state.de.element_lo();
-	case H:  return state.hl.element_hi();
-	case L:  return state.hl.element_lo();
-	case N:  return StorageElement(state.mem.read(old_pc+1));
-	case NN: return StorageElement(state.mem.read(old_pc+1), state.mem.read(old_pc+2));
-	case PC: return state.pc.element();
+	case BC:     return state.bc.element();
+	case DE:     return state.de.element();
+	case HL:     return state.hl.element();
+	case SP:     return state.sp.element();
+	case A:      return state.af.element_hi();
+	case B:      return state.bc.element_hi();
+	case C:      return state.bc.element_lo();
+	case D:      return state.de.element_hi();
+	case E:      return state.de.element_lo();
+	case H:      return state.hl.element_hi();
+	case L:      return state.hl.element_lo();
+	case N:      return StorageElement(state.mem.read(old_pc+1));
+	case NN:     return StorageElement(state.mem.read(old_pc+1), state.mem.read(old_pc+2));
+	case PC:     return state.pc.element();
+	case PORT:   return state.ports.element(state.mem.read(old_pc+1));
 	case UNUSED:
 	default:
 		handled = false;
@@ -88,3 +89,17 @@ void StorageElement::do_jmp(const StorageElement &rhs)
 		else               std::memcpy(ptr, &rhs.read_only[0], count);
 	}
 }
+
+void StorageElement::do_out(const StorageElement &rhs)
+{
+	assert(count == rhs.count);
+	assert(1 == count);
+
+	if ((this != &rhs) && (!readonly))
+	{
+		if( !rhs.readonly) std::memcpy(ptr, rhs.ptr, count);
+		else               std::memcpy(ptr, &rhs.read_only[0], count);
+	}
+}
+
+
