@@ -19,6 +19,7 @@ class Z80
 public:
 	Z80(unsigned int ram_size, std::string &rom_file) : mem(ram_size, rom_file)
 		{
+			map_inst.emplace(0x00, Instruction{std::string("nop"), 1, 4, inst_nop, Operand::UNUSED, Operand::UNUSED});
 			map_inst.emplace(0x11, Instruction{std::string("ld de,**"), 3, 10, inst_ld, Operand::DE, Operand::NN});
 			map_inst.emplace(0x3e, Instruction{std::string("ld a,*"), 2, 7, inst_ld, Operand::A, Operand::N});
 			map_inst.emplace(0x47, Instruction{std::string("ld b,a"), 1, 4, inst_ld, Operand::B, Operand::A});

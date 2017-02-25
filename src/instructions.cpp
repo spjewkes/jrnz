@@ -6,6 +6,11 @@
 #include "storage_element.hpp"
 #include "z80.hpp"
 
+bool inst_nop(Z80 &state, Operand dst, Operand src)
+{
+	return true;
+}
+
 bool inst_ld(Z80 &state, Operand dst, Operand src)
 {
 	bool dst_handled = false;

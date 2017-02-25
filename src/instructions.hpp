@@ -35,6 +35,7 @@ public:
 /**
  * @brief Define protoypes for instruction callbacks
  */
+bool inst_nop(Z80 &state, Operand dst, Operand src);
 bool inst_ld(Z80 &state, Operand dst, Operand src);
 bool inst_xor(Z80 &state, Operand dst, Operand src);
 bool inst_jp(Z80 &state, Operand dst, Operand src);
