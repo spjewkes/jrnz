@@ -14,30 +14,37 @@
 class Z80;
 
 /**
- * @brief Defines the callback function used to handle each instruction
- */
-typedef bool(*inst_fn)(Z80&, Operand, Operand);
-
-/**
  * @brief Defines an instruction entry
  */
 typedef struct Instruction
 {
 public:
-	Instruction(const char *_name, unsigned int _size, unsigned int _cycles, inst_fn _func,
+	Instruction(InstType _inst, const char *_name, unsigned int _size, unsigned int _cycles,
 				Operand _dst, Operand _src)
-		: name(_name), size(_size), cycles(_cycles), func(_func), cond(Conditional::UNUSED), dst(_dst), src(_src) {}
-	Instruction(const char *_name, unsigned int _size, unsigned int _cycles, inst_fn _func,
+		: inst(_inst), name(_name), size(_size), cycles(_cycles), cond(Conditional::UNUSED), dst(_dst), src(_src) {}
+	Instruction(InstType _inst, const char *_name, unsigned int _size, unsigned int _cycles,
 				Conditional _cond, Operand _dst, Operand _src)
-		: name(_name), size(_size), cycles(_cycles), func(_func), cond(_cond), dst(_dst), src(_src) {}
+		: inst(_inst), name(_name), size(_size), cycles(_cycles), cond(_cond), dst(_dst), src(_src) {}
 	
+	InstType inst;
 	std::string name;
 	unsigned int size;
 	unsigned int cycles;
-	inst_fn func;
 	Conditional cond;
 	Operand dst;
 	Operand src;
+
+	bool execute(Z80 &state);
+
+private:
+	bool do_nop(Z80 &state);
+	bool do_ld(Z80 &state);
+	bool do_xor(Z80 &state);
+	bool do_jp(Z80 &state);
+	bool do_di(Z80 &state);
+	bool do_out(Z80 &state);
+	bool do_sub(Z80 &state);
+	bool do_cp(Z80 &state);
 } Instruction;
 
 /**

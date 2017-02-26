@@ -6,12 +6,30 @@
 #include "storage_element.hpp"
 #include "z80.hpp"
 
-bool inst_nop(Z80 &state, Operand dst, Operand src)
+bool Instruction::execute(Z80 &state)
+{
+	switch (inst)
+	{
+	case InstType::NOP: return do_nop(state);
+	case InstType::LD:  return do_ld(state);
+	case InstType::XOR: return do_xor(state);
+	case InstType::JP:  return do_jp(state);
+	case InstType::DI:  return do_di(state);
+	case InstType::OUT: return do_out(state);
+	case InstType::SUB: return do_sub(state);
+	case InstType::CP:  return do_cp(state);
+	}
+
+	return false;
+}
+
+
+bool Instruction::do_nop(Z80 &state)
 {
 	return true;
 }
 
-bool inst_ld(Z80 &state, Operand dst, Operand src)
+bool Instruction::do_ld(Z80 &state)
 {
 	bool dst_handled = false;
 	bool src_handled = false;
@@ -27,7 +45,7 @@ bool inst_ld(Z80 &state, Operand dst, Operand src)
 	return dst_handled && src_handled;
 }
 
-bool inst_xor(Z80 &state, Operand dst, Operand src)
+bool Instruction::do_xor(Z80 &state)
 {
 	bool dst_handled = false;
 	bool src_handled = false;
@@ -43,27 +61,27 @@ bool inst_xor(Z80 &state, Operand dst, Operand src)
 	return dst_handled && src_handled;
 }
 
-bool inst_jp(Z80 &state, Operand dst, Operand src)
+bool Instruction::do_jp(Z80 &state)
 {
 	// This is effectively a load instruction with PC being the destination
 	assert(Operand::PC == dst);
-	return inst_ld(state, dst, src);
+	return do_ld(state);
 }
 
-bool inst_di(Z80 &state, Operand dst, Operand src)
+bool Instruction::do_di(Z80 &state)
 {
 	state.int_on = true;
 	return true;
 }
 
-bool inst_out(Z80 &state, Operand dst, Operand src)
+bool Instruction::do_out(Z80 &state)
 {
 	// This is effectively a load instruction with a port being the destination
 	assert(Operand::PORT == dst);
-	return inst_ld(state, dst, src);
+	return do_ld(state);
 }
 
-bool inst_sub(Z80 &state, Operand dst, Operand src)
+bool Instruction::do_sub(Z80 &state)
 {
 	bool handled = false;
 
@@ -77,7 +95,7 @@ bool inst_sub(Z80 &state, Operand dst, Operand src)
 	return handled;
 }
 
-bool inst_cp(Z80 &state, Operand dst, Operand src)
+bool Instruction::do_cp(Z80 &state)
 {
 	bool dst_handled = false;
 	bool src_handled = false;

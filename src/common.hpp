@@ -43,10 +43,16 @@
 /**
  * @brief Defines instruction type.
  */
-enum class InstructionType
+enum class InstType
 {
 	NOP,
 	LD,
+	XOR,
+	JP,
+	DI,
+	OUT,
+	SUB,
+	CP
 };
 
 /**
