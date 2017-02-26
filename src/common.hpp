@@ -37,7 +37,7 @@
 #define WORD_LO_BYTE_IDX (0)
 
 #else
-#error "I don't know what architecture this is!"
+#error "Unknown architecture. Cannot detect endianess"
 #endif
 
 /**
@@ -52,7 +52,8 @@ enum class InstType
 	DI,
 	OUT,
 	SUB,
-	CP
+	CP,
+	JR,
 };
 
 /**

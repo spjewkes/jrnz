@@ -21,7 +21,7 @@ public:
 		{
 			map_inst.emplace(0x00, Instruction{InstType::NOP, "nop", 1, 4, Operand::UNUSED, Operand::UNUSED});
 			map_inst.emplace(0x11, Instruction{InstType::LD,  "ld de,**", 3, 10, Operand::DE, Operand::NN});
-			// map_inst.emplace(0x20, Instruction{"jr nz,*", 2, 12, inst_jr, Conditional::NZ, Operand::PC, Operand::N});
+			map_inst.emplace(0x20, Instruction{InstType::JR,  "jr nz,*", 2, 12, Conditional::NZ, Operand::PC, Operand::N});
 			map_inst.emplace(0x2b, Instruction{InstType::SUB, "dec hl", 1, 6, Operand::HL, Operand::UNUSED});
 			map_inst.emplace(0x36, Instruction{InstType::LD,  "ld (hl),*", 2, 10, Operand::indHL, Operand::N});
 			map_inst.emplace(0x3e, Instruction{InstType::LD,  "ld a,*", 2, 7, Operand::A, Operand::N});

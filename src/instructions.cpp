@@ -2,6 +2,7 @@
  * @brief Source file implementing instructions.
  */
 
+#include <iostream>
 #include "instructions.hpp"
 #include "storage_element.hpp"
 #include "z80.hpp"
@@ -18,6 +19,8 @@ bool Instruction::execute(Z80 &state)
 	case InstType::OUT: return do_out(state);
 	case InstType::SUB: return do_sub(state);
 	case InstType::CP:  return do_cp(state);
+	default:
+		std::cerr << "Unknown instruction type: " << static_cast<unsigned int>(inst) << std::endl;
 	}
 
 	return false;
