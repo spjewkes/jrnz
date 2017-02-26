@@ -6,6 +6,7 @@
 #define __COMMON_HPP__
 
 #include <cassert>
+#include <iostream>
 
 /**
  * @brief Define the high and low bytes in a short word
@@ -111,6 +112,27 @@ static unsigned int convert_to_u32(const unsigned char *array, size_t count)
 		break;
 	default:
 		assert(false); // Should not get here
+	}
+
+	return v;
+}
+
+/**
+ * @brief Convert byte array to a signed int.
+ */
+static int convert_to_s32(const unsigned char *array, size_t count)
+{
+	int v = 0;
+
+	switch (count)
+	{
+	case 1:
+		v = static_cast<char>(*array);
+		break;
+	case 2:
+		short w = static_cast<short>(array[WORD_LO_BYTE_IDX] & 0xff);
+		w |= static_cast<short>(array[WORD_HI_BYTE_IDX] & 0xff) << 8;
+		v = w;
 	}
 
 	return v;

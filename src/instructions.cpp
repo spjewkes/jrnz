@@ -19,6 +19,7 @@ bool Instruction::execute(Z80 &state)
 	case InstType::OUT: return do_out(state);
 	case InstType::SUB: return do_sub(state);
 	case InstType::CP:  return do_cp(state);
+	case InstType::JR:  return do_jr(state);
 	default:
 		std::cerr << "Unknown instruction type: " << static_cast<unsigned int>(inst) << std::endl;
 	}
@@ -112,4 +113,22 @@ bool Instruction::do_cp(Z80 &state)
 	}
 	
 	return dst_handled && src_handled;
+}
+
+bool Instruction::do_jr(Z80 &state)
+{
+	assert(Operand::PC == dst);
+	bool dst_handled = false;
+	bool src_handled = false;
+
+	StorageElement dst_elem = StorageElement::create_element(state, dst, dst_handled);
+	StorageElement src_elem = StorageElement::create_element(state, src, src_handled);
+
+	if (dst_handled && src_handled)
+	{
+		dst_elem.do_jr(src_elem, state, cond);
+	}
+	
+	return dst_handled && src_handled;
+
 }

@@ -108,3 +108,28 @@ void StorageElement::do_subtract(const StorageElement &rhs, Z80 &state, bool sto
 	state.af.set_negative(result);
 }
 
+void StorageElement::do_jr(const StorageElement &rhs, Z80 &state, Conditional cond)
+{
+	unsigned int a = convert_to_u32(ptr, count);
+	int b = convert_to_s32(rhs.ptr, rhs.count);
+
+	unsigned int result = a + b;
+
+	if (check_condition(cond, state))
+	{
+		convert_to_array(ptr, count, result);
+	}
+}
+
+bool StorageElement::check_condition(Conditional cond, Z80 &state)
+{
+	switch(cond)
+	{
+	case Conditional::Z:  return state.af.flag(RegisterAF::Flags::Zero);
+	case Conditional::NZ: return !state.af.flag(RegisterAF::Flags::Zero);
+	case Conditional::C:  return state.af.flag(RegisterAF::Flags::Carry);
+	case Conditional::NC: return !state.af.flag(RegisterAF::Flags::Carry);
+	default:
+		return false;
+	}
+}

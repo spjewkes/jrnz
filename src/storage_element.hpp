@@ -26,8 +26,11 @@ public:
 	void do_xor(const StorageElement &rhs, Z80 &state);
 	void do_dec();
 	void do_subtract(const StorageElement &rhs, Z80 &state, bool store=true);
+	void do_jr(const StorageElement &rhs, Z80 &state, Conditional cond);
 
 private:
+	bool check_condition(Conditional cond, Z80 &state);
+
 	unsigned char *ptr;
 	std::vector<unsigned char> read_only;
 	size_t count;
