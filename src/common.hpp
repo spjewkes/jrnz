@@ -5,6 +5,8 @@
 #ifndef __COMMON_HPP__
 #define __COMMON_HPP__
 
+#include <cassert>
+
 /**
  * @brief Define the high and low bytes in a short word
  */
@@ -62,5 +64,47 @@ enum Operand
 	indHL,
 	UNUSED
 };
+
+/**
+ * @brief Convert byte array to an unsigned int.
+ */
+static unsigned int convert_to_u32(const unsigned char *array, size_t count)
+{
+	unsigned int v = 0;
+	
+	switch (count)
+	{
+	case 1:
+		v = static_cast<unsigned char>(*array);
+		break;
+	case 2:
+		v = static_cast<unsigned int>(array[WORD_LO_BYTE_IDX] & 0xff);
+		v |= static_cast<unsigned int>(array[WORD_HI_BYTE_IDX] & 0xff) << 8;
+		break;
+	default:
+		assert(false); // Should not get here
+	}
+
+	return v;
+}
+
+/**
+ * @brief Convert unsigned int to byte array of a specified size.
+ */
+static void convert_to_array(unsigned char *array, size_t count, unsigned int v)
+{
+	switch (count)
+	{
+	case 1:
+		*static_cast<unsigned char *>(array) = static_cast<unsigned char>(v);
+		break;
+	case 2:
+		array[WORD_LO_BYTE_IDX] = static_cast<unsigned char>(v & 0xff);
+		array[WORD_HI_BYTE_IDX] = static_cast<unsigned char>((v >> 8) & 0xff);
+		break;
+	default:
+		assert(false); // Should not get here
+	}
+}
 
 #endif // __COMMON_HPP__

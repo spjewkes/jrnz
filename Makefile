@@ -5,7 +5,7 @@ EXE=run_jrnz
 OBJ_DIR=obj
 SRC_DIR=src
 
-_DEPS=z80.hpp memory.hpp register.hpp instructions.hpp storage_element.hpp
+_DEPS=z80.hpp memory.hpp register.hpp instructions.hpp storage_element.hpp common.hpp
 DEPS=$(patsubst %,$(SRC_DIR)/%,$(_DEPS))
 
 _OBJ=main.o instructions.o storage_element.o

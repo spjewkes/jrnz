@@ -87,7 +87,7 @@ bool inst_cp(Z80 &state, Operand dst, Operand src)
 
 	if (dst_handled && src_handled)
 	{
-		dst_elem.do_compare(src_elem, state);
+		dst_elem.do_subtract(src_elem, state, false);
 	}
 	
 	return dst_handled && src_handled;

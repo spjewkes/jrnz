@@ -2,6 +2,7 @@
  * @brief Implementation of storage element class.
  */
 
+#include "common.hpp"
 #include "storage_element.hpp"
 #include "z80.hpp"
 
@@ -87,24 +88,23 @@ void StorageElement::do_dec()
 	(*ptr)--;
 }
 
-void StorageElement::do_compare(const StorageElement &rhs, Z80 &state)
+void StorageElement::do_subtract(const StorageElement &rhs, Z80 &state, bool store)
 {
-	assert(count == rhs.count);
-	assert(count == 1); // Only handles 1 byte case
+	unsigned int a = convert_to_u32(ptr, count);
+	unsigned int b = convert_to_u32(rhs.ptr, rhs.count);
 
-	unsigned int a = *ptr;
-	unsigned int b = *rhs.ptr;
+	unsigned int result = a - b;
 
-	unsigned int res = a - b;
-	unsigned int half_res = (a & 0xf) - (b & 0xf);
-	int signed_res = a - b;
-	unsigned char final = res;
+	if (store)
+	{
+		convert_to_array(ptr, count, result);
+	}
 
-	state.af.flag(RegisterAF::Flags::Carry, (res > 0xff));
+	state.af.set_borrow(a, b, result, count);
 	state.af.flag(RegisterAF::Flags::AddSubtract, true);
-	state.af.flag(RegisterAF::Flags::ParityOverflow, (signed_res > 0x7f));
-	state.af.flag(RegisterAF::Flags::HalfCarry, (half_res > 0xf));
-	state.af.set_zero(final);
-	state.af.set_negative(final);
+	state.af.set_overflow(a, b, result, count);
+	state.af.set_borrow(a, b, result, count, true);
+	state.af.set_zero(result);
+	state.af.set_negative(result);
 }
 

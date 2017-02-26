@@ -82,6 +82,49 @@ public:
 		{
 			flag(Flags::Sign, (v&0x80)==1);
 		}
+	void set_borrow(unsigned int in1, unsigned int in2, unsigned int out, size_t count, bool ishalf=false)
+		{
+			if (!sig_bit(in1, count, ishalf) && !sig_bit(in2, count, ishalf) && sig_bit(out, count, ishalf))
+			{
+				flag(Flags::Carry, true);
+			}
+			else
+			{
+				flag(Flags::Carry, false);
+			}
+		}
+	void set_carry(unsigned int in1, unsigned int in2, unsigned int out, size_t count, bool ishalf=false)
+		{
+			if (((sig_bit(in1, count, ishalf) && !sig_bit(in2, count, ishalf)) ||
+				 (!sig_bit(in1, count, ishalf) && sig_bit(in2, count, ishalf))) &&
+				!sig_bit(out, count, ishalf))
+			{
+				flag(Flags::Carry, true);
+			}
+			else
+			{
+				flag(Flags::Carry, false);
+			}
+		}
+	void set_overflow(unsigned int in1, unsigned int in2, unsigned int out, size_t count)
+		{
+			if ((!sig_bit(in1, count) && !sig_bit(in2, count) && sig_bit(out, count)) ||
+				(sig_bit(in1, count) && sig_bit(in2, count) && !sig_bit(out, count)))
+			{
+				flag(Flags::ParityOverflow, true);
+			}
+			else
+			{
+				flag(Flags::ParityOverflow, false);
+			}
+		}
+private:
+	bool sig_bit(unsigned int v, size_t count, bool ishalf=false)
+		{
+			unsigned int div = (ishalf ? 2 : 1);
+			unsigned int mask = 0x1 << ((8 * count / div) - 1);
+			return (v & mask) != 0;
+		}
 };
 
 #endif // __REGISTER_HPP__
