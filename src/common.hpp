@@ -41,9 +41,30 @@
 #endif
 
 /**
+ * @brief Defines instruction type.
+ */
+enum class InstructionType
+{
+	NOP,
+	LD,
+};
+
+/**
+ * @brief Defined the conditionals passed into an instruction handling function
+ */
+enum class Conditional
+{
+	Z,
+	NZ,
+	C,
+	NC,
+	UNUSED
+};
+
+/**
  * @brief Defines the operands that can be passed into an instruction handling function
  */
-enum Operand
+enum class Operand
 {
 	BC,
 	DE,

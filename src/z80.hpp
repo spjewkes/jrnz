@@ -19,21 +19,22 @@ class Z80
 public:
 	Z80(unsigned int ram_size, std::string &rom_file) : mem(ram_size, rom_file)
 		{
-			map_inst.emplace(0x00, Instruction{std::string("nop"), 1, 4, inst_nop, Operand::UNUSED, Operand::UNUSED});
-			map_inst.emplace(0x11, Instruction{std::string("ld de,**"), 3, 10, inst_ld, Operand::DE, Operand::NN});
-			map_inst.emplace(0x2b, Instruction{std::string("dec hl"), 1, 6, inst_sub, Operand::HL, Operand::UNUSED});
-			map_inst.emplace(0x36, Instruction{std::string("ld (hl),*"), 2, 10, inst_ld, Operand::indHL, Operand::N});
-			map_inst.emplace(0x3e, Instruction{std::string("ld a,*"), 2, 7, inst_ld, Operand::A, Operand::N});
-			map_inst.emplace(0x47, Instruction{std::string("ld b,a"), 1, 4, inst_ld, Operand::B, Operand::A});
-			map_inst.emplace(0x62, Instruction{std::string("ld h,d"), 1, 4, inst_ld, Operand::H, Operand::D});
-			map_inst.emplace(0x6b, Instruction{std::string("ld l,e"), 1, 4, inst_ld, Operand::L, Operand::E});
-			map_inst.emplace(0xaf, Instruction{std::string("xor a"), 1, 4, inst_xor, Operand::A, Operand::A});
-			map_inst.emplace(0xbc, Instruction{std::string("cp h"), 1, 4, inst_cp, Operand::A, Operand::H});
-			map_inst.emplace(0xc3, Instruction{std::string("jp **"), 3, 10, inst_jp, Operand::PC, Operand::NN});
-			map_inst.emplace(0xd3, Instruction{std::string("out (*),a"), 2, 11, inst_out, Operand::PORT, Operand::A});
-			map_inst.emplace(0xf3, Instruction{std::string("di"), 1, 4, inst_di, Operand::UNUSED, Operand::UNUSED});
+			map_inst.emplace(0x00, Instruction{"nop", 1, 4, inst_nop, Operand::UNUSED, Operand::UNUSED});
+			map_inst.emplace(0x11, Instruction{"ld de,**", 3, 10, inst_ld, Operand::DE, Operand::NN});
+			// map_inst.emplace(0x20, Instruction{"jr nz,*", 2, 12, inst_jr, Conditional::NZ, Operand::PC, Operand::N});
+			map_inst.emplace(0x2b, Instruction{"dec hl", 1, 6, inst_sub, Operand::HL, Operand::UNUSED});
+			map_inst.emplace(0x36, Instruction{"ld (hl),*", 2, 10, inst_ld, Operand::indHL, Operand::N});
+			map_inst.emplace(0x3e, Instruction{"ld a,*", 2, 7, inst_ld, Operand::A, Operand::N});
+			map_inst.emplace(0x47, Instruction{"ld b,a", 1, 4, inst_ld, Operand::B, Operand::A});
+			map_inst.emplace(0x62, Instruction{"ld h,d", 1, 4, inst_ld, Operand::H, Operand::D});
+			map_inst.emplace(0x6b, Instruction{"ld l,e", 1, 4, inst_ld, Operand::L, Operand::E});
+			map_inst.emplace(0xaf, Instruction{"xor a", 1, 4, inst_xor, Operand::A, Operand::A});
+			map_inst.emplace(0xbc, Instruction{"cp h", 1, 4, inst_cp, Operand::A, Operand::H});
+			map_inst.emplace(0xc3, Instruction{"jp **", 3, 10, inst_jp, Operand::PC, Operand::NN});
+			map_inst.emplace(0xd3, Instruction{"out (*),a", 2, 11, inst_out, Operand::PORT, Operand::A});
+			map_inst.emplace(0xf3, Instruction{"di", 1, 4, inst_di, Operand::UNUSED, Operand::UNUSED});
 
-			map_inst.emplace(0xed47, Instruction{std::string("ED ld i,a"), 2, 9, inst_ld, Operand::I, Operand::A});
+			map_inst.emplace(0xed47, Instruction{"ED ld i,a", 2, 9, inst_ld, Operand::I, Operand::A});
 		}
 
 	unsigned short curr_opcode_pc = { 0 }; // Stores the PC of the opcode under execution

@@ -24,10 +24,18 @@ typedef bool(*inst_fn)(Z80&, Operand, Operand);
 typedef struct Instruction
 {
 public:
+	Instruction(const char *_name, unsigned int _size, unsigned int _cycles, inst_fn _func,
+				Operand _dst, Operand _src)
+		: name(_name), size(_size), cycles(_cycles), func(_func), cond(Conditional::UNUSED), dst(_dst), src(_src) {}
+	Instruction(const char *_name, unsigned int _size, unsigned int _cycles, inst_fn _func,
+				Conditional _cond, Operand _dst, Operand _src)
+		: name(_name), size(_size), cycles(_cycles), func(_func), cond(_cond), dst(_dst), src(_src) {}
+	
 	std::string name;
 	unsigned int size;
 	unsigned int cycles;
 	inst_fn func;
+	Conditional cond;
 	Operand dst;
 	Operand src;
 } Instruction;

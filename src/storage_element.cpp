@@ -35,24 +35,24 @@ StorageElement StorageElement::create_element(Z80 &state, Operand operand, bool 
 
 	switch(operand)
 	{
-	case BC:     return state.bc.element();
-	case DE:     return state.de.element();
-	case HL:     return state.hl.element();
-	case SP:     return state.sp.element();
-	case A:      return state.af.element_hi();
-	case B:      return state.bc.element_hi();
-	case C:      return state.bc.element_lo();
-	case D:      return state.de.element_hi();
-	case E:      return state.de.element_lo();
-	case H:      return state.hl.element_hi();
-	case L:      return state.hl.element_lo();
-	case N:      return StorageElement(state.mem.read(state.curr_operand_pc));
-	case NN:     return StorageElement(state.mem.read(state.curr_operand_pc), state.mem.read(state.curr_operand_pc+1));
-	case PC:     return state.pc.element();
-	case PORT:   return state.ports.element(state.mem.read(state.curr_operand_pc));
-	case I:      return state.ir.element_hi();
-	case indHL:  return StorageElement(state.mem.read(state.hl.get()));
-	case UNUSED:
+	case Operand::BC:     return state.bc.element();
+	case Operand::DE:     return state.de.element();
+	case Operand::HL:     return state.hl.element();
+	case Operand::SP:     return state.sp.element();
+	case Operand::A:      return state.af.element_hi();
+	case Operand::B:      return state.bc.element_hi();
+	case Operand::C:      return state.bc.element_lo();
+	case Operand::D:      return state.de.element_hi();
+	case Operand::E:      return state.de.element_lo();
+	case Operand::H:      return state.hl.element_hi();
+	case Operand::L:      return state.hl.element_lo();
+	case Operand::N:      return StorageElement(state.mem.read(state.curr_operand_pc));
+	case Operand::NN:     return StorageElement(state.mem.read(state.curr_operand_pc), state.mem.read(state.curr_operand_pc+1));
+	case Operand::PC:     return state.pc.element();
+	case Operand::PORT:   return state.ports.element(state.mem.read(state.curr_operand_pc));
+	case Operand::I:      return state.ir.element_hi();
+	case Operand::indHL:  return StorageElement(state.mem.read(state.hl.get()));
+	case Operand::UNUSED:
 	default:
 		handled = false;
 		return StorageElement(nullptr, 0);
