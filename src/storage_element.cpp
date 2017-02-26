@@ -71,10 +71,25 @@ void StorageElement::do_copy(const StorageElement &rhs)
 
 void StorageElement::do_xor(const StorageElement &rhs, Z80 &state)
 {
-	assert(count == rhs.count);
-	assert(count == 1); // Only handles 1 byte case
+	unsigned int a = convert_to_u32(ptr, count);
+	unsigned int b = convert_to_u32(rhs.ptr, rhs.count);
+	a ^= b;
+	convert_to_array(ptr, count, a);
 
-	*ptr ^= *rhs.ptr;
+	state.af.flag(RegisterAF::Flags::Carry, false);
+	state.af.flag(RegisterAF::Flags::AddSubtract, false);
+	state.af.set_parity(*ptr);
+	state.af.flag(RegisterAF::Flags::HalfCarry, false);
+	state.af.set_zero(*ptr);
+	state.af.set_negative(*ptr);
+}
+
+void StorageElement::do_and(const StorageElement &rhs, Z80 &state)
+{
+	unsigned int a = convert_to_u32(ptr, count);
+	unsigned int b = convert_to_u32(rhs.ptr, rhs.count);
+	a &= b;
+	convert_to_array(ptr, count, a);
 
 	state.af.flag(RegisterAF::Flags::Carry, false);
 	state.af.flag(RegisterAF::Flags::AddSubtract, false);

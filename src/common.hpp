@@ -48,6 +48,7 @@ enum class InstType
 {
 	NOP,
 	LD,
+	AND,
 	XOR,
 	JP,
 	DI,
