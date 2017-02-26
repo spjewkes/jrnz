@@ -87,16 +87,18 @@ bool Instruction::do_out(Z80 &state)
 
 bool Instruction::do_sub(Z80 &state)
 {
-	bool handled = false;
+	bool dst_handled = false;
+	bool src_handled = false;
 
-	StorageElement dst_elem = StorageElement::create_element(state, dst, handled);
+	StorageElement dst_elem = StorageElement::create_element(state, dst, dst_handled);
+	StorageElement src_elem = StorageElement::create_element(state, src, src_handled);
 
-	if (handled)
+	if (dst_handled && src_handled)
 	{
-		dst_elem.do_dec();
+		dst_elem.do_subtract(src_elem, state, false, true);
 	}
 	
-	return handled;
+	return dst_handled && src_handled;
 }
 
 bool Instruction::do_cp(Z80 &state)
@@ -109,7 +111,7 @@ bool Instruction::do_cp(Z80 &state)
 
 	if (dst_handled && src_handled)
 	{
-		dst_elem.do_subtract(src_elem, state, false);
+		dst_elem.do_subtract(src_elem, state, true, false);
 	}
 	
 	return dst_handled && src_handled;

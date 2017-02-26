@@ -52,6 +52,7 @@ StorageElement StorageElement::create_element(Z80 &state, Operand operand, bool 
 	case Operand::PORT:   return state.ports.element(state.mem.read(state.curr_operand_pc));
 	case Operand::I:      return state.ir.element_hi();
 	case Operand::indHL:  return StorageElement(state.mem.read(state.hl.get()));
+    case Operand::ONE:    return StorageElement(0x1);
 	case Operand::UNUSED:
 	default:
 		handled = false;
@@ -83,12 +84,7 @@ void StorageElement::do_xor(const StorageElement &rhs, Z80 &state)
 	state.af.set_negative(*ptr);
 }
 
-void StorageElement::do_dec()
-{
-	(*ptr)--;
-}
-
-void StorageElement::do_subtract(const StorageElement &rhs, Z80 &state, bool store)
+void StorageElement::do_subtract(const StorageElement &rhs, Z80 &state, bool update_state, bool store)
 {
 	unsigned int a = convert_to_u32(ptr, count);
 	unsigned int b = convert_to_u32(rhs.ptr, rhs.count);
@@ -100,12 +96,15 @@ void StorageElement::do_subtract(const StorageElement &rhs, Z80 &state, bool sto
 		convert_to_array(ptr, count, result);
 	}
 
-	state.af.set_borrow(a, b, result, count);
-	state.af.flag(RegisterAF::Flags::AddSubtract, true);
-	state.af.set_overflow(a, b, result, count);
-	state.af.set_borrow(a, b, result, count, true);
-	state.af.set_zero(result);
-	state.af.set_negative(result);
+	if (update_state)
+	{
+		state.af.set_borrow(a, b, result, count);
+		state.af.flag(RegisterAF::Flags::AddSubtract, true);
+		state.af.set_overflow(a, b, result, count);
+		state.af.set_borrow(a, b, result, count, true);
+		state.af.set_zero(result);
+		state.af.set_negative(result);
+	}
 }
 
 void StorageElement::do_jr(const StorageElement &rhs, Z80 &state, Conditional cond)

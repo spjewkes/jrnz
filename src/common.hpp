@@ -91,6 +91,7 @@ enum class Operand
 	PORT,
 	I,
 	indHL,
+	ONE,
 	UNUSED
 };
 
