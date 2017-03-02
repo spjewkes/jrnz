@@ -60,6 +60,60 @@ StorageElement StorageElement::create_element(Z80 &state, Operand operand, bool 
 	}
 }
 
+unsigned int StorageElement::to_u32() const
+{
+	unsigned int v = 0;
+	
+	switch (count)
+	{
+	case 1:
+		v = static_cast<unsigned char>(*ptr);
+		break;
+	case 2:
+		v = static_cast<unsigned int>(ptr[WORD_LO_BYTE_IDX] & 0xff);
+		v |= static_cast<unsigned int>(ptr[WORD_HI_BYTE_IDX] & 0xff) << 8;
+		break;
+	default:
+		assert(false); // Should not get here
+	}
+
+	return v;
+}
+
+int StorageElement::to_s32() const
+{
+	int v = 0;
+
+	switch (count)
+	{
+	case 1:
+		v = static_cast<char>(*ptr);
+		break;
+	case 2:
+		short w = static_cast<short>(ptr[WORD_LO_BYTE_IDX] & 0xff);
+		w |= static_cast<short>(ptr[WORD_HI_BYTE_IDX] & 0xff) << 8;
+		v = w;
+	}
+
+	return v;
+}
+
+void StorageElement::from_u32(unsigned int v)
+{
+	switch (count)
+	{
+	case 1:
+		*static_cast<unsigned char *>(ptr) = static_cast<unsigned char>(v);
+		break;
+	case 2:
+		ptr[WORD_LO_BYTE_IDX] = static_cast<unsigned char>(v & 0xff);
+		ptr[WORD_HI_BYTE_IDX] = static_cast<unsigned char>((v >> 8) & 0xff);
+		break;
+	default:
+		assert(false); // Should not get here
+	}
+}
+
 void StorageElement::do_copy(const StorageElement &rhs)
 {
 	assert(count == rhs.count);
@@ -71,11 +125,12 @@ void StorageElement::do_copy(const StorageElement &rhs)
 
 void StorageElement::do_xor(const StorageElement &rhs, Z80 &state)
 {
-	unsigned int a = convert_to_u32(ptr, count);
-	unsigned int b = convert_to_u32(rhs.ptr, rhs.count);
+	unsigned int a = to_u32();
+	unsigned int b = rhs.to_u32();
 	a ^= b;
-	convert_to_array(ptr, count, a);
+	from_u32(a);
 
+	//! Parity, zero and negative flags need fixing
 	state.af.flag(RegisterAF::Flags::Carry, false);
 	state.af.flag(RegisterAF::Flags::AddSubtract, false);
 	state.af.set_parity(*ptr);
@@ -86,11 +141,12 @@ void StorageElement::do_xor(const StorageElement &rhs, Z80 &state)
 
 void StorageElement::do_and(const StorageElement &rhs, Z80 &state)
 {
-	unsigned int a = convert_to_u32(ptr, count);
-	unsigned int b = convert_to_u32(rhs.ptr, rhs.count);
+	unsigned int a = to_u32();
+	unsigned int b = rhs.to_u32();
 	a &= b;
-	convert_to_array(ptr, count, a);
+	from_u32(a);
 
+	//! Parity, zero and negative flags need fixing
 	state.af.flag(RegisterAF::Flags::Carry, false);
 	state.af.flag(RegisterAF::Flags::AddSubtract, false);
 	state.af.set_parity(*ptr);
@@ -101,14 +157,14 @@ void StorageElement::do_and(const StorageElement &rhs, Z80 &state)
 
 void StorageElement::do_subtract(const StorageElement &rhs, Z80 &state, bool update_state, bool store)
 {
-	unsigned int a = convert_to_u32(ptr, count);
-	unsigned int b = convert_to_u32(rhs.ptr, rhs.count);
+	unsigned int a = to_u32();
+	unsigned int b = rhs.to_u32();
 
 	unsigned int result = a - b;
 
 	if (store)
 	{
-		convert_to_array(ptr, count, result);
+		from_u32(result);
 	}
 
 	if (update_state)
@@ -124,14 +180,14 @@ void StorageElement::do_subtract(const StorageElement &rhs, Z80 &state, bool upd
 
 void StorageElement::do_jr(const StorageElement &rhs, Z80 &state, Conditional cond)
 {
-	unsigned int a = convert_to_u32(ptr, count);
-	int b = convert_to_s32(rhs.ptr, rhs.count);
+	unsigned int a = to_u32();
+	int b = rhs.to_s32();
 
 	unsigned int result = a + b;
 
 	if (check_condition(cond, state))
 	{
-		convert_to_array(ptr, count, result);
+		from_u32(result);
 	}
 }
 

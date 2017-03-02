@@ -22,6 +22,13 @@ public:
 
 	static StorageElement create_element(Z80 &state, Operand operand, bool &handled);
 
+	/**
+	 * Conversion to/from storage element.
+	 */
+	unsigned int to_u32() const;
+	int to_s32() const;
+	void from_u32(unsigned int v);
+
 	void do_copy(const StorageElement &rhs);
 	void do_xor(const StorageElement &rhs, Z80 &state);
 	void do_and(const StorageElement &rhs, Z80 &state);
@@ -32,9 +39,9 @@ private:
 	bool check_condition(Conditional cond, Z80 &state);
 
 	unsigned char *ptr;
-	std::vector<unsigned char> read_only;
+	std::vector<unsigned char> read_only; // This should only be used if the readonly flag is set
 	size_t count;
-	bool readonly;
+	bool readonly; //! TODO - this should be a specialized version of StorageElement
 };
 
 #endif // __STORAGE_ELEMENT_HPP__
