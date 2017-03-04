@@ -114,6 +114,21 @@ void StorageElement::from_u32(unsigned int v)
 	}
 }
 
+bool StorageElement::is_zero() const
+{
+	return (to_u32() == 0);
+}
+
+bool StorageElement::is_neg() const
+{
+	return (to_s32() < 0);
+}
+
+bool StorageElement::is_even_parity() const
+{
+	return (std::bitset<32>(to_u32()).count() % 2);
+}
+
 void StorageElement::do_copy(const StorageElement &rhs)
 {
 	assert(count == rhs.count);
@@ -133,10 +148,10 @@ void StorageElement::do_xor(const StorageElement &rhs, Z80 &state)
 	//! Parity, zero and negative flags need fixing
 	state.af.flag(RegisterAF::Flags::Carry, false);
 	state.af.flag(RegisterAF::Flags::AddSubtract, false);
-	state.af.set_parity(*ptr);
+	state.af.flag(RegisterAF::Flags::ParityOverflow, is_even_parity());
 	state.af.flag(RegisterAF::Flags::HalfCarry, false);
-	state.af.set_zero(*ptr);
-	state.af.set_negative(*ptr);
+	state.af.flag(RegisterAF::Flags::Zero, is_zero());
+	state.af.flag(RegisterAF::Flags::Sign, is_neg());
 }
 
 void StorageElement::do_and(const StorageElement &rhs, Z80 &state)
@@ -149,23 +164,18 @@ void StorageElement::do_and(const StorageElement &rhs, Z80 &state)
 	//! Parity, zero and negative flags need fixing
 	state.af.flag(RegisterAF::Flags::Carry, false);
 	state.af.flag(RegisterAF::Flags::AddSubtract, false);
-	state.af.set_parity(*ptr);
+	state.af.flag(RegisterAF::Flags::ParityOverflow, is_even_parity());
 	state.af.flag(RegisterAF::Flags::HalfCarry, false);
-	state.af.set_zero(*ptr);
-	state.af.set_negative(*ptr);
+	state.af.flag(RegisterAF::Flags::Zero, is_zero());
+	state.af.flag(RegisterAF::Flags::Sign, is_neg());
 }
 
 void StorageElement::do_subtract(const StorageElement &rhs, Z80 &state, bool update_state, bool store)
 {
-	unsigned int a = to_u32();
-	unsigned int b = rhs.to_u32();
+	int a = to_u32();
+	int b = rhs.to_u32();
 
-	unsigned int result = a - b;
-
-	if (store)
-	{
-		from_u32(result);
-	}
+	int result = a - b;
 
 	if (update_state)
 	{
@@ -173,8 +183,13 @@ void StorageElement::do_subtract(const StorageElement &rhs, Z80 &state, bool upd
 		state.af.flag(RegisterAF::Flags::AddSubtract, true);
 		state.af.set_overflow(a, b, result, count);
 		state.af.set_borrow(a, b, result, count, true);
-		state.af.set_zero(result);
-		state.af.set_negative(result);
+		state.af.flag(RegisterAF::Flags::Zero, result == 0);
+		state.af.flag(RegisterAF::Flags::Sign, result < 0);
+	}
+
+	if (store)
+	{
+		from_u32(result);
 	}
 }
 

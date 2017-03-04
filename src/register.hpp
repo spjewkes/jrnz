@@ -69,19 +69,6 @@ public:
 			return (flags() & bit) != 0;
 		}
 
-	void set_parity(unsigned char v)
-		{
-			std::bitset<8> b(v);
-			flag(Flags::ParityOverflow, (b.count()&0x1)==0);
-		}
-	void set_zero(unsigned char v)
-		{
-			flag(Flags::Zero, v==0);
-		}
-	void set_negative(unsigned char v)
-		{
-			flag(Flags::Sign, (v&0x80)==1);
-		}
 	void set_borrow(unsigned int in1, unsigned int in2, unsigned int out, size_t count, bool ishalf=false)
 		{
 			if (!sig_bit(in1, count, ishalf) && !sig_bit(in2, count, ishalf) && sig_bit(out, count, ishalf))

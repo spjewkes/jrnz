@@ -29,6 +29,13 @@ public:
 	int to_s32() const;
 	void from_u32(unsigned int v);
 
+	/**
+	 * Query functions functions.
+	 */
+	bool is_zero() const;
+	bool is_neg() const;
+	bool is_even_parity() const;
+
 	void do_copy(const StorageElement &rhs);
 	void do_xor(const StorageElement &rhs, Z80 &state);
 	void do_and(const StorageElement &rhs, Z80 &state);
