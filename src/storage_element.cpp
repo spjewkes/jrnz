@@ -195,10 +195,10 @@ void StorageElement::do_subtract(const StorageElement &rhs, Z80 &state, bool upd
 
 void StorageElement::do_jr(const StorageElement &rhs, Z80 &state, Conditional cond)
 {
-	unsigned int a = to_u32();
+	int a = to_u32();
 	int b = rhs.to_s32();
 
-	unsigned int result = a + b;
+	int result = a + b;
 
 	if (check_condition(cond, state))
 	{
