@@ -170,12 +170,14 @@ void StorageElement::do_and(const StorageElement &rhs, Z80 &state)
 	state.af.flag(RegisterAF::Flags::Sign, is_neg());
 }
 
-void StorageElement::do_subtract(const StorageElement &rhs, Z80 &state, bool update_state, bool store)
+void StorageElement::do_subtract(const StorageElement &rhs, Z80 &state, bool update_state, bool store, bool use_carry)
 {
 	int a = to_u32();
 	int b = rhs.to_u32();
 
-	int result = a - b;
+	int result = a - b - (state.af.flag(RegisterAF::Flags::Carry) ? 1 : 0);
+	printf("TOTO: %d - %d = %d\n", a, b, result);
+	printf("TOTO: %x - %x = %x\n", a, b, result);
 
 	if (update_state)
 	{

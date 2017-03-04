@@ -39,7 +39,7 @@ public:
 	void do_copy(const StorageElement &rhs);
 	void do_xor(const StorageElement &rhs, Z80 &state);
 	void do_and(const StorageElement &rhs, Z80 &state);
-	void do_subtract(const StorageElement &rhs, Z80 &state, bool update_state=true, bool store=true);
+	void do_subtract(const StorageElement &rhs, Z80 &state, bool update_state=true, bool store=true, bool use_carry=false);
 	void do_jr(const StorageElement &rhs, Z80 &state, Conditional cond);
 
 private:

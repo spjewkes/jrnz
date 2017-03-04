@@ -48,6 +48,7 @@ private:
 	bool do_sub(Z80 &state);
 	bool do_cp(Z80 &state);
 	bool do_jr(Z80 &state);
+	bool do_sbc(Z80 &state);
 } Instruction;
 
 #endif // __INSTRUCTIONS_HPP__

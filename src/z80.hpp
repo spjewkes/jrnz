@@ -35,7 +35,8 @@ public:
 			map_inst.emplace(0xd3, Instruction{InstType::OUT, "out (*),a", 2, 11, Operand::PORT, Operand::A});
 			map_inst.emplace(0xf3, Instruction{InstType::DI,  "di", 1, 4, Operand::UNUSED, Operand::UNUSED});
 
-			map_inst.emplace(0xed47, Instruction{InstType::LD, "ED ld i,a", 2, 9, Operand::I, Operand::A});
+			map_inst.emplace(0xed47, Instruction{InstType::LD,  "ED ld i,a", 2, 9, Operand::I, Operand::A});
+			map_inst.emplace(0xed52, Instruction{InstType::SBC, "ED sbc hl,de", 2, 15, Operand::HL, Operand::DE});
 		}
 
 	unsigned short curr_opcode_pc = { 0 }; // Stores the PC of the opcode under execution

@@ -56,6 +56,7 @@ enum class InstType
 	SUB,
 	CP,
 	JR,
+	SBC,
 };
 
 /**
