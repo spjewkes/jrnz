@@ -58,6 +58,7 @@ enum class InstType
 	JR,
 	SBC,
 	ADD,
+	INC,
 };
 
 /**

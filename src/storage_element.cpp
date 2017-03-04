@@ -219,19 +219,22 @@ bool StorageElement::check_condition(Conditional cond, Z80 &state)
 	}
 }
 
-void StorageElement::do_addition(const StorageElement &rhs, Z80 &state)
+void StorageElement::do_addition(const StorageElement &rhs, Z80 &state, bool update_state)
 {
 	int a = to_u32();
 	int b = rhs.to_u32();
 
 	int result = a + b;
 
-	from_u32(result);
-
 	state.af.set_borrow(a, b, result, count);
 	state.af.flag(RegisterAF::Flags::AddSubtract, false);
 	state.af.set_overflow(a, b, result, count);
 	state.af.set_borrow(a, b, result, count, true);
-	state.af.flag(RegisterAF::Flags::Zero, is_zero());
-	state.af.flag(RegisterAF::Flags::Sign, is_neg());
+	state.af.flag(RegisterAF::Flags::Zero, result);
+	state.af.flag(RegisterAF::Flags::Sign, result);
+
+	if (update_state)
+	{
+		from_u32(result);
+	}
 }

@@ -23,6 +23,7 @@ public:
 			map_inst.emplace(0x11, Instruction{InstType::LD,  "ld de,**", 3, 10, Operand::DE, Operand::NN});
 			map_inst.emplace(0x19, Instruction{InstType::ADD, "add, hl, de", 1, 1, Operand::HL, Operand::DE});
 			map_inst.emplace(0x20, Instruction{InstType::JR,  "jr nz,*", 2, 12, 7, Conditional::NZ, Operand::PC, Operand::N});
+			map_inst.emplace(0x23, Instruction{InstType::INC, "inc hl", 1, 6, Operand::HL, Operand::ONE});
 			map_inst.emplace(0x2b, Instruction{InstType::DEC, "dec hl", 1, 6, Operand::HL, Operand::ONE});
 			map_inst.emplace(0x36, Instruction{InstType::LD,  "ld (hl),*", 2, 10, Operand::indHL, Operand::N});
 			map_inst.emplace(0x3e, Instruction{InstType::LD,  "ld a,*", 2, 7, Operand::A, Operand::N});

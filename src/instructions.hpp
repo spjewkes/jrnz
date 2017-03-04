@@ -50,6 +50,7 @@ private:
 	bool do_jr(Z80 &state);
 	bool do_sbc(Z80 &state);
 	bool do_add(Z80 &state);
+	bool do_inc(Z80 &state);
 } Instruction;
 
 #endif // __INSTRUCTIONS_HPP__
