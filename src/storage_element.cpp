@@ -230,8 +230,8 @@ void StorageElement::do_addition(const StorageElement &rhs, Z80 &state, bool upd
 	state.af.flag(RegisterAF::Flags::AddSubtract, false);
 	state.af.set_overflow(a, b, result, count);
 	state.af.set_borrow(a, b, result, count, true);
-	state.af.flag(RegisterAF::Flags::Zero, result);
-	state.af.flag(RegisterAF::Flags::Sign, result);
+	state.af.flag(RegisterAF::Flags::Zero, result == 0);
+	state.af.flag(RegisterAF::Flags::Sign, result < 0);
 
 	if (update_state)
 	{
