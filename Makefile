@@ -11,7 +11,15 @@ DEPS=$(patsubst %,$(SRC_DIR)/%,$(_DEPS))
 _OBJ=main.o instructions.o storage_element.o
 OBJ=$(patsubst %,$(OBJ_DIR)/%,$(_OBJ))
 
-buid: setup_build $(EXE)
+default: debug
+
+debug: CPPFLAGS += -g
+debug: build
+
+release: CPPFLAGS += -O2
+release: build
+
+build: setup_build $(EXE)
 	@echo "Build finished"
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(DEPS)
