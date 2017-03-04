@@ -176,8 +176,6 @@ void StorageElement::do_subtract(const StorageElement &rhs, Z80 &state, bool upd
 	int b = rhs.to_u32();
 
 	int result = a - b - (state.af.flag(RegisterAF::Flags::Carry) ? 1 : 0);
-	printf("TOTO: %d - %d = %d\n", a, b, result);
-	printf("TOTO: %x - %x = %x\n", a, b, result);
 
 	if (update_state)
 	{
