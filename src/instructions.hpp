@@ -45,7 +45,7 @@ private:
 	bool do_jp(Z80 &state);
 	bool do_di(Z80 &state);
 	bool do_out(Z80 &state);
-	bool do_sub(Z80 &state);
+	bool do_dec(Z80 &state);
 	bool do_cp(Z80 &state);
 	bool do_jr(Z80 &state);
 	bool do_sbc(Z80 &state);

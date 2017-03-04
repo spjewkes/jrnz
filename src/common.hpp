@@ -53,7 +53,7 @@ enum class InstType
 	JP,
 	DI,
 	OUT,
-	SUB,
+	DEC,
 	CP,
 	JR,
 	SBC,
