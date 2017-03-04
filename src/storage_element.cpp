@@ -200,13 +200,13 @@ void StorageElement::do_jr(const StorageElement &rhs, Z80 &state, Conditional co
 
 	int result = a + b;
 
-	if (check_condition(cond, state))
+	if (is_cond_set(cond, state))
 	{
 		from_u32(result);
 	}
 }
 
-bool StorageElement::check_condition(Conditional cond, Z80 &state)
+bool StorageElement::is_cond_set(Conditional cond, Z80 &state)
 {
 	switch(cond)
 	{

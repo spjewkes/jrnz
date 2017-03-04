@@ -43,8 +43,7 @@ private:
 	bool is_zero() const;
 	bool is_neg() const;
 	bool is_even_parity() const;
-
-	bool check_condition(Conditional cond, Z80 &state);
+	bool is_cond_set(Conditional cond, Z80 &state);
 
 	unsigned char *ptr;
 	std::vector<unsigned char> read_only; // This should only be used if the readonly flag is set
