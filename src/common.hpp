@@ -57,6 +57,7 @@ enum class InstType
 	CP,
 	JR,
 	SBC,
+	ADD,
 };
 
 /**
