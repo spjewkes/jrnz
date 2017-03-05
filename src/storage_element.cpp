@@ -183,7 +183,6 @@ void StorageElement::do_xor(const StorageElement &rhs, Z80 &state)
 	a ^= b;
 	from_u32(a);
 
-	//! Parity, zero and negative flags need fixing
 	state.af.flag(RegisterAF::Flags::Carry, false);
 	state.af.flag(RegisterAF::Flags::AddSubtract, false);
 	state.af.flag(RegisterAF::Flags::ParityOverflow, is_even_parity());
@@ -199,7 +198,6 @@ void StorageElement::do_and(const StorageElement &rhs, Z80 &state)
 	a &= b;
 	from_u32(a);
 
-	//! Parity, zero and negative flags need fixing
 	state.af.flag(RegisterAF::Flags::Carry, false);
 	state.af.flag(RegisterAF::Flags::AddSubtract, false);
 	state.af.flag(RegisterAF::Flags::ParityOverflow, is_even_parity());
@@ -210,24 +208,22 @@ void StorageElement::do_and(const StorageElement &rhs, Z80 &state)
 
 void StorageElement::do_subtract(const StorageElement &rhs, Z80 &state, bool update_state, bool store, bool use_carry)
 {
-	int a = to_u32();
-	int b = rhs.to_u32();
-
-	int result = a - b - (state.af.flag(RegisterAF::Flags::Carry) ? 1 : 0);
+	StorageElement carry(state.af.flag(RegisterAF::Flags::Carry) ? 1 : 0);
+	StorageElement result = *this - rhs - carry;
 
 	if (update_state)
 	{
-		state.af.set_borrow(to_u32(), rhs.to_u32(), result, count);
+		state.af.set_borrow(to_u32(), rhs.to_u32(), result.to_u32(), count);
 		state.af.flag(RegisterAF::Flags::AddSubtract, true);
-		state.af.set_overflow(to_u32(), rhs.to_u32(), result, count);
-		state.af.set_borrow(to_u32(), rhs.to_u32(), result, count, true);
-		state.af.flag(RegisterAF::Flags::Zero, result == 0);
-		state.af.flag(RegisterAF::Flags::Sign, result < 0);
+		state.af.set_overflow(to_u32(), rhs.to_u32(), result.to_u32(), count);
+		state.af.set_borrow(to_u32(), rhs.to_u32(), result.to_u32(), count, true);
+		state.af.flag(RegisterAF::Flags::Zero, result.is_zero());
+		state.af.flag(RegisterAF::Flags::Sign, result.is_neg());
 	}
 
 	if (store)
 	{
-		from_u32(result);
+		*this = result;
 	}
 }
 
