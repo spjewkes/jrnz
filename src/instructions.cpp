@@ -47,7 +47,7 @@ bool Instruction::do_ld(Z80 &state)
 
 	if (dst_handled && src_handled)
 	{
-		dst_elem.do_copy(src_elem);
+		dst_elem = src_elem;
 	}
 	
 	return dst_handled && src_handled;

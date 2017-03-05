@@ -71,6 +71,18 @@ StorageElement StorageElement::operator-(const StorageElement &rhs)
 	return StorageElement(to_s32() - rhs.to_s32(), count);
 }
 
+StorageElement &StorageElement::operator^=(const StorageElement &rhs)
+{
+	from_u32(to_u32() ^ rhs.to_u32());
+	return *this;
+}
+
+StorageElement &StorageElement::operator&=(const StorageElement &rhs)
+{
+	from_u32(to_u32() & rhs.to_u32());
+	return *this;
+}
+
 StorageElement StorageElement::create_element(Z80 &state, Operand operand, bool &handled)
 {
 	handled = true;
@@ -171,17 +183,9 @@ bool StorageElement::is_even_parity() const
 	return (std::bitset<32>(to_u32()).count() % 2);
 }
 
-void StorageElement::do_copy(const StorageElement &rhs)
-{
-	*this = rhs;
-}
-
 void StorageElement::do_xor(const StorageElement &rhs, Z80 &state)
 {
-	unsigned int a = to_u32();
-	unsigned int b = rhs.to_u32();
-	a ^= b;
-	from_u32(a);
+	*this ^= rhs;
 
 	state.af.flag(RegisterAF::Flags::Carry, false);
 	state.af.flag(RegisterAF::Flags::AddSubtract, false);
@@ -193,10 +197,7 @@ void StorageElement::do_xor(const StorageElement &rhs, Z80 &state)
 
 void StorageElement::do_and(const StorageElement &rhs, Z80 &state)
 {
-	unsigned int a = to_u32();
-	unsigned int b = rhs.to_u32();
-	a &= b;
-	from_u32(a);
+	*this &= rhs;
 
 	state.af.flag(RegisterAF::Flags::Carry, false);
 	state.af.flag(RegisterAF::Flags::AddSubtract, false);

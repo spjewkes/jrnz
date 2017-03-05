@@ -22,7 +22,12 @@ public:
 
 	static StorageElement create_element(Z80 &state, Operand operand, bool &handled);
 
-	void do_copy(const StorageElement &rhs);
+	StorageElement &operator=(const StorageElement &rhs);
+	StorageElement operator+(const StorageElement &rhs);
+	StorageElement operator-(const StorageElement &rhs);
+	StorageElement &operator^=(const StorageElement &rhs);
+	StorageElement &operator&=(const StorageElement &rhs);
+
 	void do_xor(const StorageElement &rhs, Z80 &state);
 	void do_and(const StorageElement &rhs, Z80 &state);
 	void do_subtract(const StorageElement &rhs, Z80 &state, bool update_state=true, bool store=true, bool use_carry=false);
@@ -31,10 +36,6 @@ public:
 
 private:
 	explicit StorageElement(unsigned int v, size_t _count);
-
-	StorageElement &operator=(const StorageElement &rhs);
-	StorageElement operator+(const StorageElement &rhs);
-	StorageElement operator-(const StorageElement &rhs);
 
 	/**
 	 * Conversion to/from storage element.
