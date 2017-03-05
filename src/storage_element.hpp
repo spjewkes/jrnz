@@ -16,9 +16,9 @@ class Z80;
 class StorageElement
 {
 public:
-	StorageElement(unsigned char *_ptr, size_t _count, bool _readonly=false);
-	StorageElement(unsigned char v);
-	StorageElement(unsigned char lo, unsigned char hi);
+	explicit StorageElement(unsigned char *_ptr, size_t _count, bool _readonly=false);
+	explicit StorageElement(unsigned char v);
+	explicit StorageElement(unsigned char lo, unsigned char hi);
 
 	static StorageElement create_element(Z80 &state, Operand operand, bool &handled);
 
@@ -30,6 +30,12 @@ public:
 	void do_addition(const StorageElement &rhs, Z80 &state, bool update_state=true);
 
 private:
+	explicit StorageElement(unsigned int v, size_t _count);
+
+	StorageElement &operator=(const StorageElement &rhs);
+	StorageElement operator+(const StorageElement &rhs);
+	StorageElement operator-(const StorageElement &rhs);
+
 	/**
 	 * Conversion to/from storage element.
 	 */

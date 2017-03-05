@@ -29,6 +29,48 @@ StorageElement::StorageElement(unsigned char lo, unsigned char hi) : ptr(nullptr
 	ptr = &read_only[0];
 }
 
+StorageElement::StorageElement(unsigned int v, size_t _count) : count(_count), readonly(true)
+{
+	assert((count == 1) || (count == 2));
+	read_only.resize(count);
+	ptr = &read_only[0];
+	
+	switch (count)
+	{
+	case 1:
+		read_only[WORD_LO_BYTE_IDX] = static_cast<unsigned char>(v);
+		break;
+	case 2:
+		ptr[WORD_LO_BYTE_IDX] = static_cast<unsigned char>(v & 0xff);
+		ptr[WORD_HI_BYTE_IDX] = static_cast<unsigned char>((v >> 8) & 0xff);
+		break;
+	default:
+		assert(false); // Should not get here
+	}
+}
+
+StorageElement &StorageElement::operator=(const StorageElement &rhs)
+{
+	assert(count == rhs.count);
+	if ((this != &rhs) && (!readonly))
+	{
+		std::memcpy(ptr, rhs.ptr, count);
+	}
+	return *this;
+}
+
+StorageElement StorageElement::operator+(const StorageElement &rhs)
+{
+	//! TODO fix issue if count is accidentally missed on constructor
+	return StorageElement(to_s32() + rhs.to_s32(), count);
+}
+
+StorageElement StorageElement::operator-(const StorageElement &rhs)
+{
+	//! TODO fix issue if count is accidentally missed on constructor
+	return StorageElement(to_s32() - rhs.to_s32(), count);
+}
+
 StorageElement StorageElement::create_element(Z80 &state, Operand operand, bool &handled)
 {
 	handled = true;
@@ -131,11 +173,7 @@ bool StorageElement::is_even_parity() const
 
 void StorageElement::do_copy(const StorageElement &rhs)
 {
-	assert(count == rhs.count);
-	if ((this != &rhs) && (!readonly))
-	{
-		std::memcpy(ptr, rhs.ptr, count);
-	}
+	*this = rhs;
 }
 
 void StorageElement::do_xor(const StorageElement &rhs, Z80 &state)
@@ -179,10 +217,10 @@ void StorageElement::do_subtract(const StorageElement &rhs, Z80 &state, bool upd
 
 	if (update_state)
 	{
-		state.af.set_borrow(a, b, result, count);
+		state.af.set_borrow(to_u32(), rhs.to_u32(), result, count);
 		state.af.flag(RegisterAF::Flags::AddSubtract, true);
-		state.af.set_overflow(a, b, result, count);
-		state.af.set_borrow(a, b, result, count, true);
+		state.af.set_overflow(to_u32(), rhs.to_u32(), result, count);
+		state.af.set_borrow(to_u32(), rhs.to_u32(), result, count, true);
 		state.af.flag(RegisterAF::Flags::Zero, result == 0);
 		state.af.flag(RegisterAF::Flags::Sign, result < 0);
 	}
@@ -195,14 +233,11 @@ void StorageElement::do_subtract(const StorageElement &rhs, Z80 &state, bool upd
 
 void StorageElement::do_jr(const StorageElement &rhs, Z80 &state, Conditional cond)
 {
-	int a = to_u32();
-	int b = rhs.to_s32();
-
-	int result = a + b;
+	StorageElement result = *this + rhs;
 
 	if (is_cond_set(cond, state))
 	{
-		from_u32(result);
+		*this = result;
 	}
 }
 
@@ -221,20 +256,17 @@ bool StorageElement::is_cond_set(Conditional cond, Z80 &state)
 
 void StorageElement::do_addition(const StorageElement &rhs, Z80 &state, bool update_state)
 {
-	int a = to_u32();
-	int b = rhs.to_u32();
+	StorageElement result = *this + rhs;
 
-	int result = a + b;
-
-	state.af.set_borrow(a, b, result, count);
+	state.af.set_borrow(to_u32(), rhs.to_u32(), result.to_u32(), count);
 	state.af.flag(RegisterAF::Flags::AddSubtract, false);
-	state.af.set_overflow(a, b, result, count);
-	state.af.set_borrow(a, b, result, count, true);
-	state.af.flag(RegisterAF::Flags::Zero, result == 0);
-	state.af.flag(RegisterAF::Flags::Sign, result < 0);
+	state.af.set_overflow(to_u32(), rhs.to_u32(), result.to_u32(), count);
+	state.af.set_borrow(to_u32(), rhs.to_u32(), result.to_u32(), count, true);
+	state.af.flag(RegisterAF::Flags::Zero, result.is_zero());
+	state.af.flag(RegisterAF::Flags::Sign, result.is_neg());
 
 	if (update_state)
 	{
-		from_u32(result);
+		*this = result;
 	}
 }
