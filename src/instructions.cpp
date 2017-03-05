@@ -63,7 +63,14 @@ bool Instruction::do_xor(Z80 &state)
 
 	if (dst_handled && src_handled)
 	{
-		dst_elem.do_xor(src_elem, state);
+		dst_elem ^= src_elem;
+
+		state.af.flag(RegisterAF::Flags::Carry, false);
+		state.af.flag(RegisterAF::Flags::AddSubtract, false);
+		state.af.flag(RegisterAF::Flags::ParityOverflow, dst_elem.is_even_parity());
+		state.af.flag(RegisterAF::Flags::HalfCarry, false);
+		state.af.flag(RegisterAF::Flags::Zero, dst_elem.is_zero());
+		state.af.flag(RegisterAF::Flags::Sign, dst_elem.is_neg());
 	}
 	
 	return dst_handled && src_handled;
@@ -79,7 +86,14 @@ bool Instruction::do_and(Z80 &state)
 
 	if (dst_handled && src_handled)
 	{
-		dst_elem.do_and(src_elem, state);
+		dst_elem &= src_elem;
+
+		state.af.flag(RegisterAF::Flags::Carry, false);
+		state.af.flag(RegisterAF::Flags::AddSubtract, false);
+		state.af.flag(RegisterAF::Flags::ParityOverflow, dst_elem.is_even_parity());
+		state.af.flag(RegisterAF::Flags::HalfCarry, false);
+		state.af.flag(RegisterAF::Flags::Zero, dst_elem.is_zero());
+		state.af.flag(RegisterAF::Flags::Sign, dst_elem.is_neg());
 	}
 	
 	return dst_handled && src_handled;

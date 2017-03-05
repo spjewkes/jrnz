@@ -49,6 +49,37 @@ StorageElement::StorageElement(unsigned int v, size_t _count) : count(_count), r
 	}
 }
 
+StorageElement StorageElement::create_element(Z80 &state, Operand operand, bool &handled)
+{
+	handled = true;
+
+	switch(operand)
+	{
+	case Operand::BC:     return state.bc.element();
+	case Operand::DE:     return state.de.element();
+	case Operand::HL:     return state.hl.element();
+	case Operand::SP:     return state.sp.element();
+	case Operand::A:      return state.af.element_hi();
+	case Operand::B:      return state.bc.element_hi();
+	case Operand::C:      return state.bc.element_lo();
+	case Operand::D:      return state.de.element_hi();
+	case Operand::E:      return state.de.element_lo();
+	case Operand::H:      return state.hl.element_hi();
+	case Operand::L:      return state.hl.element_lo();
+	case Operand::N:      return StorageElement(state.mem.read(state.curr_operand_pc));
+	case Operand::NN:     return StorageElement(state.mem.read(state.curr_operand_pc), state.mem.read(state.curr_operand_pc+1));
+	case Operand::PC:     return state.pc.element();
+	case Operand::PORT:   return state.ports.element(state.mem.read(state.curr_operand_pc));
+	case Operand::I:      return state.ir.element_hi();
+	case Operand::indHL:  return StorageElement(state.mem.read(state.hl.get()));
+    case Operand::ONE:    return StorageElement(0x1);
+	case Operand::UNUSED:
+	default:
+		handled = false;
+		return StorageElement(nullptr, 0);
+	}
+}
+
 StorageElement &StorageElement::operator=(const StorageElement &rhs)
 {
 	assert(count == rhs.count);
@@ -83,35 +114,19 @@ StorageElement &StorageElement::operator&=(const StorageElement &rhs)
 	return *this;
 }
 
-StorageElement StorageElement::create_element(Z80 &state, Operand operand, bool &handled)
+bool StorageElement::is_zero() const
 {
-	handled = true;
+	return (to_u32() == 0);
+}
 
-	switch(operand)
-	{
-	case Operand::BC:     return state.bc.element();
-	case Operand::DE:     return state.de.element();
-	case Operand::HL:     return state.hl.element();
-	case Operand::SP:     return state.sp.element();
-	case Operand::A:      return state.af.element_hi();
-	case Operand::B:      return state.bc.element_hi();
-	case Operand::C:      return state.bc.element_lo();
-	case Operand::D:      return state.de.element_hi();
-	case Operand::E:      return state.de.element_lo();
-	case Operand::H:      return state.hl.element_hi();
-	case Operand::L:      return state.hl.element_lo();
-	case Operand::N:      return StorageElement(state.mem.read(state.curr_operand_pc));
-	case Operand::NN:     return StorageElement(state.mem.read(state.curr_operand_pc), state.mem.read(state.curr_operand_pc+1));
-	case Operand::PC:     return state.pc.element();
-	case Operand::PORT:   return state.ports.element(state.mem.read(state.curr_operand_pc));
-	case Operand::I:      return state.ir.element_hi();
-	case Operand::indHL:  return StorageElement(state.mem.read(state.hl.get()));
-    case Operand::ONE:    return StorageElement(0x1);
-	case Operand::UNUSED:
-	default:
-		handled = false;
-		return StorageElement(nullptr, 0);
-	}
+bool StorageElement::is_neg() const
+{
+	return (to_s32() < 0);
+}
+
+bool StorageElement::is_even_parity() const
+{
+	return (std::bitset<32>(to_u32()).count() % 2);
 }
 
 unsigned int StorageElement::to_u32() const
@@ -166,45 +181,6 @@ void StorageElement::from_u32(unsigned int v)
 	default:
 		assert(false); // Should not get here
 	}
-}
-
-bool StorageElement::is_zero() const
-{
-	return (to_u32() == 0);
-}
-
-bool StorageElement::is_neg() const
-{
-	return (to_s32() < 0);
-}
-
-bool StorageElement::is_even_parity() const
-{
-	return (std::bitset<32>(to_u32()).count() % 2);
-}
-
-void StorageElement::do_xor(const StorageElement &rhs, Z80 &state)
-{
-	*this ^= rhs;
-
-	state.af.flag(RegisterAF::Flags::Carry, false);
-	state.af.flag(RegisterAF::Flags::AddSubtract, false);
-	state.af.flag(RegisterAF::Flags::ParityOverflow, is_even_parity());
-	state.af.flag(RegisterAF::Flags::HalfCarry, false);
-	state.af.flag(RegisterAF::Flags::Zero, is_zero());
-	state.af.flag(RegisterAF::Flags::Sign, is_neg());
-}
-
-void StorageElement::do_and(const StorageElement &rhs, Z80 &state)
-{
-	*this &= rhs;
-
-	state.af.flag(RegisterAF::Flags::Carry, false);
-	state.af.flag(RegisterAF::Flags::AddSubtract, false);
-	state.af.flag(RegisterAF::Flags::ParityOverflow, is_even_parity());
-	state.af.flag(RegisterAF::Flags::HalfCarry, false);
-	state.af.flag(RegisterAF::Flags::Zero, is_zero());
-	state.af.flag(RegisterAF::Flags::Sign, is_neg());
 }
 
 void StorageElement::do_subtract(const StorageElement &rhs, Z80 &state, bool update_state, bool store, bool use_carry)
