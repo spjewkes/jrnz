@@ -54,6 +54,8 @@ private:
 
 	bool impl_add(Z80 &state, bool store, bool update_flags);
 	bool impl_sub(Z80 &state, bool store, bool update_flags, bool use_carry);
+
+	bool is_cond_set(Conditional cond, Z80 &state);
 };
 
 #endif // __INSTRUCTIONS_HPP__

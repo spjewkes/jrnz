@@ -140,7 +140,12 @@ bool Instruction::do_jr(Z80 &state)
 
 	if (dst_handled && src_handled)
 	{
-		dst_elem.do_jr(src_elem, state, cond);
+		//! TODO conditional check should be a member function
+		if (is_cond_set(cond, state))
+		{
+			//! TODO need another operator implemented
+			dst_elem = dst_elem + src_elem;
+		}
 	}
 	
 	return dst_handled && src_handled;
@@ -226,3 +231,17 @@ bool Instruction::impl_sub(Z80 &state, bool store, bool update_flags, bool use_c
 	return dst_handled && src_handled;
 }
 
+bool Instruction::is_cond_set(Conditional cond, Z80 &state)
+{
+	switch(cond)
+	{
+	case Conditional::Z:  return state.af.flag(RegisterAF::Flags::Zero);
+	case Conditional::NZ: return !state.af.flag(RegisterAF::Flags::Zero);
+	case Conditional::C:  return state.af.flag(RegisterAF::Flags::Carry);
+	case Conditional::NC: return !state.af.flag(RegisterAF::Flags::Carry);
+	default:
+		std::cerr << "Unhandled conditional: " << static_cast<int>(cond) << std::endl;
+		assert(false);
+		return false;
+	}
+}

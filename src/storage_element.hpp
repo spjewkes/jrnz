@@ -28,8 +28,6 @@ public:
 	StorageElement &operator^=(const StorageElement &rhs);
 	StorageElement &operator&=(const StorageElement &rhs);
 
-	void do_jr(const StorageElement &rhs, Z80 &state, Conditional cond);
-
 	/**
 	 * Query functions functions.
 	 */

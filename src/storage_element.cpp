@@ -182,26 +182,3 @@ void StorageElement::from_u32(unsigned int v)
 		assert(false); // Should not get here
 	}
 }
-
-void StorageElement::do_jr(const StorageElement &rhs, Z80 &state, Conditional cond)
-{
-	StorageElement result = *this + rhs;
-
-	if (is_cond_set(cond, state))
-	{
-		*this = result;
-	}
-}
-
-bool StorageElement::is_cond_set(Conditional cond, Z80 &state)
-{
-	switch(cond)
-	{
-	case Conditional::Z:  return state.af.flag(RegisterAF::Flags::Zero);
-	case Conditional::NZ: return !state.af.flag(RegisterAF::Flags::Zero);
-	case Conditional::C:  return state.af.flag(RegisterAF::Flags::Carry);
-	case Conditional::NC: return !state.af.flag(RegisterAF::Flags::Carry);
-	default:
-		return false;
-	}
-}
