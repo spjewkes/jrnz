@@ -40,15 +40,17 @@ public:
 	bool is_even_parity() const;
 	bool is_cond_set(Conditional cond, Z80 &state);
 
-private:
-	explicit StorageElement(unsigned int v, size_t _count);
-
 	/**
 	 * Conversion to/from storage element.
+	 * TODO: these should be hidden eventually
 	 */
 	unsigned int to_u32() const;
 	int to_s32() const;
 	void from_u32(unsigned int v);
+	size_t size() const { return count; }
+
+private:
+	explicit StorageElement(unsigned int v, size_t _count);
 
 	unsigned char *ptr;
 	std::vector<unsigned char> read_only; // This should only be used if the readonly flag is set
