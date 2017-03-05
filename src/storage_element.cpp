@@ -183,27 +183,6 @@ void StorageElement::from_u32(unsigned int v)
 	}
 }
 
-void StorageElement::do_subtract(const StorageElement &rhs, Z80 &state, bool update_state, bool store, bool use_carry)
-{
-	StorageElement carry(state.af.flag(RegisterAF::Flags::Carry) ? 1 : 0);
-	StorageElement result = *this - rhs - carry;
-
-	if (update_state)
-	{
-		state.af.set_borrow(to_u32(), rhs.to_u32(), result.to_u32(), count);
-		state.af.flag(RegisterAF::Flags::AddSubtract, true);
-		state.af.set_overflow(to_u32(), rhs.to_u32(), result.to_u32(), count);
-		state.af.set_borrow(to_u32(), rhs.to_u32(), result.to_u32(), count, true);
-		state.af.flag(RegisterAF::Flags::Zero, result.is_zero());
-		state.af.flag(RegisterAF::Flags::Sign, result.is_neg());
-	}
-
-	if (store)
-	{
-		*this = result;
-	}
-}
-
 void StorageElement::do_jr(const StorageElement &rhs, Z80 &state, Conditional cond)
 {
 	StorageElement result = *this + rhs;
@@ -224,22 +203,5 @@ bool StorageElement::is_cond_set(Conditional cond, Z80 &state)
 	case Conditional::NC: return !state.af.flag(RegisterAF::Flags::Carry);
 	default:
 		return false;
-	}
-}
-
-void StorageElement::do_addition(const StorageElement &rhs, Z80 &state, bool update_state)
-{
-	StorageElement result = *this + rhs;
-
-	state.af.set_borrow(to_u32(), rhs.to_u32(), result.to_u32(), count);
-	state.af.flag(RegisterAF::Flags::AddSubtract, false);
-	state.af.set_overflow(to_u32(), rhs.to_u32(), result.to_u32(), count);
-	state.af.set_borrow(to_u32(), rhs.to_u32(), result.to_u32(), count, true);
-	state.af.flag(RegisterAF::Flags::Zero, result.is_zero());
-	state.af.flag(RegisterAF::Flags::Sign, result.is_neg());
-
-	if (update_state)
-	{
-		*this = result;
 	}
 }

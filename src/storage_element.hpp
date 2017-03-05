@@ -28,9 +28,7 @@ public:
 	StorageElement &operator^=(const StorageElement &rhs);
 	StorageElement &operator&=(const StorageElement &rhs);
 
-	void do_subtract(const StorageElement &rhs, Z80 &state, bool update_state=true, bool store=true, bool use_carry=false);
 	void do_jr(const StorageElement &rhs, Z80 &state, Conditional cond);
-	void do_addition(const StorageElement &rhs, Z80 &state, bool update_state=true);
 
 	/**
 	 * Query functions functions.

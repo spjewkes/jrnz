@@ -121,34 +121,12 @@ bool Instruction::do_out(Z80 &state)
 
 bool Instruction::do_dec(Z80 &state)
 {
-	bool dst_handled = false;
-	bool src_handled = false;
-
-	StorageElement dst_elem = StorageElement::create_element(state, dst, dst_handled);
-	StorageElement src_elem = StorageElement::create_element(state, src, src_handled);
-
-	if (dst_handled && src_handled)
-	{
-		dst_elem.do_subtract(src_elem, state, false, true, false);
-	}
-	
-	return dst_handled && src_handled;
+	return impl_sub(state, false /* update_state */, true /* store */, false /* use_carry */);
 }
 
 bool Instruction::do_cp(Z80 &state)
 {
-	bool dst_handled = false;
-	bool src_handled = false;
-
-	StorageElement dst_elem = StorageElement::create_element(state, dst, dst_handled);
-	StorageElement src_elem = StorageElement::create_element(state, src, src_handled);
-
-	if (dst_handled && src_handled)
-	{
-		dst_elem.do_subtract(src_elem, state, true, false, false);
-	}
-	
-	return dst_handled && src_handled;
+	return impl_sub(state, true /* update_state */, false /* store */, false /* use_carry */);
 }
 
 bool Instruction::do_jr(Z80 &state)
@@ -171,18 +149,7 @@ bool Instruction::do_jr(Z80 &state)
 
 bool Instruction::do_sbc(Z80 &state)
 {
-	bool dst_handled = false;
-	bool src_handled = false;
-
-	StorageElement dst_elem = StorageElement::create_element(state, dst, dst_handled);
-	StorageElement src_elem = StorageElement::create_element(state, src, src_handled);
-
-	if (dst_handled && src_handled)
-	{
-		dst_elem.do_subtract(src_elem, state, false, true, true);
-	}
-	
-	return dst_handled && src_handled;
+	return impl_sub(state, true /* update_state */, true /* store */, true /* use_carry */);
 }
 
 bool Instruction::do_add(Z80 &state)
@@ -226,6 +193,33 @@ bool Instruction::impl_add(Z80 &state, bool update_state)
 
 bool Instruction::impl_sub(Z80 &state, bool update_state, bool store, bool use_carry)
 {
-	return false;
+	bool dst_handled = false;
+	bool src_handled = false;
+
+	StorageElement dst_elem = StorageElement::create_element(state, dst, dst_handled);
+	StorageElement src_elem = StorageElement::create_element(state, src, src_handled);
+
+	if (dst_handled && src_handled)
+	{
+		StorageElement carry(state.af.flag(RegisterAF::Flags::Carry) ? 1 : 0);
+		StorageElement result = dst_elem - src_elem - carry;
+
+		if (update_state)
+		{
+			state.af.set_borrow(dst_elem.to_u32(), src_elem.to_u32(), result.to_u32(), result.size());
+			state.af.flag(RegisterAF::Flags::AddSubtract, true);
+			state.af.set_overflow(dst_elem.to_u32(), src_elem.to_u32(), result.to_u32(), result.size());
+			state.af.set_borrow(dst_elem.to_u32(), src_elem.to_u32(), result.to_u32(), result.size(), true);
+			state.af.flag(RegisterAF::Flags::Zero, result.is_zero());
+			state.af.flag(RegisterAF::Flags::Sign, result.is_neg());
+		}
+
+		if (store)
+		{
+			dst_elem = result;
+		}
+	}
+	
+	return dst_handled && src_handled;
 }
 
