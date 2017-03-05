@@ -16,7 +16,7 @@ class Z80;
 /**
  * @brief Defines an instruction entry
  */
-typedef struct Instruction
+class Instruction
 {
 public:
 	Instruction(InstType _inst, const char *_name, unsigned int _size, unsigned int _cycles,
@@ -51,6 +51,6 @@ private:
 	bool do_sbc(Z80 &state);
 	bool do_add(Z80 &state);
 	bool do_inc(Z80 &state);
-} Instruction;
+};
 
 #endif // __INSTRUCTIONS_HPP__
