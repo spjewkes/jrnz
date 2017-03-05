@@ -52,8 +52,8 @@ private:
 	bool do_add(Z80 &state);
 	bool do_inc(Z80 &state);
 
-	bool impl_add(Z80 &state, bool update_state);
-	bool impl_sub(Z80 &state, bool update_state, bool store, bool use_carry);
+	bool impl_add(Z80 &state, bool store, bool update_flags);
+	bool impl_sub(Z80 &state, bool store, bool update_flags, bool use_carry);
 };
 
 #endif // __INSTRUCTIONS_HPP__
