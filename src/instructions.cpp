@@ -224,14 +224,15 @@ bool Instruction::impl_sub(Z80 &state, bool store, bool update_flags, bool use_c
 	if (dst_handled && src_handled)
 	{
 		StorageElement carry(use_carry && state.af.flag(RegisterAF::Flags::Carry) ? 1 : 0);
-		StorageElement result = dst_elem - src_elem - carry;
+		StorageElement res_src = src_elem - carry;
+		StorageElement result = dst_elem - res_src;
 
 		if (update_flags)
 		{
-			state.af.flag(RegisterAF::Flags::Carry, result.is_carry());
+			state.af.flag(RegisterAF::Flags::Carry, result.is_carry() || res_src.is_carry());
 			state.af.flag(RegisterAF::Flags::AddSubtract, true);
-			state.af.flag(RegisterAF::Flags::ParityOverflow, result.is_overflow());
-			state.af.flag(RegisterAF::Flags::HalfCarry, result.is_half());
+			state.af.flag(RegisterAF::Flags::ParityOverflow, result.is_overflow() || res_src.is_carry());
+			state.af.flag(RegisterAF::Flags::HalfCarry, result.is_half() || res_src.is_carry());
 			state.af.flag(RegisterAF::Flags::Zero, result.is_zero());
 			state.af.flag(RegisterAF::Flags::Sign, result.is_neg());
 		}
