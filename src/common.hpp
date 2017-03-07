@@ -66,6 +66,7 @@ enum class InstType
  */
 enum class Conditional
 {
+	ALWAYS,
 	Z,
 	NZ,
 	C,

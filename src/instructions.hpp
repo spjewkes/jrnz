@@ -25,13 +25,16 @@ public:
 	Instruction(InstType _inst, const char *_name, unsigned int _size, unsigned int _cycles,
 				unsigned int _cycles_not_cond, Conditional _cond, Operand _dst, Operand _src)
 		: inst(_inst), name(_name), size(_size), cycles(_cycles), cycles_not_cond(_cycles_not_cond), cond(_cond), dst(_dst), src(_src) {}
+	Instruction(InstType _inst, const char *_name, unsigned int _size, unsigned int _cycles,
+				Conditional _cond, Operand _dst, Operand _src)
+		: inst(_inst), name(_name), size(_size), cycles(_cycles), cond(_cond), dst(_dst), src(_src) {}
 	
 	InstType inst;
 	std::string name;
 	unsigned int size;
-	unsigned int cycles;
-	unsigned int cycles_not_cond;
-	Conditional cond;
+	unsigned int cycles = { 0 };
+	unsigned int cycles_not_cond = { 0 };
+	Conditional cond = { Conditional::UNUSED };
 	Operand dst;
 	Operand src;
 

@@ -101,9 +101,24 @@ bool Instruction::do_and(Z80 &state)
 
 bool Instruction::do_jp(Z80 &state)
 {
-	// This is effectively a load instruction with PC being the destination
 	assert(Operand::PC == dst);
-	return do_ld(state);
+	bool dst_handled = false;
+	bool src_handled = false;
+
+	StorageElement dst_elem = StorageElement::create_element(state, dst, dst_handled);
+	StorageElement src_elem = StorageElement::create_element(state, src, src_handled);
+
+	if (dst_handled && src_handled)
+	{
+		//! TODO conditional check should be a member function
+		if (is_cond_set(cond, state))
+		{
+			//! TODO need another operator implemented
+			dst_elem = src_elem;
+		}
+	}
+	
+	return dst_handled && src_handled;
 }
 
 bool Instruction::do_di(Z80 &state)
@@ -149,7 +164,6 @@ bool Instruction::do_jr(Z80 &state)
 	}
 	
 	return dst_handled && src_handled;
-
 }
 
 bool Instruction::do_sbc(Z80 &state)
@@ -235,10 +249,11 @@ bool Instruction::is_cond_set(Conditional cond, Z80 &state)
 {
 	switch(cond)
 	{
-	case Conditional::Z:  return state.af.flag(RegisterAF::Flags::Zero);
-	case Conditional::NZ: return !state.af.flag(RegisterAF::Flags::Zero);
-	case Conditional::C:  return state.af.flag(RegisterAF::Flags::Carry);
-	case Conditional::NC: return !state.af.flag(RegisterAF::Flags::Carry);
+	case Conditional::ALWAYS: return true;
+	case Conditional::Z:      return state.af.flag(RegisterAF::Flags::Zero);
+	case Conditional::NZ:     return !state.af.flag(RegisterAF::Flags::Zero);
+	case Conditional::C:      return state.af.flag(RegisterAF::Flags::Carry);
+	case Conditional::NC:     return !state.af.flag(RegisterAF::Flags::Carry);
 	default:
 		std::cerr << "Unhandled conditional: " << static_cast<int>(cond) << std::endl;
 		assert(false);
