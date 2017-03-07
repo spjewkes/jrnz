@@ -123,36 +123,6 @@ StorageElement &StorageElement::operator&=(const StorageElement &rhs)
 	return *this;
 }
 
-bool StorageElement::is_zero() const
-{
-	return (to_u32() == 0);
-}
-
-bool StorageElement::is_neg() const
-{
-	return (to_s32() < 0);
-}
-
-bool StorageElement::is_even_parity() const
-{
-	return (std::bitset<32>(to_u32()).count() % 2);
-}
-
-bool StorageElement::is_carry() const
-{
-	return flag_carry;
-}
-
-bool StorageElement::is_half() const
-{
-	return flag_half_carry;
-}
-
-bool StorageElement::is_overflow() const
-{
-	return flag_overflow;
-}
-
 unsigned int StorageElement::to_u32() const
 {
 	unsigned int v = 0;

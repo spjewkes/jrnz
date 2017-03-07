@@ -31,25 +31,26 @@ public:
 	/**
 	 * Query functions functions.
 	 */
-	bool is_zero() const;
-	bool is_neg() const;
-	bool is_even_parity() const;
-	bool is_carry() const;
-	bool is_half() const;
-	bool is_overflow() const;
-
-	/**
-	 * Conversion to/from storage element.
-	 * TODO: these should be hidden eventually
-	 */
-	unsigned int to_u32() const;
-	int to_s32() const;
-	void from_u32(unsigned int v);
-	size_t size() const { return count; }
+	bool is_zero() const { return (to_u32() == 0); }
+	bool is_neg() const { return (to_s32() < 0); }
+	bool is_even_parity() const { return (std::bitset<32>(to_u32()).count() % 2); }
+	bool is_carry() const { return flag_carry; }
+	bool is_half() const { return flag_half_carry; }
+	bool is_overflow() const { return flag_overflow; }
 
 private:
 	explicit StorageElement(unsigned int v, size_t _count);
 
+	/**
+	 * Conversion to/from storage element.
+	 */
+	unsigned int to_u32() const;
+	int to_s32() const;
+	void from_u32(unsigned int v);
+
+	/**
+	 * Updates carry/overflow flags based on particular operations.
+	 */
 	bool significant_bit(bool ishalf=false) const;
 	void update_carry(const StorageElement &op1, const StorageElement &op2, bool is_half=false);
 	void update_borrow(const StorageElement &op1, const StorageElement &op2, bool is_half=false);
