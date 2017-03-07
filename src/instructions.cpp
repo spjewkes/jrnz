@@ -181,10 +181,10 @@ bool Instruction::impl_add(Z80 &state, bool store, bool update_flags)
 
 		if (update_flags)
 		{
-			state.af.set_borrow(dst_elem.to_u32(), src_elem.to_u32(), result.to_u32(), result.size());
+			state.af.flag(RegisterAF::Flags::Carry, result.is_carry());
 			state.af.flag(RegisterAF::Flags::AddSubtract, false);
-			state.af.set_overflow(dst_elem.to_u32(), src_elem.to_u32(), result.to_u32(), result.size());
-			state.af.set_borrow(dst_elem.to_u32(), src_elem.to_u32(), result.to_u32(), result.size(), true);
+			state.af.flag(RegisterAF::Flags::ParityOverflow, result.is_overflow());
+			state.af.flag(RegisterAF::Flags::HalfCarry, result.is_half());
 			state.af.flag(RegisterAF::Flags::Zero, result.is_zero());
 			state.af.flag(RegisterAF::Flags::Sign, result.is_neg());
 		}
@@ -214,10 +214,10 @@ bool Instruction::impl_sub(Z80 &state, bool store, bool update_flags, bool use_c
 
 		if (update_flags)
 		{
-			state.af.set_borrow(dst_elem.to_u32(), src_elem.to_u32(), result.to_u32(), result.size());
+			state.af.flag(RegisterAF::Flags::Carry, result.is_carry());
 			state.af.flag(RegisterAF::Flags::AddSubtract, true);
-			state.af.set_overflow(dst_elem.to_u32(), src_elem.to_u32(), result.to_u32(), result.size());
-			state.af.set_borrow(dst_elem.to_u32(), src_elem.to_u32(), result.to_u32(), result.size(), true);
+			state.af.flag(RegisterAF::Flags::ParityOverflow, result.is_overflow());
+			state.af.flag(RegisterAF::Flags::HalfCarry, result.is_half());
 			state.af.flag(RegisterAF::Flags::Zero, result.is_zero());
 			state.af.flag(RegisterAF::Flags::Sign, result.is_neg());
 		}

@@ -86,19 +86,28 @@ StorageElement &StorageElement::operator=(const StorageElement &rhs)
 	if ((this != &rhs) && (!readonly))
 	{
 		std::memcpy(ptr, rhs.ptr, count);
+		flag_carry = rhs.flag_carry;
+		flag_half_carry = rhs.flag_half_carry;
+		flag_overflow = rhs.flag_overflow;
 	}
 	return *this;
 }
 
 StorageElement StorageElement::operator+(const StorageElement &rhs)
 {
-	//! TODO fix issue if count is accidentally missed on constructor
-	return StorageElement(to_s32() + rhs.to_s32(), count);
+	StorageElement result = StorageElement(to_s32() + rhs.to_s32(), count);
+	result.update_carry(*this, rhs);
+	result.update_carry(*this, rhs, true /* is_half */);
+	result.update_overflow(*this, rhs);
+	return result;
 }
 
 StorageElement StorageElement::operator-(const StorageElement &rhs)
 {
-	//! TODO fix issue if count is accidentally missed on constructor
+	StorageElement result = StorageElement(to_s32() + rhs.to_s32(), count);
+	result.update_borrow(*this, rhs);
+	result.update_borrow(*this, rhs, true /* is_half */);
+	result.update_overflow(*this, rhs);
 	return StorageElement(to_s32() - rhs.to_s32(), count);
 }
 
@@ -127,6 +136,21 @@ bool StorageElement::is_neg() const
 bool StorageElement::is_even_parity() const
 {
 	return (std::bitset<32>(to_u32()).count() % 2);
+}
+
+bool StorageElement::is_carry() const
+{
+	return flag_carry;
+}
+
+bool StorageElement::is_half() const
+{
+	return flag_half_carry;
+}
+
+bool StorageElement::is_overflow() const
+{
+	return flag_overflow;
 }
 
 unsigned int StorageElement::to_u32() const
@@ -180,5 +204,73 @@ void StorageElement::from_u32(unsigned int v)
 		break;
 	default:
 		assert(false); // Should not get here
+	}
+}
+
+bool StorageElement::significant_bit(bool ishalf) const
+{
+	unsigned int div = (ishalf ? 2 : 1);
+	unsigned int mask = 0x1 << ((8 * count / div) - 1);
+	return (to_u32() & mask) != 0;
+}
+
+void StorageElement::update_carry(const StorageElement &op1, const StorageElement &op2, bool is_half)
+{
+	bool res_bit = significant_bit(is_half);
+	bool op1_bit = op1.significant_bit(is_half);
+	bool op2_bit = op2.significant_bit(is_half);
+	bool v = false;
+
+	if (((op1_bit && !op2_bit) || (!op1_bit && op2_bit)) && (!res_bit))
+	{
+		v = true;
+	}
+
+	if (is_half)
+	{
+		flag_half_carry = v;
+	}
+	else
+	{
+		flag_carry = v;
+	}
+}
+
+void StorageElement::update_borrow(const StorageElement &op1, const StorageElement &op2, bool is_half)
+{
+	bool res_bit = significant_bit(is_half);
+	bool op1_bit = op1.significant_bit(is_half);
+	bool op2_bit = op2.significant_bit(is_half);
+	bool v = false;
+
+	if (!op1_bit && !op2_bit && res_bit)
+	{
+		v = true;
+	}
+
+	if (is_half)
+	{
+		flag_half_carry = v;
+	}
+	else
+	{
+		flag_carry = v;
+	}
+}
+
+void StorageElement::update_overflow(const StorageElement &op1, const StorageElement &op2)
+{
+	bool res_bit = significant_bit();
+	bool op1_bit = op1.significant_bit();
+	bool op2_bit = op2.significant_bit();
+
+	if ((!op1_bit && !op2_bit && res_bit) ||
+		(op1_bit && op2_bit && !res_bit))
+	{
+		flag_overflow = true;
+	}
+	else
+	{
+		flag_overflow = false;
 	}
 }

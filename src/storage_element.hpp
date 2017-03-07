@@ -34,7 +34,9 @@ public:
 	bool is_zero() const;
 	bool is_neg() const;
 	bool is_even_parity() const;
-	bool is_cond_set(Conditional cond, Z80 &state);
+	bool is_carry() const;
+	bool is_half() const;
+	bool is_overflow() const;
 
 	/**
 	 * Conversion to/from storage element.
@@ -48,9 +50,19 @@ public:
 private:
 	explicit StorageElement(unsigned int v, size_t _count);
 
+	bool significant_bit(bool ishalf=false) const;
+	void update_carry(const StorageElement &op1, const StorageElement &op2, bool is_half=false);
+	void update_borrow(const StorageElement &op1, const StorageElement &op2, bool is_half=false);
+	void update_overflow(const StorageElement &op1, const StorageElement &op2);
+
 	unsigned char *ptr;
-	std::vector<unsigned char> read_only; // This should only be used if the readonly flag is set
 	size_t count;
+
+	bool flag_carry = false;
+	bool flag_half_carry = false;
+	bool flag_overflow = false;
+
+	std::vector<unsigned char> read_only; // This should only be used if the readonly flag is set
 	bool readonly; //! TODO - this should be a specialized version of StorageElement
 };
 

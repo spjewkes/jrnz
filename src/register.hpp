@@ -69,42 +69,6 @@ public:
 			return (flags() & bit) != 0;
 		}
 
-	void set_borrow(unsigned int in1, unsigned int in2, unsigned int out, size_t count, bool ishalf=false)
-		{
-			if (!sig_bit(in1, count, ishalf) && !sig_bit(in2, count, ishalf) && sig_bit(out, count, ishalf))
-			{
-				flag(Flags::Carry, true);
-			}
-			else
-			{
-				flag(Flags::Carry, false);
-			}
-		}
-	void set_carry(unsigned int in1, unsigned int in2, unsigned int out, size_t count, bool ishalf=false)
-		{
-			if (((sig_bit(in1, count, ishalf) && !sig_bit(in2, count, ishalf)) ||
-				 (!sig_bit(in1, count, ishalf) && sig_bit(in2, count, ishalf))) &&
-				!sig_bit(out, count, ishalf))
-			{
-				flag(Flags::Carry, true);
-			}
-			else
-			{
-				flag(Flags::Carry, false);
-			}
-		}
-	void set_overflow(unsigned int in1, unsigned int in2, unsigned int out, size_t count)
-		{
-			if ((!sig_bit(in1, count) && !sig_bit(in2, count) && sig_bit(out, count)) ||
-				(sig_bit(in1, count) && sig_bit(in2, count) && !sig_bit(out, count)))
-			{
-				flag(Flags::ParityOverflow, true);
-			}
-			else
-			{
-				flag(Flags::ParityOverflow, false);
-			}
-		}
 private:
 	bool sig_bit(unsigned int v, size_t count, bool ishalf=false)
 		{
