@@ -104,11 +104,11 @@ StorageElement StorageElement::operator+(const StorageElement &rhs)
 
 StorageElement StorageElement::operator-(const StorageElement &rhs)
 {
-	StorageElement result = StorageElement(to_s32() + rhs.to_s32(), count);
+	StorageElement result = StorageElement(to_s32() - rhs.to_s32(), count);
 	result.update_borrow(*this, rhs);
 	result.update_borrow(*this, rhs, true /* is_half */);
 	result.update_overflow(*this, rhs);
-	return StorageElement(to_s32() - rhs.to_s32(), count);
+	return result;
 }
 
 StorageElement &StorageElement::operator^=(const StorageElement &rhs)
