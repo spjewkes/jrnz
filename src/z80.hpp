@@ -38,6 +38,7 @@ public:
 			map_inst.emplace(0xbc, Instruction{InstType::CP,  "cp h", 1, 4, Operand::A, Operand::H});
 			map_inst.emplace(0xc3, Instruction{InstType::JP,  "jp **", 3, 10, Conditional::ALWAYS, Operand::PC, Operand::NN});
 			map_inst.emplace(0xd3, Instruction{InstType::OUT, "out (*),a", 2, 11, Operand::PORT, Operand::A});
+			map_inst.emplace(0xd9, Instruction{InstType::EXX, "exx", 1, 4, Operand::UNUSED, Operand::UNUSED});
 			map_inst.emplace(0xf3, Instruction{InstType::DI,  "di", 1, 4, Operand::UNUSED, Operand::UNUSED});
 
 			map_inst.emplace(0xed47, Instruction{InstType::LD,  "ED ld i,a", 2, 9, Operand::I, Operand::A});

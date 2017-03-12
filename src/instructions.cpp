@@ -18,6 +18,7 @@ bool Instruction::execute(Z80 &state)
 	case InstType::JP:  return do_jp(state);
 	case InstType::DI:  return do_di(state);
 	case InstType::OUT: return do_out(state);
+	case InstType::EXX: return do_exx(state);
 	case InstType::DEC: return do_dec(state);
 	case InstType::CP:  return do_cp(state);
 	case InstType::JR:  return do_jr(state);
@@ -132,6 +133,14 @@ bool Instruction::do_out(Z80 &state)
 	// This is effectively a load instruction with a port being the destination
 	assert(Operand::PORT == dst);
 	return do_ld(state);
+}
+
+bool Instruction::do_exx(Z80 &state)
+{
+	state.hl.swap();
+	state.bc.swap();
+	state.de.swap();
+	return true;
 }
 
 bool Instruction::do_dec(Z80 &state)
