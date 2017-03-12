@@ -36,6 +36,7 @@ public:
 				std::cerr << "ROM uninitialized" << std::endl;
 			}
 		}
+	unsigned char &operator[](size_t pos) { return mem[pos]; }
 
 	unsigned char read(size_t pos) const { return mem[pos]; }
 	void write(size_t pos, unsigned char v)
@@ -45,6 +46,8 @@ public:
 				mem[pos] = v;
 			}
 		}
+	
+
 	StorageElement element(size_t pos, size_t count) { return StorageElement(&mem[pos], count, (pos < ram_start)); }
 
 	std::string dump(size_t offset, size_t size, bool add_eol=false) const

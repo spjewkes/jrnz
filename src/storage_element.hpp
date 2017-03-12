@@ -38,6 +38,8 @@ public:
 	bool is_half() const { return flag_half_carry; }
 	bool is_overflow() const { return flag_overflow; }
 
+	friend std::ostream& operator<<(std::ostream& stream, const StorageElement& e);
+
 private:
 	explicit StorageElement(unsigned int v, size_t _count);
 
@@ -66,5 +68,7 @@ private:
 	std::vector<unsigned char> read_only; // This should only be used if the readonly flag is set
 	bool readonly; //! TODO - this should be a specialized version of StorageElement
 };
+
+std::ostream& operator<<(std::ostream& stream, const StorageElement& e);
 
 #endif // __STORAGE_ELEMENT_HPP__

@@ -71,7 +71,8 @@ StorageElement StorageElement::create_element(Z80 &state, Operand operand, bool 
 	case Operand::PC:     return state.pc.element();
 	case Operand::PORT:   return state.ports.element(state.mem.read(state.curr_operand_pc));
 	case Operand::I:      return state.ir.element_hi();
-	case Operand::indHL:  return StorageElement(state.mem.read(state.hl.get()));
+	case Operand::indHL1: return StorageElement(&state.mem[state.hl.get()],1);
+	case Operand::indHL2: return StorageElement(&state.mem[state.hl.get()],2);
     case Operand::ONE:    return StorageElement(0x1);
 	case Operand::UNUSED:
 	default:
@@ -214,7 +215,7 @@ void StorageElement::update_borrow(const StorageElement &op1, const StorageEleme
 	bool v = false;
 
 	if (!op1_bit && !op2_bit && res_bit)
-	{
+ 	{
 		v = true;
 	}
 
@@ -243,4 +244,10 @@ void StorageElement::update_overflow(const StorageElement &op1, const StorageEle
 	{
 		flag_overflow = false;
 	}
+}
+
+std::ostream& operator<<(std::ostream& stream, const StorageElement& e)
+{
+	stream << std::dec << e.to_s32() << " (0x" << std::hex << e.to_u32() << ")" << std::dec;
+	return stream;
 }
