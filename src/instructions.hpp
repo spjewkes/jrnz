@@ -55,7 +55,7 @@ private:
 	bool do_add(Z80 &state);
 	bool do_inc(Z80 &state);
 
-	bool impl_add(Z80 &state, bool store, bool update_flags);
+	bool impl_add(Z80 &state, bool store, bool is_inc);
 	bool impl_sub(Z80 &state, bool store, bool use_carry, bool is_dec);
 
 	bool is_cond_set(Conditional cond, Z80 &state);

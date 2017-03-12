@@ -173,15 +173,15 @@ bool Instruction::do_sbc(Z80 &state)
 
 bool Instruction::do_add(Z80 &state)
 {
-	return impl_add(state, true /* store */, true /* update_flags */);
+	return impl_add(state, true /* store */, false /* is_inc */);
 }
 
 bool Instruction::do_inc(Z80 &state)
 {
-	return impl_add(state, true /* store */, false /* update_flags */);
+	return impl_add(state, true /* store */, true /* is_inc */);
 }
 
-bool Instruction::impl_add(Z80 &state, bool store, bool update_flags)
+bool Instruction::impl_add(Z80 &state, bool store, bool is_inc)
 {
 	bool dst_handled = false;
 	bool src_handled = false;
@@ -192,6 +192,12 @@ bool Instruction::impl_add(Z80 &state, bool store, bool update_flags)
 	if (dst_handled && src_handled)
 	{
 		StorageElement result = dst_elem + src_elem;
+
+		bool update_flags = true;
+		if (is_inc && dst_elem.is_16bit())
+		{
+			update_flags = false;
+		}
 
 		if (update_flags)
 		{
