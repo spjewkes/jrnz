@@ -136,12 +136,12 @@ bool Instruction::do_out(Z80 &state)
 
 bool Instruction::do_dec(Z80 &state)
 {
-	return impl_sub(state, true /* store */, false /* update_flags */, false /* use_carry */);
+	return impl_sub(state, true /* store */, false /* use_carry */, true /* is_dec */);
 }
 
 bool Instruction::do_cp(Z80 &state)
 {
-	return impl_sub(state, false /* store */, true /* update_flags */, false /* use_carry */);
+	return impl_sub(state, false /* store */, false /* use_carry */, false /* is_dec */);
 }
 
 bool Instruction::do_jr(Z80 &state)
@@ -168,7 +168,7 @@ bool Instruction::do_jr(Z80 &state)
 
 bool Instruction::do_sbc(Z80 &state)
 {
-	return impl_sub(state, true /* store */, true /* update_flags */, true /* use_carry */);
+	return impl_sub(state, true /* store */, true /* use_carry */, false /* is_dec */);
 }
 
 bool Instruction::do_add(Z80 &state)
@@ -213,7 +213,7 @@ bool Instruction::impl_add(Z80 &state, bool store, bool update_flags)
 	
 }
 
-bool Instruction::impl_sub(Z80 &state, bool store, bool update_flags, bool use_carry)
+bool Instruction::impl_sub(Z80 &state, bool store, bool use_carry, bool is_dec)
 {
 	bool dst_handled = false;
 	bool src_handled = false;
@@ -226,6 +226,12 @@ bool Instruction::impl_sub(Z80 &state, bool store, bool update_flags, bool use_c
 		StorageElement carry(use_carry && state.af.flag(RegisterAF::Flags::Carry) ? 1 : 0);
 		StorageElement res_src = src_elem - carry;
 		StorageElement result = dst_elem - res_src;
+
+		bool update_flags = true;
+		if (is_dec && dst_elem.is_16bit())
+		{
+			update_flags = false;
+		}
 
 		if (update_flags)
 		{

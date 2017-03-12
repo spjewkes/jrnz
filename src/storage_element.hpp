@@ -29,7 +29,7 @@ public:
 	StorageElement &operator&=(const StorageElement &rhs);
 
 	/**
-	 * Query functions functions.
+	 * Query functions.
 	 */
 	bool is_zero() const { return (to_u32() == 0); }
 	bool is_neg() const { return (to_s32() < 0); }
@@ -37,6 +37,8 @@ public:
 	bool is_carry() const { return flag_carry; }
 	bool is_half() const { return flag_half_carry; }
 	bool is_overflow() const { return flag_overflow; }
+	bool is_8bit() const { return count == 1; }
+	bool is_16bit() const { return count == 2; }
 
 	friend std::ostream& operator<<(std::ostream& stream, const StorageElement& e);
 
