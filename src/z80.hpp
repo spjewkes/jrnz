@@ -41,6 +41,7 @@ public:
 			map_inst.emplace(0xd9, Instruction{InstType::EXX, "exx", 1, 4, Operand::UNUSED, Operand::UNUSED});
 			map_inst.emplace(0xf3, Instruction{InstType::DI,  "di", 1, 4, Operand::UNUSED, Operand::UNUSED});
 
+			map_inst.emplace(0xed43, Instruction{InstType::LD,  "ED ld (**),bc", 4, 20, Operand::indNN, Operand::BC});
 			map_inst.emplace(0xed47, Instruction{InstType::LD,  "ED ld i,a", 2, 9, Operand::I, Operand::A});
 			map_inst.emplace(0xed52, Instruction{InstType::SBC, "ED sbc hl,de", 2, 15, Operand::HL, Operand::DE});
 		}

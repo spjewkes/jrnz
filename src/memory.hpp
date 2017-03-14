@@ -47,8 +47,13 @@ public:
 			}
 		}
 	
-
 	StorageElement element(size_t pos, size_t count) { return StorageElement(&mem[pos], count, (pos < ram_start)); }
+	size_t get_addr(size_t pos) const
+		{
+			size_t addr = mem[pos];
+			addr |= mem[pos+1] << 8;
+			return addr;
+		}
 
 	std::string dump(size_t offset, size_t size, bool add_eol=false) const
 		{
