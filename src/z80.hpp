@@ -20,6 +20,7 @@ public:
 	Z80(unsigned int ram_size, std::string &rom_file) : mem(ram_size, rom_file)
 		{
 			map_inst.emplace(0x00, Instruction{InstType::NOP, "nop", 1, 4, Operand::UNUSED, Operand::UNUSED});
+			map_inst.emplace(0x04, Instruction{InstType::INC, "inc b", 1, 4, Operand::B, Operand::ONE});
 			map_inst.emplace(0x11, Instruction{InstType::LD,  "ld de,**", 3, 10, Operand::DE, Operand::NN});
 			map_inst.emplace(0x19, Instruction{InstType::ADD, "add hl, de", 1, 1, Operand::HL, Operand::DE});
 			map_inst.emplace(0x20, Instruction{InstType::JR,  "jr nz,*", 2, 12, 7, Conditional::NZ, Operand::PC, Operand::N});
