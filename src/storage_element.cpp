@@ -125,6 +125,13 @@ StorageElement &StorageElement::operator&=(const StorageElement &rhs)
 	return *this;
 }
 
+void StorageElement::swap(StorageElement &rhs)
+{
+	unsigned int tmp = to_u32();
+	from_u32(rhs.to_u32());
+	rhs.from_u32(tmp);
+}
+
 unsigned int StorageElement::to_u32() const
 {
 	unsigned int v = 0;

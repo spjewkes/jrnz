@@ -18,7 +18,7 @@ bool Instruction::execute(Z80 &state)
 	case InstType::JP:  return do_jp(state);
 	case InstType::DI:  return do_di(state);
 	case InstType::OUT: return do_out(state);
-	case InstType::EXX: return do_exx(state);
+	case InstType::EX:  return do_ex(state);
 	case InstType::DEC: return do_dec(state);
 	case InstType::CP:  return do_cp(state);
 	case InstType::JR:  return do_jr(state);
@@ -135,12 +135,33 @@ bool Instruction::do_out(Z80 &state)
 	return do_ld(state);
 }
 
-bool Instruction::do_exx(Z80 &state)
+bool Instruction::do_ex(Z80 &state)
 {
-	state.hl.swap();
-	state.bc.swap();
-	state.de.swap();
-	return true;
+	bool handled = false;
+
+	if ((Operand::UNUSED == dst) && (Operand::UNUSED == src))
+	{
+		state.hl.swap();
+		state.bc.swap();
+		state.de.swap();
+		handled = true;
+	}
+	else
+	{
+		bool dst_handled = false;
+		bool src_handled = false;
+
+		StorageElement dst_elem = StorageElement::create_element(state, dst, dst_handled);
+		StorageElement src_elem = StorageElement::create_element(state, src, src_handled);
+
+		if (dst_handled && src_handled)
+		{
+			dst_elem.swap(src_elem);
+			handled = true;
+		}
+	}
+
+	return handled;
 }
 
 bool Instruction::do_dec(Z80 &state)

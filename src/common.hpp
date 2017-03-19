@@ -59,7 +59,7 @@ enum class InstType
 	SBC,
 	ADD,
 	INC,
-	EXX,
+	EX,
 };
 
 /**

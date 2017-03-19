@@ -27,6 +27,7 @@ public:
 	StorageElement operator-(const StorageElement &rhs);
 	StorageElement &operator^=(const StorageElement &rhs);
 	StorageElement &operator&=(const StorageElement &rhs);
+	void swap(StorageElement &rhs);
 
 	/**
 	 * Query functions.
