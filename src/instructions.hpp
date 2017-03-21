@@ -19,6 +19,8 @@ class Z80;
 class Instruction
 {
 public:
+	Instruction(InstType _inst, const char *_name, unsigned int _size, unsigned int _cycles)
+		: inst(_inst), name(_name), size(_size), cycles(_cycles), cond(Conditional::UNUSED), dst(Operand::UNUSED), src(Operand::UNUSED) {}
 	Instruction(InstType _inst, const char *_name, unsigned int _size, unsigned int _cycles,
 				Operand _dst, Operand _src)
 		: inst(_inst), name(_name), size(_size), cycles(_cycles), cond(Conditional::UNUSED), dst(_dst), src(_src) {}

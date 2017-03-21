@@ -19,7 +19,7 @@ class Z80
 public:
 	Z80(unsigned int ram_size, std::string &rom_file) : mem(ram_size, rom_file)
 		{
-			map_inst.emplace(0x00, Instruction{InstType::NOP, "nop", 1, 4, Operand::UNUSED, Operand::UNUSED});
+			map_inst.emplace(0x00, Instruction{InstType::NOP, "nop", 1, 4});
 			map_inst.emplace(0x01, Instruction{InstType::LD,  "ld bc,**", 3, 10, Operand::BC, Operand::NN});
 			map_inst.emplace(0x04, Instruction{InstType::INC, "inc b", 1, 4, Operand::B, Operand::ONE});
 			map_inst.emplace(0x11, Instruction{InstType::LD,  "ld de,**", 3, 10, Operand::DE, Operand::NN});
@@ -43,9 +43,9 @@ public:
 			map_inst.emplace(0xbc, Instruction{InstType::CP,  "cp h", 1, 4, Operand::A, Operand::H});
 			map_inst.emplace(0xc3, Instruction{InstType::JP,  "jp **", 3, 10, Conditional::ALWAYS, Operand::PC, Operand::NN});
 			map_inst.emplace(0xd3, Instruction{InstType::OUT, "out (*),a", 2, 11, Operand::PORT, Operand::A});
-			map_inst.emplace(0xd9, Instruction{InstType::EX,  "exx", 1, 4, Operand::UNUSED, Operand::UNUSED});
+			map_inst.emplace(0xd9, Instruction{InstType::EX,  "exx", 1, 4});
 			map_inst.emplace(0xeb, Instruction{InstType::EX,  "ex de,hl", 1, 4, Operand::DE, Operand::HL});
-			map_inst.emplace(0xf3, Instruction{InstType::DI,  "di", 1, 4, Operand::UNUSED, Operand::UNUSED});
+			map_inst.emplace(0xf3, Instruction{InstType::DI,  "di", 1, 4});
 			map_inst.emplace(0xf9, Instruction{InstType::LD,  "ld sp,hl", 1, 6, Operand::SP, Operand::HL});
 
 			map_inst.emplace(0xed43, Instruction{InstType::LD,   "ED ld (**),bc", 4, 20, Operand::indNN, Operand::BC});
