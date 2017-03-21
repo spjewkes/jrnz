@@ -19,10 +19,8 @@ class Z80;
 class Instruction
 {
 public:
-	Instruction(InstType _inst, const char *_name, unsigned int _size, unsigned int _cycles)
-		: inst(_inst), name(_name), size(_size), cycles(_cycles), cond(Conditional::UNUSED), dst(Operand::UNUSED), src(Operand::UNUSED) {}
 	Instruction(InstType _inst, const char *_name, unsigned int _size, unsigned int _cycles,
-				Operand _dst, Operand _src)
+				Operand _dst = Operand::UNUSED, Operand _src = Operand::UNUSED)
 		: inst(_inst), name(_name), size(_size), cycles(_cycles), cond(Conditional::UNUSED), dst(_dst), src(_src) {}
 	Instruction(InstType _inst, const char *_name, unsigned int _size, unsigned int _cycles,
 				unsigned int _cycles_not_cond, Operand _dst, Operand _src)
@@ -53,6 +51,7 @@ private:
 	bool do_and(Z80 &state);
 	bool do_jp(Z80 &state);
 	bool do_di(Z80 &state);
+	bool do_im(Z80 &state);
 	bool do_out(Z80 &state);
 	bool do_ex(Z80 &state);
 	bool do_dec(Z80 &state);

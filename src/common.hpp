@@ -61,6 +61,7 @@ enum class InstType
 	INC,
 	EX,
 	LDDR,
+	IM,
 };
 
 /**
@@ -101,7 +102,10 @@ enum class Operand
 	indHL,
 	indN,
 	indNN,
+	ZERO,
 	ONE,
+	TWO,
+	IM,
 	UNUSED
 };
 

@@ -52,6 +52,7 @@ public:
 			map_inst.emplace(0xed47, Instruction{InstType::LD,   "ED ld i,a",     2,  9, Operand::I, Operand::A});
 			map_inst.emplace(0xed52, Instruction{InstType::SBC,  "ED sbc hl,de",  2, 15, Operand::HL, Operand::DE});
 			map_inst.emplace(0xed53, Instruction{InstType::LD,   "ED ld (**),de", 4, 20, Operand::indNN, Operand::DE});
+			map_inst.emplace(0xed56, Instruction{InstType::IM,   "ED im 1",       2,  8, Operand::IM, Operand::ONE});
 			map_inst.emplace(0xedb8, Instruction{InstType::LDDR, "ED lddr",       2, 21, 16, Operand::indDE, Operand::indHL});
 		}
 
@@ -67,6 +68,7 @@ public:
 	Register16 bc;
 	Register16 de;
 	bool int_on = { false };
+	unsigned char int_mode = { 0 };
 
 	Memory mem;
 	Ports ports;

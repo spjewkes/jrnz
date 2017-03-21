@@ -75,7 +75,10 @@ StorageElement StorageElement::create_element(Z80 &state, Operand operand, bool 
 	case Operand::indHL:  return StorageElement(&state.mem[state.hl.get()],1);
 	case Operand::indN:   return state.mem.element(state.mem.get_addr(state.curr_operand_pc), 1);
 	case Operand::indNN:  return state.mem.element(state.mem.get_addr(state.curr_operand_pc), 2);
+	case Operand::ZERO:   return StorageElement(0x0);
     case Operand::ONE:    return StorageElement(0x1);
+	case Operand::TWO:    return StorageElement(0x2);
+	case Operand::IM:     return StorageElement(&state.int_mode,1);
 	case Operand::UNUSED:
 	default:
 		handled = false;

@@ -26,6 +26,7 @@ bool Instruction::execute(Z80 &state)
 	case InstType::ADD:  return do_add(state);
 	case InstType::INC:  return do_inc(state);
 	case InstType::LDDR: return do_lddr(state);
+	case InstType::IM:   return do_im(state);
 	default:
 		std::cerr << "Unknown instruction type: " << static_cast<unsigned int>(inst) << std::endl;
 	}
@@ -154,6 +155,22 @@ bool Instruction::do_di(Z80 &state)
 {
 	state.int_on = true;
 	return true;
+}
+
+bool Instruction::do_im(Z80 &state)
+{
+	bool dst_handled = false;
+	bool src_handled = false;
+
+	StorageElement dst_elem = StorageElement::create_element(state, dst, dst_handled);
+	StorageElement src_elem = StorageElement::create_element(state, src, src_handled);
+
+	if (dst_handled && src_handled)
+	{
+		dst_elem = src_elem;
+	}
+	
+	return dst_handled && src_handled;
 }
 
 bool Instruction::do_out(Z80 &state)
