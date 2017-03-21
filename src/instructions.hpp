@@ -23,6 +23,9 @@ public:
 				Operand _dst, Operand _src)
 		: inst(_inst), name(_name), size(_size), cycles(_cycles), cond(Conditional::UNUSED), dst(_dst), src(_src) {}
 	Instruction(InstType _inst, const char *_name, unsigned int _size, unsigned int _cycles,
+				unsigned int _cycles_not_cond, Operand _dst, Operand _src)
+		: inst(_inst), name(_name), size(_size), cycles(_cycles), cycles_not_cond(_cycles_not_cond), cond(Conditional::UNUSED), dst(_dst), src(_src) {}
+	Instruction(InstType _inst, const char *_name, unsigned int _size, unsigned int _cycles,
 				unsigned int _cycles_not_cond, Conditional _cond, Operand _dst, Operand _src)
 		: inst(_inst), name(_name), size(_size), cycles(_cycles), cycles_not_cond(_cycles_not_cond), cond(_cond), dst(_dst), src(_src) {}
 	Instruction(InstType _inst, const char *_name, unsigned int _size, unsigned int _cycles,
@@ -43,6 +46,7 @@ public:
 private:
 	bool do_nop(Z80 &state);
 	bool do_ld(Z80 &state);
+	bool do_lddr(Z80 &state);
 	bool do_xor(Z80 &state);
 	bool do_and(Z80 &state);
 	bool do_jp(Z80 &state);

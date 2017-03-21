@@ -11,20 +11,21 @@ bool Instruction::execute(Z80 &state)
 {
 	switch (inst)
 	{
-	case InstType::NOP: return do_nop(state);
-	case InstType::LD:  return do_ld(state);
-	case InstType::XOR: return do_xor(state);
-	case InstType::AND: return do_and(state);
-	case InstType::JP:  return do_jp(state);
-	case InstType::DI:  return do_di(state);
-	case InstType::OUT: return do_out(state);
-	case InstType::EX:  return do_ex(state);
-	case InstType::DEC: return do_dec(state);
-	case InstType::CP:  return do_cp(state);
-	case InstType::JR:  return do_jr(state);
-	case InstType::SBC: return do_sbc(state);
-	case InstType::ADD: return do_add(state);
-	case InstType::INC: return do_inc(state);
+	case InstType::NOP:  return do_nop(state);
+	case InstType::LD:   return do_ld(state);
+	case InstType::XOR:  return do_xor(state);
+	case InstType::AND:  return do_and(state);
+	case InstType::JP:   return do_jp(state);
+	case InstType::DI:   return do_di(state);
+	case InstType::OUT:  return do_out(state);
+	case InstType::EX:   return do_ex(state);
+	case InstType::DEC:  return do_dec(state);
+	case InstType::CP:   return do_cp(state);
+	case InstType::JR:   return do_jr(state);
+	case InstType::SBC:  return do_sbc(state);
+	case InstType::ADD:  return do_add(state);
+	case InstType::INC:  return do_inc(state);
+	case InstType::LDDR: return do_lddr(state);
 	default:
 		std::cerr << "Unknown instruction type: " << static_cast<unsigned int>(inst) << std::endl;
 	}
@@ -49,6 +50,33 @@ bool Instruction::do_ld(Z80 &state)
 	if (dst_handled && src_handled)
 	{
 		dst_elem = src_elem;
+	}
+	
+	return dst_handled && src_handled;
+}
+
+bool Instruction::do_lddr(Z80 &state)
+{
+	bool dst_handled = false;
+	bool src_handled = false;
+
+	StorageElement dst_elem = StorageElement::create_element(state, dst, dst_handled);
+	StorageElement src_elem = StorageElement::create_element(state, src, src_handled);
+
+	if (dst_handled && src_handled)
+	{
+		dst_elem = src_elem;
+
+		state.de.set(state.de.get() - 1);
+		state.hl.set(state.hl.get() - 1);
+		state.bc.set(state.bc.get() - 1);
+
+		state.af.flag(RegisterAF::Flags::ParityOverflow, false);
+
+		if (state.bc.get() != 0)
+		{
+			state.pc.set(state.pc.get() - size);
+		}
 	}
 	
 	return dst_handled && src_handled;

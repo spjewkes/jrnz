@@ -60,6 +60,7 @@ enum class InstType
 	ADD,
 	INC,
 	EX,
+	LDDR,
 };
 
 /**
@@ -96,6 +97,7 @@ enum class Operand
 	PC,
 	PORT,
 	I,
+	indDE,
 	indHL,
 	indN,
 	indNN,

@@ -28,6 +28,8 @@ public:
 	StorageElement element_hi() { return StorageElement(&c_reg[WORD_HI_BYTE_IDX], 1); }
 	StorageElement element_lo() { return StorageElement(&c_reg[WORD_LO_BYTE_IDX], 1); }
 
+	friend std::ostream& operator<<(std::ostream& stream, const Register16& e);
+
 private:
 	union
 	{
@@ -36,6 +38,8 @@ private:
 	};
 	unsigned short alt_reg = 0;
 };
+
+std::ostream& operator<<(std::ostream& stream, const Register16& e);
 
 /**
  * @brief Specialization of Register16 for A and F registers.
