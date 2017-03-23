@@ -48,12 +48,12 @@ public:
 			map_inst.emplace(0xf3, Instruction{InstType::DI,  "di",         1,  4});
 			map_inst.emplace(0xf9, Instruction{InstType::LD,  "ld sp,hl",   1,  6, Operand::SP, Operand::HL});
 
-			map_inst.emplace(0xed43, Instruction{InstType::LD,   "ED ld (**),bc", 4, 20, Operand::indNN, Operand::BC});
-			map_inst.emplace(0xed47, Instruction{InstType::LD,   "ED ld i,a",     2,  9, Operand::I, Operand::A});
-			map_inst.emplace(0xed52, Instruction{InstType::SBC,  "ED sbc hl,de",  2, 15, Operand::HL, Operand::DE});
-			map_inst.emplace(0xed53, Instruction{InstType::LD,   "ED ld (**),de", 4, 20, Operand::indNN, Operand::DE});
-			map_inst.emplace(0xed56, Instruction{InstType::IM,   "ED im 1",       2,  8, Operand::IM, Operand::ONE});
-			map_inst.emplace(0xedb8, Instruction{InstType::LDDR, "ED lddr",       2, 21, 16, Operand::indDE, Operand::indHL});
+			map_inst.emplace(0xed43, Instruction{InstType::LD,   "ld (**),bc", 4, 20, Operand::indNN, Operand::BC});
+			map_inst.emplace(0xed47, Instruction{InstType::LD,   "ld i,a",     2,  9, Operand::I, Operand::A});
+			map_inst.emplace(0xed52, Instruction{InstType::SBC,  "sbc hl,de",  2, 15, Operand::HL, Operand::DE});
+			map_inst.emplace(0xed53, Instruction{InstType::LD,   "ld (**),de", 4, 20, Operand::indNN, Operand::DE});
+			map_inst.emplace(0xed56, Instruction{InstType::IM,   "im 1",       2,  8, Operand::IM, Operand::ONE});
+			map_inst.emplace(0xedb8, Instruction{InstType::LDDR, "lddr",       2, 21, 16, Operand::indDE, Operand::indHL});
 		}
 
 	unsigned short curr_opcode_pc = { 0 }; // Stores the PC of the opcode under execution
