@@ -62,6 +62,7 @@ enum class InstType
 	INC,
 	EX,
 	LDDR,
+	LDIR,
 	IM,
 };
 

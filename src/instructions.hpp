@@ -46,7 +46,7 @@ public:
 private:
 	bool do_nop(Z80 &state);
 	bool do_ld(Z80 &state);
-	bool do_lddr(Z80 &state);
+	bool do_ld_block(Z80 &state, bool inc);
 	bool do_xor(Z80 &state);
 	bool do_and(Z80 &state);
 	bool do_jp(Z80 &state);

@@ -26,7 +26,8 @@ bool Instruction::execute(Z80 &state)
 	case InstType::SBC:  return do_sbc(state);
 	case InstType::ADD:  return do_add(state);
 	case InstType::INC:  return do_inc(state);
-	case InstType::LDDR: return do_lddr(state);
+	case InstType::LDDR: return do_ld_block(state, false /* inc */);
+	case InstType::LDIR: return do_ld_block(state, true /* inc */);
 	case InstType::IM:   return do_im(state);
 	default:
 		std::cerr << "Unknown instruction type: " << static_cast<unsigned int>(inst) << std::endl;
@@ -57,7 +58,7 @@ bool Instruction::do_ld(Z80 &state)
 	return dst_handled && src_handled;
 }
 
-bool Instruction::do_lddr(Z80 &state)
+bool Instruction::do_ld_block(Z80 &state, bool inc)
 {
 	bool dst_handled = false;
 	bool src_handled = false;
@@ -69,8 +70,9 @@ bool Instruction::do_lddr(Z80 &state)
 	{
 		dst_elem = src_elem;
 
-		state.de.set(state.de.get() - 1);
-		state.hl.set(state.hl.get() - 1);
+		int adjust = ( inc ? 1 : -1 );
+		state.de.set(state.de.get() + adjust);
+		state.hl.set(state.hl.get() + adjust);
 		state.bc.set(state.bc.get() - 1);
 
 		state.af.flag(RegisterAF::Flags::ParityOverflow, false);
