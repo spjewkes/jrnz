@@ -17,6 +17,7 @@ bool Instruction::execute(Z80 &state)
 	case InstType::AND:  return do_and(state);
 	case InstType::JP:   return do_jp(state);
 	case InstType::DI:   return do_di(state);
+	case InstType::EI:   return do_ei(state);
 	case InstType::OUT:  return do_out(state);
 	case InstType::EX:   return do_ex(state);
 	case InstType::DEC:  return do_dec(state);
@@ -152,6 +153,12 @@ bool Instruction::do_jp(Z80 &state)
 }
 
 bool Instruction::do_di(Z80 &state)
+{
+	state.int_on = false;
+	return true;
+}
+
+bool Instruction::do_ei(Z80 &state)
 {
 	state.int_on = true;
 	return true;

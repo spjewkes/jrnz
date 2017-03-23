@@ -52,6 +52,7 @@ enum class InstType
 	XOR,
 	JP,
 	DI,
+	EI,
 	OUT,
 	DEC,
 	CP,

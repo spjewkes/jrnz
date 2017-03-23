@@ -51,6 +51,7 @@ private:
 	bool do_and(Z80 &state);
 	bool do_jp(Z80 &state);
 	bool do_di(Z80 &state);
+	bool do_ei(Z80 &state);
 	bool do_im(Z80 &state);
 	bool do_out(Z80 &state);
 	bool do_ex(Z80 &state);
