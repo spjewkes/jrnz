@@ -71,6 +71,8 @@ StorageElement StorageElement::create_element(Z80 &state, Operand operand, bool 
 	case Operand::PC:     return state.pc.element();
 	case Operand::PORT:   return state.ports.element(state.mem.read(state.curr_operand_pc));
 	case Operand::I:      return state.ir.element_hi();
+	case Operand::IX:     return state.ix.element();
+	case Operand::IY:     return state.iy.element();
 	case Operand::indDE:  return StorageElement(&state.mem[state.de.get()],1);
 	case Operand::indHL:  return StorageElement(&state.mem[state.hl.get()],1);
 	case Operand::indN:   return state.mem.element(state.mem.get_addr(state.curr_operand_pc), 1);

@@ -98,6 +98,8 @@ enum class Operand
 	PC,
 	PORT,
 	I,
+	IX,
+	IY,
 	indDE,
 	indHL,
 	indN,
