@@ -32,6 +32,7 @@ public:
 			map_inst.emplace(0x2a, Instruction{InstType::LD,  "ld hl,(**)", 3, 16, Operand::HL, Operand::indNN});
 			map_inst.emplace(0x2b, Instruction{InstType::DEC, "dec hl",     1,  6, Operand::HL, Operand::ONE});
 			map_inst.emplace(0x30, Instruction{InstType::JR,  "jr nc,*",    2, 12, 7, Conditional::NC, Operand::PC, Operand::N});
+			map_inst.emplace(0x32, Instruction{InstType::LD,  "ld (**),a",  3, 12, Operand::indN, Operand::A});
 			map_inst.emplace(0x35, Instruction{InstType::DEC, "dec (hl)",   1, 11, Operand::indHL, Operand::ONE});
 			map_inst.emplace(0x36, Instruction{InstType::LD,  "ld (hl),*",  2, 10, Operand::indHL, Operand::N});
 			map_inst.emplace(0x3e, Instruction{InstType::LD,  "ld a,*",     2,  7, Operand::A, Operand::N});
