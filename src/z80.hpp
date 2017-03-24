@@ -59,6 +59,7 @@ public:
 			map_inst.emplace(0xedb8, Instruction{InstType::LDDR, "lddr",       2, 21, 16, Operand::indDE, Operand::indHL});
 
 			map_inst.emplace(0xfd21, Instruction{InstType::LD,   "ld iy,**",   4, 14, Operand::IY, Operand::NN});
+			map_inst.emplace(0xfd35, Instruction{InstType::DEC,  "dec (iy+*)", 3, 23, Operand::indIYN, Operand::ONE});
 		}
 
 	unsigned short curr_opcode_pc = { 0 }; // Stores the PC of the opcode under execution

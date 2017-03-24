@@ -106,6 +106,7 @@ enum class Operand
 	indHL,
 	indN,
 	indNN,
+	indIYN,
 	ZERO,
 	ONE,
 	TWO,
