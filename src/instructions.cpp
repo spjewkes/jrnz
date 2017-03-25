@@ -26,8 +26,8 @@ bool Instruction::execute(Z80 &state)
 	case InstType::SBC:  return do_sbc(state);
 	case InstType::ADD:  return do_add(state);
 	case InstType::INC:  return do_inc(state);
-	case InstType::LDDR: return do_ld_block(state, false /* inc */); //! TODO clean up
-	case InstType::LDIR: return do_ld_block(state, true /* inc */);  //! TODO clean up
+	case InstType::LDDR: return do_ld_block(state, false /* inc */);
+	case InstType::LDIR: return do_ld_block(state, true /* inc */);
 	case InstType::IM:   return do_im(state);
 	case InstType::SET:  return do_set(state);
 	default:
@@ -144,10 +144,8 @@ bool Instruction::do_jp(Z80 &state)
 
 	if (dst_handled && src_handled)
 	{
-		//! TODO conditional check should be a member function
 		if (is_cond_set(cond, state))
 		{
-			//! TODO need another operator implemented
 			dst_elem = src_elem;
 		}
 	}
@@ -240,10 +238,8 @@ bool Instruction::do_jr(Z80 &state)
 
 	if (dst_handled && src_handled)
 	{
-		//! TODO conditional check should be a member function
 		if (is_cond_set(cond, state))
 		{
-			//! TODO need another operator implemented
 			dst_elem = dst_elem + src_elem;
 		}
 	}
