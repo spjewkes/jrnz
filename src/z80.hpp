@@ -59,8 +59,9 @@ public:
 			map_inst.emplace(0xedb0, Instruction{InstType::LDIR, "ldir",       2, 21, 16, Operand::indDE, Operand::indHL});
 			map_inst.emplace(0xedb8, Instruction{InstType::LDDR, "lddr",       2, 21, 16, Operand::indDE, Operand::indHL});
 
-			map_inst.emplace(0xfd21, Instruction{InstType::LD,  "ld iy,**",   4, 14, Operand::IY, Operand::NN});
-			map_inst.emplace(0xfd35, Instruction{InstType::DEC, "dec (iy+*)", 3, 23, Operand::indIYN, Operand::ONE});
+			map_inst.emplace(0xfd21, Instruction{InstType::LD,  "ld iy,**",    4, 14, Operand::IY, Operand::NN});
+			map_inst.emplace(0xfd35, Instruction{InstType::DEC, "dec (iy+*)",  3, 23, Operand::indIYN, Operand::ONE});
+			map_inst.emplace(0xfd75, Instruction{InstType::LD,  "ld (iy+*),l", 3, 19, Operand::indIYN, Operand::L});
 
 			map_inst.emplace(0xfdcbce, Instruction{InstType::SET, "set 1,(iy+*)", 4, 23, Operand::indIYN, Operand::ONE});
 		}
