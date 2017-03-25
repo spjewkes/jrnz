@@ -54,6 +54,11 @@ public:
 			addr |= mem[pos+1] << 8;
 			return addr;
 		}
+	void write_addr(size_t loc, size_t addr)
+		{
+			mem[loc] = addr & 0xff;
+			mem[loc+1] = (addr >> 8) & 0xff;
+		}
 
 	std::string dump(size_t offset, size_t size, bool add_eol=false) const
 		{

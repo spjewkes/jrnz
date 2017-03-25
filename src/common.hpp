@@ -65,6 +65,7 @@ enum class InstType
 	LDIR,
 	IM,
 	SET,
+	CALL,
 };
 
 /**

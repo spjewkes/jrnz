@@ -30,6 +30,7 @@ bool Instruction::execute(Z80 &state)
 	case InstType::LDIR: return do_ld_block(state, true /* inc */);
 	case InstType::IM:   return do_im(state);
 	case InstType::SET:  return do_set(state);
+	case InstType::CALL: return do_call(state);
 	default:
 		std::cerr << "Unknown instruction type: " << static_cast<unsigned int>(inst) << std::endl;
 	}
@@ -241,6 +242,28 @@ bool Instruction::do_jr(Z80 &state)
 		if (is_cond_set(cond, state))
 		{
 			dst_elem = dst_elem + src_elem;
+		}
+	}
+	
+	return dst_handled && src_handled;
+}
+
+bool Instruction::do_call(Z80 &state)
+{
+	assert(Operand::PC == dst);
+	bool dst_handled = false;
+	bool src_handled = false;
+
+	StorageElement dst_elem = StorageElement::create_element(state, dst, dst_handled);
+	StorageElement src_elem = StorageElement::create_element(state, src, src_handled);
+
+	if (dst_handled && src_handled)
+	{
+		if (is_cond_set(cond, state))
+		{
+			state.mem.write_addr(state.sp.get(), state.pc.get());
+			state.sp.set(state.sp.get() + 2);
+			dst_elem = src_elem;
 		}
 	}
 	
