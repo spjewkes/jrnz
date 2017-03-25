@@ -23,6 +23,7 @@ bool Instruction::execute(Z80 &state)
 	case InstType::DEC:  return do_dec(state);
 	case InstType::CP:   return do_cp(state);
 	case InstType::JR:   return do_jr(state);
+	case InstType::DJNZ: return do_djnz(state);
 	case InstType::SBC:  return do_sbc(state);
 	case InstType::ADD:  return do_add(state);
 	case InstType::INC:  return do_inc(state);
@@ -240,6 +241,29 @@ bool Instruction::do_jr(Z80 &state)
 	if (dst_handled && src_handled)
 	{
 		if (is_cond_set(cond, state))
+		{
+			dst_elem = dst_elem + src_elem;
+		}
+	}
+	
+	return dst_handled && src_handled;
+}
+
+bool Instruction::do_djnz(Z80 &state)
+{
+	assert(Operand::PC == dst);
+	bool dst_handled = false;
+	bool src_handled = false;
+
+	StorageElement dst_elem = StorageElement::create_element(state, dst, dst_handled);
+	StorageElement src_elem = StorageElement::create_element(state, src, src_handled);
+
+	if (dst_handled && src_handled)
+	{
+		assert(Conditional::NZ == cond);
+
+		state.bc.hi(state.bc.hi() - 1);
+		if (state.bc.hi() == 0)
 		{
 			dst_elem = dst_elem + src_elem;
 		}
