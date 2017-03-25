@@ -81,6 +81,11 @@ StorageElement StorageElement::create_element(Z80 &state, Operand operand, bool 
 	case Operand::ZERO:   return StorageElement(0x0);
     case Operand::ONE:    return StorageElement(0x1);
 	case Operand::TWO:    return StorageElement(0x2);
+	case Operand::THREE:  return StorageElement(0x3);
+	case Operand::FOUR:   return StorageElement(0x4);
+	case Operand::FIVE:   return StorageElement(0x5);
+	case Operand::SIX:    return StorageElement(0x6);
+	case Operand::SEVEN:  return StorageElement(0x7);
 	case Operand::IM:     return StorageElement(&state.int_mode,1);
 	case Operand::UNUSED:
 	default:
@@ -137,6 +142,20 @@ void StorageElement::swap(StorageElement &rhs)
 	unsigned int tmp = to_u32();
 	from_u32(rhs.to_u32());
 	rhs.from_u32(tmp);
+}
+
+void StorageElement::set_bit(StorageElement &rhs)
+{
+	unsigned int tmp = to_u32();
+	tmp |= 1 << rhs.to_u32();
+	from_u32(tmp);
+}
+
+void StorageElement::reset_bit(StorageElement &rhs)
+{
+	unsigned int tmp = to_u32();
+	tmp &= ~(1 << rhs.to_u32()) & 0xFF;
+	from_u32(tmp);
 }
 
 unsigned int StorageElement::to_u32() const

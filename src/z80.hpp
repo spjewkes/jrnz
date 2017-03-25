@@ -60,6 +60,8 @@ public:
 
 			map_inst.emplace(0xfd21, Instruction{InstType::LD,   "ld iy,**",   4, 14, Operand::IY, Operand::NN});
 			map_inst.emplace(0xfd35, Instruction{InstType::DEC,  "dec (iy+*)", 3, 23, Operand::indIYN, Operand::ONE});
+
+			map_inst.emplace(0xfdcbce, Instruction{InstType::SET,  "set 1,(iy+*)", 4, 23, Operand::indIYN, Operand::ONE});
 		}
 
 	unsigned short curr_opcode_pc = { 0 }; // Stores the PC of the opcode under execution
@@ -122,13 +124,17 @@ private:
 				opcode = (opcode << 8) | mem.read(curr_operand_pc);
 				curr_operand_pc++;
 
-				// Handle IX and IY bit instructions
+				// Handle IX and IY bit instructions, the opcode comes after
+				// the displacement byte:
+				// 0xddcb <displacement byte> <opcode>
+				// oxfdcb <displacement byte> <opcode>
+				// Make sure the operand is not in the returned opcode
 				switch(opcode)
 				{
 				case 0xddcb:
 				case 0xfdcb:
-					opcode = (opcode << 8) | mem.read(curr_opcode_pc);
-					curr_operand_pc++;
+					opcode = (opcode << 8) | mem.read(curr_operand_pc+1);
+					// Don't increment the operand any further
 				}
 			}
 			}

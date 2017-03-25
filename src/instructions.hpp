@@ -58,6 +58,7 @@ private:
 	bool do_dec(Z80 &state);
 	bool do_cp(Z80 &state);
 	bool do_jr(Z80 &state);
+	bool do_set(Z80 &state);
 	bool do_sbc(Z80 &state);
 	bool do_add(Z80 &state);
 	bool do_inc(Z80 &state);

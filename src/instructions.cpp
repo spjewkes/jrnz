@@ -26,9 +26,10 @@ bool Instruction::execute(Z80 &state)
 	case InstType::SBC:  return do_sbc(state);
 	case InstType::ADD:  return do_add(state);
 	case InstType::INC:  return do_inc(state);
-	case InstType::LDDR: return do_ld_block(state, false /* inc */);
-	case InstType::LDIR: return do_ld_block(state, true /* inc */);
+	case InstType::LDDR: return do_ld_block(state, false /* inc */); //! TODO clean up
+	case InstType::LDIR: return do_ld_block(state, true /* inc */);  //! TODO clean up
 	case InstType::IM:   return do_im(state);
+	case InstType::SET:  return do_set(state);
 	default:
 		std::cerr << "Unknown instruction type: " << static_cast<unsigned int>(inst) << std::endl;
 	}
@@ -250,6 +251,22 @@ bool Instruction::do_jr(Z80 &state)
 	return dst_handled && src_handled;
 }
 
+bool Instruction::do_set(Z80 &state)
+{
+	bool dst_handled = false;
+	bool src_handled = false;
+
+	StorageElement dst_elem = StorageElement::create_element(state, dst, dst_handled);
+	StorageElement src_elem = StorageElement::create_element(state, src, src_handled);
+
+	if (dst_handled && src_handled)
+	{
+		dst_elem.set_bit(src_elem);
+	}
+	
+	return dst_handled && src_handled;
+}
+
 bool Instruction::do_sbc(Z80 &state)
 {
 	return impl_sub(state, true /* store */, true /* use_carry */, false /* is_dec */);
@@ -300,7 +317,6 @@ bool Instruction::impl_add(Z80 &state, bool store, bool is_inc)
 	}
 	
 	return dst_handled && src_handled;
-	
 }
 
 bool Instruction::impl_sub(Z80 &state, bool store, bool use_carry, bool is_dec)

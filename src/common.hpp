@@ -64,6 +64,7 @@ enum class InstType
 	LDDR,
 	LDIR,
 	IM,
+	SET,
 };
 
 /**
@@ -110,6 +111,11 @@ enum class Operand
 	ZERO,
 	ONE,
 	TWO,
+	THREE,
+	FOUR,
+	FIVE,
+	SIX,
+	SEVEN,
 	IM,
 	UNUSED
 };
