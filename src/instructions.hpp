@@ -46,7 +46,8 @@ public:
 private:
 	bool do_nop(Z80 &state);
 	bool do_ld(Z80 &state);
-	bool do_ld_block(Z80 &state, bool inc);
+	bool do_lddr(Z80 &state);
+	bool do_ldir(Z80 &state);
 	bool do_xor(Z80 &state);
 	bool do_and(Z80 &state);
 	bool do_jp(Z80 &state);
@@ -66,6 +67,7 @@ private:
 	bool do_add(Z80 &state);
 	bool do_inc(Z80 &state);
 
+	bool impl_ld_block(Z80 &state, bool inc);
 	bool impl_set_bit(Z80 &state, bool set);
 	bool impl_add(Z80 &state, bool store, bool is_inc);
 	bool impl_sub(Z80 &state, bool store, bool use_carry, bool is_dec);

@@ -27,8 +27,8 @@ bool Instruction::execute(Z80 &state)
 	case InstType::SBC:  return do_sbc(state);
 	case InstType::ADD:  return do_add(state);
 	case InstType::INC:  return do_inc(state);
-	case InstType::LDDR: return do_ld_block(state, false /* inc */);
-	case InstType::LDIR: return do_ld_block(state, true /* inc */);
+	case InstType::LDDR: return do_lddr(state);
+	case InstType::LDIR: return do_ldir(state);
 	case InstType::IM:   return do_im(state);
 	case InstType::SET:  return do_set(state);
 	case InstType::RES:  return do_res(state);
@@ -62,7 +62,17 @@ bool Instruction::do_ld(Z80 &state)
 	return dst_handled && src_handled;
 }
 
-bool Instruction::do_ld_block(Z80 &state, bool inc)
+bool Instruction::do_lddr(Z80 &state)
+{
+	return impl_ld_block(state, false /* inc */);
+}
+
+bool Instruction::do_ldir(Z80 &state)
+{
+	return impl_ld_block(state, true /* inc */);
+}
+
+bool Instruction::impl_ld_block(Z80 &state, bool inc)
 {
 	bool dst_handled = false;
 	bool src_handled = false;
