@@ -61,10 +61,12 @@ private:
 	bool do_djnz(Z80 &state);
 	bool do_call(Z80 &state);
 	bool do_set(Z80 &state);
+	bool do_res(Z80 &state);
 	bool do_sbc(Z80 &state);
 	bool do_add(Z80 &state);
 	bool do_inc(Z80 &state);
 
+	bool impl_set_bit(Z80 &state, bool set);
 	bool impl_add(Z80 &state, bool store, bool is_inc);
 	bool impl_sub(Z80 &state, bool store, bool use_carry, bool is_dec);
 

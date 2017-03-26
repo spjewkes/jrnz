@@ -31,6 +31,7 @@ bool Instruction::execute(Z80 &state)
 	case InstType::LDIR: return do_ld_block(state, true /* inc */);
 	case InstType::IM:   return do_im(state);
 	case InstType::SET:  return do_set(state);
+	case InstType::RES:  return do_res(state);
 	case InstType::CALL: return do_call(state);
 	default:
 		std::cerr << "Unknown instruction type: " << static_cast<unsigned int>(inst) << std::endl;
@@ -296,6 +297,16 @@ bool Instruction::do_call(Z80 &state)
 
 bool Instruction::do_set(Z80 &state)
 {
+	return impl_set_bit(state, true /* set */);
+}
+
+bool Instruction::do_res(Z80 &state)
+{
+	return impl_set_bit(state, false /* set */);
+}
+
+bool Instruction::impl_set_bit(Z80 &state, bool set)
+{
 	bool dst_handled = false;
 	bool src_handled = false;
 
@@ -304,7 +315,14 @@ bool Instruction::do_set(Z80 &state)
 
 	if (dst_handled && src_handled)
 	{
-		dst_elem.set_bit(src_elem);
+		if (set)
+		{
+			dst_elem.set_bit(src_elem);
+		}
+		else
+		{
+			dst_elem.reset_bit(src_elem);
+		}
 	}
 	
 	return dst_handled && src_handled;
