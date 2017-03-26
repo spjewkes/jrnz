@@ -68,6 +68,7 @@ private:
 	bool do_sbc(Z80 &state);
 	bool do_add(Z80 &state);
 	bool do_inc(Z80 &state);
+	bool do_push(Z80 &state);
 
 	bool impl_ld_block(Z80 &state, bool inc);
 	bool impl_set_bit(Z80 &state, bool set);

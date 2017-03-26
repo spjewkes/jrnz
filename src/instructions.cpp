@@ -35,6 +35,7 @@ bool Instruction::execute(Z80 &state)
 	case InstType::SET:  return do_set(state);
 	case InstType::RES:  return do_res(state);
 	case InstType::CALL: return do_call(state);
+	case InstType::PUSH: return do_push(state);
 	default:
 		std::cerr << "Unknown instruction type: " << static_cast<unsigned int>(inst) << std::endl;
 	}
@@ -453,6 +454,22 @@ bool Instruction::impl_sub(Z80 &state, bool store, bool use_carry, bool is_dec)
 	}
 	
 	return dst_handled && src_handled;
+}
+
+bool Instruction::do_push(Z80 &state)
+{
+	assert(Operand::UNUSED == dst);
+	bool src_handled = false;
+
+	StorageElement src_elem = StorageElement::create_element(state, src, src_handled);
+
+	if (src_handled)
+	{
+		size_t new_sp = src_elem.push(state.mem, state.sp.get());
+		state.sp.set(new_sp);
+	}
+
+	return src_handled;
 }
 
 bool Instruction::is_cond_set(Conditional cond, Z80 &state)

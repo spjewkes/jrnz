@@ -70,6 +70,7 @@ enum class InstType
 	SET,
 	RES,
 	CALL,
+	PUSH,
 };
 
 /**
@@ -90,6 +91,7 @@ enum class Conditional
  */
 enum class Operand
 {
+	AF,
 	BC,
 	DE,
 	HL,

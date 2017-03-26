@@ -55,6 +55,7 @@ StorageElement StorageElement::create_element(Z80 &state, Operand operand, bool 
 
 	switch(operand)
 	{
+	case Operand::AF:     return state.af.element();
 	case Operand::BC:     return state.bc.element();
 	case Operand::DE:     return state.de.element();
 	case Operand::HL:     return state.hl.element();
@@ -163,6 +164,20 @@ void StorageElement::reset_bit(StorageElement &rhs)
 	unsigned int tmp = to_u32();
 	tmp &= ~(1 << rhs.to_u32()) & 0xFF;
 	from_u32(tmp);
+}
+
+size_t StorageElement::push(Memory &mem, size_t addr)
+{
+	mem.write(addr-1, ptr[WORD_LO_BYTE_IDX]);
+	mem.write(addr-2, ptr[WORD_HI_BYTE_IDX]);
+	return addr-2;
+}
+
+size_t StorageElement::pop(Memory &mem, size_t addr)
+{
+	ptr[WORD_HI_BYTE_IDX] = mem.read(addr);
+	ptr[WORD_LO_BYTE_IDX] = mem.read(addr+1);
+	return addr+2;
 }
 
 unsigned int StorageElement::to_u32() const

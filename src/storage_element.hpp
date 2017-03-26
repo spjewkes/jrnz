@@ -9,6 +9,7 @@
 #include "common.hpp"
 
 class Z80;
+class Memory;
 
 /**
  * @brief Defines a standard storage element type to allow operations between registers/memory.
@@ -31,6 +32,8 @@ public:
 	bool get_bit(StorageElement &rhs);
 	void set_bit(StorageElement &rhs);
 	void reset_bit(StorageElement &rhs);
+	size_t push(Memory &mem, size_t addr);
+	size_t pop(Memory &mem, size_t addr);
 
 	/**
 	 * Query functions.
