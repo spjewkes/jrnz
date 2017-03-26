@@ -66,6 +66,7 @@ public:
 			map_inst.emplace(0xfd35, Instruction{InstType::DEC, "dec (iy+*)",  3, 23, Operand::indIYN, Operand::ONE});
 			map_inst.emplace(0xfd75, Instruction{InstType::LD,  "ld (iy+*),l", 3, 19, Operand::indIYN, Operand::L});
 
+			map_inst.emplace(0xfdcb4e, Instruction{InstType::BIT, "bit 1,(iy+*)", 4, 20, Operand::indIYN, Operand::ONE});
 			map_inst.emplace(0xfdcb8e, Instruction{InstType::RES, "res 1,(iy+*)", 4, 23, Operand::indIYN, Operand::ONE});
 			map_inst.emplace(0xfdcbce, Instruction{InstType::SET, "set 1,(iy+*)", 4, 23, Operand::indIYN, Operand::ONE});
 		}

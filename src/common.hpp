@@ -65,6 +65,7 @@ enum class InstType
 	LDDR,
 	LDIR,
 	IM,
+	BIT,
 	SET,
 	RES,
 	CALL,

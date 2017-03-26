@@ -144,6 +144,13 @@ void StorageElement::swap(StorageElement &rhs)
 	rhs.from_u32(tmp);
 }
 
+bool StorageElement::get_bit(StorageElement &rhs)
+{
+	unsigned int tmp = to_u32();
+	unsigned int mask = 1 << rhs.to_u32();
+	return (tmp & mask) != 0;
+}
+
 void StorageElement::set_bit(StorageElement &rhs)
 {
 	unsigned int tmp = to_u32();

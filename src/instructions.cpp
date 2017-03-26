@@ -30,6 +30,7 @@ bool Instruction::execute(Z80 &state)
 	case InstType::LDDR: return do_lddr(state);
 	case InstType::LDIR: return do_ldir(state);
 	case InstType::IM:   return do_im(state);
+	case InstType::BIT:  return do_bit(state);
 	case InstType::SET:  return do_set(state);
 	case InstType::RES:  return do_res(state);
 	case InstType::CALL: return do_call(state);
@@ -300,6 +301,25 @@ bool Instruction::do_call(Z80 &state)
 			state.sp.set(state.sp.get() + 2);
 			dst_elem = src_elem;
 		}
+	}
+	
+	return dst_handled && src_handled;
+}
+
+bool Instruction::do_bit(Z80 &state)
+{
+	bool dst_handled = false;
+	bool src_handled = false;
+
+	StorageElement dst_elem = StorageElement::create_element(state, dst, dst_handled);
+	StorageElement src_elem = StorageElement::create_element(state, src, src_handled);
+
+	if (dst_handled && src_handled)
+	{
+		bool is_set = dst_elem.get_bit(src_elem);
+		state.af.flag(RegisterAF::Flags::AddSubtract, false);
+		state.af.flag(RegisterAF::Flags::HalfCarry, true);
+		state.af.flag(RegisterAF::Flags::Zero, is_set);
 	}
 	
 	return dst_handled && src_handled;

@@ -61,6 +61,7 @@ private:
 	bool do_jr(Z80 &state);
 	bool do_djnz(Z80 &state);
 	bool do_call(Z80 &state);
+	bool do_bit(Z80 &state);
 	bool do_set(Z80 &state);
 	bool do_res(Z80 &state);
 	bool do_sbc(Z80 &state);
