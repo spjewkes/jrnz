@@ -58,6 +58,7 @@ enum class InstType
 	CP,
 	JR,
 	DJNZ,
+	SUB,
 	SBC,
 	ADD,
 	INC,

@@ -24,6 +24,7 @@ bool Instruction::execute(Z80 &state)
 	case InstType::CP:   return do_cp(state);
 	case InstType::JR:   return do_jr(state);
 	case InstType::DJNZ: return do_djnz(state);
+	case InstType::SUB:  return do_sub(state);
 	case InstType::SBC:  return do_sbc(state);
 	case InstType::ADD:  return do_add(state);
 	case InstType::INC:  return do_inc(state);
@@ -356,6 +357,11 @@ bool Instruction::impl_set_bit(Z80 &state, bool set)
 	}
 	
 	return dst_handled && src_handled;
+}
+
+bool Instruction::do_sub(Z80 &state)
+{
+	return impl_sub(state, true /* store */, false /* use_carry */, false /* is_dec */);
 }
 
 bool Instruction::do_sbc(Z80 &state)
