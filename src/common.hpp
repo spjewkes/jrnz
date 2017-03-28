@@ -71,6 +71,7 @@ enum class InstType
 	SET,
 	RES,
 	CALL,
+	RET,
 	PUSH,
 	RRCA,
 };

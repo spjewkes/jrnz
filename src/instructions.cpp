@@ -36,6 +36,7 @@ bool Instruction::execute(Z80 &state)
 	case InstType::SET:  return do_set(state);
 	case InstType::RES:  return do_res(state);
 	case InstType::CALL: return do_call(state);
+	case InstType::RET:  return do_ret(state);
 	case InstType::PUSH: return do_push(state);
 	case InstType::RRCA: return do_rrca(state);
 	default:
@@ -324,13 +325,32 @@ bool Instruction::do_call(Z80 &state)
 	{
 		if (is_cond_set(cond, state))
 		{
-			state.mem.write_addr(state.sp.get(), state.pc.get());
-			state.sp.set(state.sp.get() + 2);
+			size_t new_sp = dst_elem.push(state.mem, state.sp.get());
+			state.sp.set(new_sp);
 			dst_elem = src_elem;
 		}
 	}
 	
 	return dst_handled && src_handled;
+}
+
+bool Instruction::do_ret(Z80 &state)
+{
+	assert(Operand::UNUSED == src);
+	bool handled = false;
+
+	StorageElement elem = StorageElement::create_element(state, dst, handled);
+
+	if (handled)
+	{
+		if (is_cond_set(cond, state))
+		{
+			size_t new_sp = elem.pop(state.mem, state.sp.get());
+			state.sp.set(new_sp);
+		}
+	}
+
+	return handled;
 }
 
 bool Instruction::do_bit(Z80 &state)
