@@ -112,6 +112,7 @@ enum class Operand
 	PC,
 	PORT,
 	I,
+	R,
 	IX,
 	IY,
 	indBC,
