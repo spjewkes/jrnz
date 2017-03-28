@@ -114,6 +114,7 @@ enum class Operand
 	I,
 	IX,
 	IY,
+	indBC,
 	indDE,
 	indHL,
 	indN,
