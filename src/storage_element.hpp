@@ -28,6 +28,7 @@ public:
 	StorageElement operator-(const StorageElement &rhs);
 	StorageElement &operator^=(const StorageElement &rhs);
 	StorageElement &operator&=(const StorageElement &rhs);
+	StorageElement &operator|=(const StorageElement &rhs);
 	void swap(StorageElement &rhs);
 	bool get_bit(StorageElement &rhs);
 	void set_bit(StorageElement &rhs);

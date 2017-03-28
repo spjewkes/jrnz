@@ -50,6 +50,7 @@ enum class InstType
 	LD,
 	AND,
 	XOR,
+	OR,
 	JP,
 	DI,
 	EI,

@@ -15,6 +15,7 @@ bool Instruction::execute(Z80 &state)
 	case InstType::LD:   return do_ld(state);
 	case InstType::XOR:  return do_xor(state);
 	case InstType::AND:  return do_and(state);
+	case InstType::OR:   return do_or(state);
 	case InstType::JP:   return do_jp(state);
 	case InstType::DI:   return do_di(state);
 	case InstType::EI:   return do_ei(state);
@@ -138,6 +139,29 @@ bool Instruction::do_and(Z80 &state)
 	if (dst_handled && src_handled)
 	{
 		dst_elem &= src_elem;
+
+		state.af.flag(RegisterAF::Flags::Carry, false);
+		state.af.flag(RegisterAF::Flags::AddSubtract, false);
+		state.af.flag(RegisterAF::Flags::ParityOverflow, dst_elem.is_even_parity());
+		state.af.flag(RegisterAF::Flags::HalfCarry, false);
+		state.af.flag(RegisterAF::Flags::Zero, dst_elem.is_zero());
+		state.af.flag(RegisterAF::Flags::Sign, dst_elem.is_neg());
+	}
+	
+	return dst_handled && src_handled;
+}
+
+bool Instruction::do_or(Z80 &state)
+{
+	bool dst_handled = false;
+	bool src_handled = false;
+
+	StorageElement dst_elem = StorageElement::create_element(state, dst, dst_handled);
+	StorageElement src_elem = StorageElement::create_element(state, src, src_handled);
+
+	if (dst_handled && src_handled)
+	{
+		dst_elem |= src_elem;
 
 		state.af.flag(RegisterAF::Flags::Carry, false);
 		state.af.flag(RegisterAF::Flags::AddSubtract, false);
