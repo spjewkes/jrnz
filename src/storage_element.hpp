@@ -34,6 +34,8 @@ public:
 	void reset_bit(StorageElement &rhs);
 	size_t push(Memory &mem, size_t addr);
 	size_t pop(Memory &mem, size_t addr);
+	void shift_right(bool rotate);
+	void shift_left(bool rotate);
 
 	/**
 	 * Query functions.

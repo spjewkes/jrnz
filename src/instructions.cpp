@@ -36,6 +36,7 @@ bool Instruction::execute(Z80 &state)
 	case InstType::RES:  return do_res(state);
 	case InstType::CALL: return do_call(state);
 	case InstType::PUSH: return do_push(state);
+	case InstType::RRCA: return do_rrca(state);
 	default:
 		std::cerr << "Unknown instruction type: " << static_cast<unsigned int>(inst) << std::endl;
 	}
@@ -470,6 +471,25 @@ bool Instruction::do_push(Z80 &state)
 	}
 
 	return src_handled;
+}
+
+bool Instruction::do_rrca(Z80 &state)
+{
+	assert(Operand::UNUSED == src);
+	bool handled = false;
+
+	StorageElement elem = StorageElement::create_element(state, dst, handled);
+
+	if (handled)
+	{
+		elem.shift_right(true);
+
+		state.af.flag(RegisterAF::Flags::Carry, elem.is_carry());
+		state.af.flag(RegisterAF::Flags::AddSubtract, false);
+		state.af.flag(RegisterAF::Flags::HalfCarry, false);
+	}
+
+	return handled;
 }
 
 bool Instruction::is_cond_set(Conditional cond, Z80 &state)

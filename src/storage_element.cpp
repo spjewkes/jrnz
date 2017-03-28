@@ -181,6 +181,40 @@ size_t StorageElement::pop(Memory &mem, size_t addr)
 	return addr+2;
 }
 
+void StorageElement::shift_right(bool rotate)
+{
+	assert(is_8bit());
+
+	unsigned int val = to_u32();
+	unsigned int shifted_bit = (val & 0x1) << 7;
+
+	val >>= 1;
+	if (rotate)
+	{
+		val |= shifted_bit;
+		flag_carry = (shifted_bit != 0);
+	}
+
+	from_u32(val & 0xff);
+}
+
+void StorageElement::shift_left(bool rotate)
+{
+	assert(is_8bit());
+
+	unsigned int val = to_u32();
+	unsigned int shifted_bit = (val & 0x80) >> 7;
+
+	val <<= 1;
+	if (rotate)
+	{
+		val |= shifted_bit;
+		flag_carry = (shifted_bit != 0);
+	}
+
+	from_u32(val & 0xff);
+}
+
 unsigned int StorageElement::to_u32() const
 {
 	unsigned int v = 0;

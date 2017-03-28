@@ -71,6 +71,7 @@ enum class InstType
 	RES,
 	CALL,
 	PUSH,
+	RRCA,
 };
 
 /**
