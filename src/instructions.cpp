@@ -38,6 +38,7 @@ bool Instruction::execute(Z80 &state)
 	case InstType::CALL: return do_call(state);
 	case InstType::RET:  return do_ret(state);
 	case InstType::PUSH: return do_push(state);
+	case InstType::POP:  return do_pop(state);
 	case InstType::RRCA: return do_rrca(state);
 	default:
 		std::cerr << "Unknown instruction type: " << static_cast<unsigned int>(inst) << std::endl;
@@ -515,6 +516,22 @@ bool Instruction::do_push(Z80 &state)
 	}
 
 	return src_handled;
+}
+
+bool Instruction::do_pop(Z80 &state)
+{
+	assert(Operand::UNUSED == src);
+	bool dst_handled = false;
+
+	StorageElement dst_elem = StorageElement::create_element(state, dst, dst_handled);
+
+	if (dst_handled)
+	{
+		size_t new_sp = dst_elem.pop(state.mem, state.sp.get());
+		state.sp.set(new_sp);
+	}
+
+	return dst_handled;
 }
 
 bool Instruction::do_rrca(Z80 &state)

@@ -73,6 +73,7 @@ enum class InstType
 	CALL,
 	RET,
 	PUSH,
+	POP,
 	RRCA,
 };
 

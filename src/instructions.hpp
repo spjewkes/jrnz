@@ -71,6 +71,7 @@ private:
 	bool do_add(Z80 &state);
 	bool do_inc(Z80 &state);
 	bool do_push(Z80 &state);
+	bool do_pop(Z80 &state);
 	bool do_rrca(Z80 &state);
 
 	bool impl_ld_block(Z80 &state, bool inc);
