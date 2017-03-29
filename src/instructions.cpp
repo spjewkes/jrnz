@@ -562,6 +562,10 @@ bool Instruction::is_cond_set(Conditional cond, Z80 &state)
 	case Conditional::NZ:     return !state.af.flag(RegisterAF::Flags::Zero);
 	case Conditional::C:      return state.af.flag(RegisterAF::Flags::Carry);
 	case Conditional::NC:     return !state.af.flag(RegisterAF::Flags::Carry);
+	case Conditional::M:      return state.af.flag(RegisterAF::Flags::AddSubtract);
+	case Conditional::P:      return !state.af.flag(RegisterAF::Flags::AddSubtract);
+	case Conditional::PE:     return state.af.flag(RegisterAF::Flags::ParityOverflow);
+	case Conditional::PO:     return !state.af.flag(RegisterAF::Flags::ParityOverflow);
 	default:
 		std::cerr << "Unhandled conditional: " << static_cast<int>(cond) << std::endl;
 		assert(false);

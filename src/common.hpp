@@ -87,6 +87,10 @@ enum class Conditional
 	NZ,
 	C,
 	NC,
+	M,
+	P,
+	PE,
+	PO,
 	UNUSED
 };
 
