@@ -6,6 +6,7 @@
 #define __STORAGE_ELEMENT_HPP__
 
 #include <vector>
+#include <bitset>
 #include "common.hpp"
 
 class Z80;
@@ -43,7 +44,7 @@ public:
 	 */
 	bool is_zero() const { return (to_u32() == 0); }
 	bool is_neg() const { return (to_s32() < 0); }
-	bool is_even_parity() const { return (std::bitset<32>(to_u32()).count() % 2); }
+	bool is_even_parity() const { return (std::bitset<32>(to_u32()).count() % 2) == 0; }
 	bool is_carry() const { return flag_carry; }
 	bool is_half() const { return flag_half_carry; }
 	bool is_overflow() const { return flag_overflow; }

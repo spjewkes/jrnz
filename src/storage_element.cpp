@@ -2,6 +2,7 @@
  * @brief Implementation of storage element class.
  */
 
+#include <cstring>
 #include "common.hpp"
 #include "storage_element.hpp"
 #include "z80.hpp"
