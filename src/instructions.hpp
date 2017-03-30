@@ -73,6 +73,8 @@ private:
 	bool do_push(Z80 &state);
 	bool do_pop(Z80 &state);
 	bool do_rrca(Z80 &state);
+	bool do_scf(Z80 &state);
+	bool do_ccf(Z80 &state);
 
 	bool impl_ld_block(Z80 &state, bool inc);
 	bool impl_set_bit(Z80 &state, bool set);

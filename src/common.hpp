@@ -75,6 +75,8 @@ enum class InstType
 	PUSH,
 	POP,
 	RRCA,
+	SCF,
+	CCF,
 };
 
 /**

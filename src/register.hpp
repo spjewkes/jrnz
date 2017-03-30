@@ -72,6 +72,13 @@ public:
 			unsigned char bit = 0x1 << static_cast<unsigned int>(f);
 			return (flags() & bit) != 0;
 		}
+	void inv_flag(Flags f)
+		{
+			if (flag(f))
+				flag(f, false);
+			else
+				flag(f, true);
+		}
 
 private:
 	bool sig_bit(unsigned int v, size_t count, bool ishalf=false)

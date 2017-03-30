@@ -40,6 +40,8 @@ bool Instruction::execute(Z80 &state)
 	case InstType::PUSH: return do_push(state);
 	case InstType::POP:  return do_pop(state);
 	case InstType::RRCA: return do_rrca(state);
+	case InstType::SCF:  return do_scf(state);
+	case InstType::CCF:  return do_ccf(state);
 	default:
 		std::cerr << "Unknown instruction type: " << static_cast<unsigned int>(inst) << std::endl;
 	}
@@ -551,6 +553,24 @@ bool Instruction::do_rrca(Z80 &state)
 	}
 
 	return handled;
+}
+
+bool Instruction::do_scf(Z80 &state)
+{
+	state.af.flag(RegisterAF::Flags::Carry, true);
+	state.af.flag(RegisterAF::Flags::AddSubtract, false);
+	state.af.flag(RegisterAF::Flags::HalfCarry, false);
+
+	return true;
+}
+
+bool Instruction::do_ccf(Z80 &state)
+{
+	state.af.inv_flag(RegisterAF::Flags::Carry);
+	state.af.flag(RegisterAF::Flags::AddSubtract, false);
+	state.af.inv_flag(RegisterAF::Flags::HalfCarry);
+
+	return true;
 }
 
 bool Instruction::is_cond_set(Conditional cond, Z80 &state)
