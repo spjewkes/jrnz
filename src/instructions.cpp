@@ -65,7 +65,7 @@ bool Instruction::do_ld(Z80 &state)
 	{
 		dst_elem = src_elem;
 	}
-	
+
 	return dst_handled && src_handled;
 }
 
@@ -103,7 +103,7 @@ bool Instruction::impl_ld_block(Z80 &state, bool inc)
 			state.pc.set(state.pc.get() - size);
 		}
 	}
-	
+
 	return dst_handled && src_handled;
 }
 
@@ -126,7 +126,7 @@ bool Instruction::do_xor(Z80 &state)
 		state.af.flag(RegisterAF::Flags::Zero, dst_elem.is_zero());
 		state.af.flag(RegisterAF::Flags::Sign, dst_elem.is_neg());
 	}
-	
+
 	return dst_handled && src_handled;
 }
 
@@ -149,7 +149,7 @@ bool Instruction::do_and(Z80 &state)
 		state.af.flag(RegisterAF::Flags::Zero, dst_elem.is_zero());
 		state.af.flag(RegisterAF::Flags::Sign, dst_elem.is_neg());
 	}
-	
+
 	return dst_handled && src_handled;
 }
 
@@ -172,7 +172,7 @@ bool Instruction::do_or(Z80 &state)
 		state.af.flag(RegisterAF::Flags::Zero, dst_elem.is_zero());
 		state.af.flag(RegisterAF::Flags::Sign, dst_elem.is_neg());
 	}
-	
+
 	return dst_handled && src_handled;
 }
 
@@ -192,7 +192,7 @@ bool Instruction::do_jp(Z80 &state)
 			dst_elem = src_elem;
 		}
 	}
-	
+
 	return dst_handled && src_handled;
 }
 
@@ -220,7 +220,7 @@ bool Instruction::do_im(Z80 &state)
 	{
 		dst_elem = src_elem;
 	}
-	
+
 	return dst_handled && src_handled;
 }
 
@@ -286,7 +286,7 @@ bool Instruction::do_jr(Z80 &state)
 			dst_elem = dst_elem + src_elem;
 		}
 	}
-	
+
 	return dst_handled && src_handled;
 }
 
@@ -309,7 +309,7 @@ bool Instruction::do_djnz(Z80 &state)
 			dst_elem = dst_elem + src_elem;
 		}
 	}
-	
+
 	return dst_handled && src_handled;
 }
 
@@ -331,7 +331,7 @@ bool Instruction::do_call(Z80 &state)
 			dst_elem = src_elem;
 		}
 	}
-	
+
 	return dst_handled && src_handled;
 }
 
@@ -369,7 +369,7 @@ bool Instruction::do_bit(Z80 &state)
 		state.af.flag(RegisterAF::Flags::HalfCarry, true);
 		state.af.flag(RegisterAF::Flags::Zero, is_set);
 	}
-	
+
 	return dst_handled && src_handled;
 }
 
@@ -402,7 +402,7 @@ bool Instruction::impl_set_bit(Z80 &state, bool set)
 			dst_elem.reset_bit(src_elem);
 		}
 	}
-	
+
 	return dst_handled && src_handled;
 }
 
@@ -459,7 +459,7 @@ bool Instruction::impl_add(Z80 &state, bool store, bool is_inc)
 			dst_elem = result;
 		}
 	}
-	
+
 	return dst_handled && src_handled;
 }
 
@@ -498,7 +498,7 @@ bool Instruction::impl_sub(Z80 &state, bool store, bool use_carry, bool is_dec)
 			dst_elem = result;
 		}
 	}
-	
+
 	return dst_handled && src_handled;
 }
 

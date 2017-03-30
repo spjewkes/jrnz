@@ -35,7 +35,7 @@ StorageElement::StorageElement(unsigned int v, size_t _count) : count(_count), r
 	assert((count == 1) || (count == 2));
 	read_only.resize(count);
 	ptr = &read_only[0];
-	
+
 	switch (count)
 	{
 	case 1:

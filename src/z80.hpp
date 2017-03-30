@@ -341,7 +341,7 @@ public:
 	Register16 sp;
 	Register16 ix;
 	Register16 iy;
-	
+
 	RegisterAF af;
 	Register16 hl;
 	Register16 bc;
@@ -409,7 +409,7 @@ private:
 				}
 			}
 			}
-			
+
 			return opcode;
 		}
 	std::map<unsigned int, Instruction> map_inst;

@@ -46,7 +46,7 @@ public:
 				mem[pos] = v;
 			}
 		}
-	
+
 	StorageElement element(size_t pos, size_t count) { return StorageElement(&mem[pos], count, (pos < ram_start)); }
 	size_t get_addr(size_t pos) const
 		{
@@ -72,7 +72,7 @@ public:
 				{
 					output << std::hex << "0x" << std::setw(4) << std::setfill('0') << pos << ":";
 				}
-				
+
 				output << std::hex << " " << std::setw(2) << std::setfill('0') << static_cast<unsigned int>(mem[pos]);
 				line_count++;
 

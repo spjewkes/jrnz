@@ -31,7 +31,7 @@ public:
 	Instruction(InstType _inst, const char *_name, unsigned int _size, unsigned int _cycles,
 				Conditional _cond, Operand _dst, Operand _src = Operand::UNUSED)
 		: inst(_inst), name(_name), size(_size), cycles(_cycles), cond(_cond), dst(_dst), src(_src) {}
-	
+
 	InstType inst;
 	std::string name;
 	unsigned int size;
