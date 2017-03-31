@@ -178,30 +178,39 @@ public:
 			map_inst.emplace(0xbf, Instruction{InstType::CP,   "cp a",       1,  4, Operand::A, Operand::A});
 			map_inst.emplace(0xc0, Instruction{InstType::RET,  "ret nz",     1, 11, 5, Conditional::NZ, Operand::PC});
 			map_inst.emplace(0xc1, Instruction{InstType::POP,  "pop bc",     1, 10, Operand::BC});
+			map_inst.emplace(0xc2, Instruction{InstType::JP,   "jp nz,**",   3, 10, Conditional::NZ, Operand::PC, Operand::NN});
 			map_inst.emplace(0xc3, Instruction{InstType::JP,   "jp **",      3, 10, Conditional::ALWAYS, Operand::PC, Operand::NN});
 			map_inst.emplace(0xc5, Instruction{InstType::PUSH, "push bc",    1, 11, Operand::UNUSED, Operand::BC});
 			map_inst.emplace(0xc6, Instruction{InstType::ADD,  "add a,*",    2,  7, Operand::A, Operand::N});
 			map_inst.emplace(0xc8, Instruction{InstType::RET,  "ret z",      1, 11, 5, Conditional::Z, Operand::PC});
-			map_inst.emplace(0xc9, Instruction{InstType::RET,  "ret",        1, 10, Conditional::ALWAYS, Operand::PC}); 
+			map_inst.emplace(0xc9, Instruction{InstType::RET,  "ret",        1, 10, Conditional::ALWAYS, Operand::PC});
+			map_inst.emplace(0xca, Instruction{InstType::JP,   "jp z,**",    3, 10, Conditional::Z, Operand::PC, Operand::NN});
 			map_inst.emplace(0xcd, Instruction{InstType::CALL, "call **",    3, 17, Conditional::ALWAYS, Operand::PC, Operand::NN});
 			map_inst.emplace(0xd0, Instruction{InstType::RET,  "ret nc",     1, 11, 5, Conditional::NC, Operand::PC});
+			map_inst.emplace(0xd2, Instruction{InstType::JP,   "jp nc,**",   3, 10, Conditional::NC, Operand::PC, Operand::NN});
 			map_inst.emplace(0xd3, Instruction{InstType::OUT,  "out (*),a",  2, 11, Operand::PORT, Operand::A});
 			map_inst.emplace(0xd5, Instruction{InstType::PUSH, "push de",    1, 11, Operand::UNUSED, Operand::DE});
 			map_inst.emplace(0xd6, Instruction{InstType::SUB,  "sub *",      2,  7, Operand::A, Operand::N});
 			map_inst.emplace(0xd8, Instruction{InstType::RET,  "ret c",      1, 11, 5, Conditional::C, Operand::PC});
 			map_inst.emplace(0xd9, Instruction{InstType::EX,   "exx",        1,  4});
+			map_inst.emplace(0xda, Instruction{InstType::JP,   "jp c,**",    3, 10, Conditional::C, Operand::PC, Operand::NN});
 			map_inst.emplace(0xe0, Instruction{InstType::RET,  "ret po",     1, 11, 5, Conditional::PO, Operand::PC});
+			map_inst.emplace(0xe2, Instruction{InstType::JP,   "jp po,**",   3, 10, Conditional::PO, Operand::PC, Operand::NN});
 			map_inst.emplace(0xe5, Instruction{InstType::PUSH, "push hl",    1, 11, Operand::UNUSED, Operand::HL});
 			map_inst.emplace(0xe6, Instruction{InstType::AND,  "and *",      2,  7, Operand::A, Operand::N});
 			map_inst.emplace(0xe8, Instruction{InstType::RET,  "ret pe",     1, 11, 5, Conditional::PE, Operand::PC});
+			map_inst.emplace(0xe9, Instruction{InstType::JP,   "jp (hl)",    1,  4, Conditional::ALWAYS, Operand::PC, Operand::HL});
+			map_inst.emplace(0xea, Instruction{InstType::JP,   "jp pe,**",   3, 10, Conditional::PE, Operand::PC, Operand::NN});
 			map_inst.emplace(0xeb, Instruction{InstType::EX,   "ex de,hl",   1,  4, Operand::DE, Operand::HL});
 			map_inst.emplace(0xee, Instruction{InstType::XOR,  "xor *",      2,  7, Operand::A, Operand::N});
 			map_inst.emplace(0xf0, Instruction{InstType::RET,  "ret p",      1, 11, 5, Conditional::P, Operand::PC});
+			map_inst.emplace(0xf2, Instruction{InstType::JP,   "jp p,**",    3, 10, Conditional::P, Operand::PC, Operand::NN});
 			map_inst.emplace(0xf3, Instruction{InstType::DI,   "di",         1,  4});
 			map_inst.emplace(0xf5, Instruction{InstType::PUSH, "push af",    1, 11, Operand::UNUSED, Operand::AF});
 			map_inst.emplace(0xf6, Instruction{InstType::OR,   "or *",       2,  7, Operand::A, Operand::N});
 			map_inst.emplace(0xf8, Instruction{InstType::RET,  "ret m",      1, 11, 5, Conditional::M, Operand::PC});
 			map_inst.emplace(0xf9, Instruction{InstType::LD,   "ld sp,hl",   1,  6, Operand::SP, Operand::HL});
+			map_inst.emplace(0xfa, Instruction{InstType::JP,   "jp m,**",    3, 10, Conditional::M, Operand::PC, Operand::NN});
 			map_inst.emplace(0xfb, Instruction{InstType::EI,   "ei",         1,  4});
 			map_inst.emplace(0xfe, Instruction{InstType::CP,   "cp *",       2,  7, Operand::A, Operand::N});
 
@@ -251,6 +260,7 @@ public:
 			map_inst.emplace(0xddb6, Instruction{InstType::OR,   "or (ix+*)",    3, 19, Operand::A, Operand::indIXN});
 			map_inst.emplace(0xddbe, Instruction{InstType::CP,   "cp (ix+*)",    3, 19, Operand::A, Operand::indIXN});
 			map_inst.emplace(0xdde5, Instruction{InstType::PUSH, "push ix",      2, 15, Operand::UNUSED, Operand::IX});
+			map_inst.emplace(0xdde9, Instruction{InstType::JP,   "jp (ix)",      2,  8, Conditional::ALWAYS, Operand::PC, Operand::IX});
 			map_inst.emplace(0xddf9, Instruction{InstType::LD,   "ld sp,ix",     2, 10, Operand::SP, Operand::IX});
 
 			map_inst.emplace(0xddcb46, Instruction{InstType::BIT, "bit 0,(ix+*)", 4, 20, Operand::indIXN, Operand::ZERO});
@@ -309,6 +319,7 @@ public:
 			map_inst.emplace(0xfdb6, Instruction{InstType::OR,   "or (iy+*)",    3, 19, Operand::A, Operand::indIYN});
 			map_inst.emplace(0xfdbe, Instruction{InstType::CP,   "cp (iy+*)",    3, 19, Operand::A, Operand::indIYN});
 			map_inst.emplace(0xfde5, Instruction{InstType::PUSH, "push iy",      2, 15, Operand::UNUSED, Operand::IY});
+			map_inst.emplace(0xfde9, Instruction{InstType::JP,   "jp (iy)",      2,  8, Conditional::ALWAYS, Operand::PC, Operand::IY});
 			map_inst.emplace(0xfdf9, Instruction{InstType::LD,   "ld sp,iy",     2, 10, Operand::SP, Operand::IY});
 
 			map_inst.emplace(0xfdcb46, Instruction{InstType::BIT, "bit 0,(iy+*)", 4, 20, Operand::indIYN, Operand::ZERO});
