@@ -77,6 +77,7 @@ enum class InstType
 	RRCA,
 	SCF,
 	CCF,
+	RST,
 };
 
 /**
@@ -136,6 +137,14 @@ enum class Operand
 	FIVE,
 	SIX,
 	SEVEN,
+	HEX_0000,
+	HEX_0008,
+	HEX_0010,
+	HEX_0018,
+	HEX_0020,
+	HEX_0028,
+	HEX_0030,
+	HEX_0038,
 	IM,
 	UNUSED
 };

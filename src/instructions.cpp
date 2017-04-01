@@ -42,6 +42,7 @@ bool Instruction::execute(Z80 &state)
 	case InstType::RRCA: return do_rrca(state);
 	case InstType::SCF:  return do_scf(state);
 	case InstType::CCF:  return do_ccf(state);
+	case InstType::RST:  return do_rst(state);
 	default:
 		std::cerr << "Unknown instruction type: " << static_cast<unsigned int>(inst) << std::endl;
 	}
@@ -571,6 +572,25 @@ bool Instruction::do_ccf(Z80 &state)
 	state.af.inv_flag(RegisterAF::Flags::HalfCarry);
 
 	return true;
+}
+
+bool Instruction::do_rst(Z80 &state)
+{
+	assert(Operand::PC == dst);
+	bool dst_handled = false;
+	bool src_handled = false;
+
+	StorageElement dst_elem = StorageElement::create_element(state, dst, dst_handled);
+	StorageElement src_elem = StorageElement::create_element(state, src, src_handled);
+
+	if (dst_handled && src_handled)
+	{
+		size_t new_sp = dst_elem.push(state.mem, state.sp.get());
+		state.sp.set(new_sp);
+		dst_elem = src_elem;
+	}
+
+	return dst_handled && src_handled;
 }
 
 bool Instruction::is_cond_set(Conditional cond, Z80 &state)
