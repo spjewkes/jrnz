@@ -83,21 +83,21 @@ StorageElement StorageElement::create_element(Z80 &state, Operand operand, bool 
 	case Operand::indNN:    return state.mem.element(state.mem.get_addr(state.curr_operand_pc), 2);
 	case Operand::indIXN:   return StorageElement(&state.mem[state.ix.get()] + state.mem.read(state.curr_operand_pc), 1);
 	case Operand::indIYN:   return StorageElement(&state.mem[state.iy.get()] + state.mem.read(state.curr_operand_pc), 1);
-	case Operand::ZERO:     return StorageElement(static_cast<unsigned int>(0x00));
-    case Operand::ONE:      return StorageElement(static_cast<unsigned int>(0x01));
-	case Operand::TWO:      return StorageElement(static_cast<unsigned int>(0x02));
-	case Operand::THREE:    return StorageElement(static_cast<unsigned int>(0x03));
-	case Operand::FOUR:     return StorageElement(static_cast<unsigned int>(0x04));
-	case Operand::FIVE:     return StorageElement(static_cast<unsigned int>(0x05));
-	case Operand::SIX:      return StorageElement(static_cast<unsigned int>(0x06));
-	case Operand::SEVEN:    return StorageElement(static_cast<unsigned int>(0x07));
-	case Operand::HEX_0008: return StorageElement(static_cast<unsigned int>(0x08), 2);
-	case Operand::HEX_0010: return StorageElement(static_cast<unsigned int>(0x10), 2);
-	case Operand::HEX_0018: return StorageElement(static_cast<unsigned int>(0x18), 2);
-	case Operand::HEX_0020: return StorageElement(static_cast<unsigned int>(0x20), 2);
-	case Operand::HEX_0028: return StorageElement(static_cast<unsigned int>(0x28), 2);
-	case Operand::HEX_0030: return StorageElement(static_cast<unsigned int>(0x30), 2);
-	case Operand::HEX_0038: return StorageElement(static_cast<unsigned int>(0x38), 2);
+	case Operand::ZERO:     return StorageElement(0x00);
+	case Operand::ONE:      return StorageElement(0x01);
+	case Operand::TWO:      return StorageElement(0x02);
+	case Operand::THREE:    return StorageElement(0x03);
+	case Operand::FOUR:     return StorageElement(0x04);
+	case Operand::FIVE:     return StorageElement(0x05);
+	case Operand::SIX:      return StorageElement(0x06);
+	case Operand::SEVEN:    return StorageElement(0x07);
+	case Operand::HEX_0008: return StorageElement(0x08, static_cast<unsigned char>(0x00));
+	case Operand::HEX_0010: return StorageElement(0x10, static_cast<unsigned char>(0x00));
+	case Operand::HEX_0018: return StorageElement(0x18, static_cast<unsigned char>(0x00));
+	case Operand::HEX_0020: return StorageElement(0x20, static_cast<unsigned char>(0x00));
+	case Operand::HEX_0028: return StorageElement(0x28, static_cast<unsigned char>(0x00));
+	case Operand::HEX_0030: return StorageElement(0x30, static_cast<unsigned char>(0x00));
+	case Operand::HEX_0038: return StorageElement(0x38, static_cast<unsigned char>(0x00));
 	case Operand::IM:       return StorageElement(&state.int_mode,1);
 	case Operand::UNUSED:
 	default:
@@ -355,6 +355,6 @@ void StorageElement::update_overflow(const StorageElement &op1, const StorageEle
 
 std::ostream& operator<<(std::ostream& stream, const StorageElement& e)
 {
-	stream << std::dec << e.to_s32() << " (0x" << std::hex << e.to_u32() << ")" << std::dec;
+	stream << std::dec << e.to_s32() << " (0x" << std::hex << e.to_u32() << ")" << " count: " << e.count << std::dec;
 	return stream;
 }
