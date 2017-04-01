@@ -71,7 +71,7 @@ public:
 			map_inst.emplace(0x37, Instruction{InstType::SCF,  "scf",        1, 4});
 			map_inst.emplace(0x38, Instruction{InstType::JR,   "jr c,*",     2, 12, 7, Conditional::C, Operand::PC, Operand::N});
 			map_inst.emplace(0x39, Instruction{InstType::ADD,  "add hl,sp",  1, 11, Operand::HL, Operand::SP});
-			map_inst.emplace(0x3a, Instruction{InstType::LD,   "ld a,(**)",  3, 13, Operand::A, Operand::indNN});
+			map_inst.emplace(0x3a, Instruction{InstType::LD,   "ld a,(**)",  3, 13, Operand::A, Operand::indN});
 			map_inst.emplace(0x3b, Instruction{InstType::DEC,  "dec sp",     1,  6, Operand::SP, Operand::ONE});
 			map_inst.emplace(0x3c, Instruction{InstType::INC,  "inc a",      1,  4, Operand::A, Operand::ONE});
 			map_inst.emplace(0x3d, Instruction{InstType::DEC,  "dec a",      1,  4, Operand::A, Operand::ONE});
