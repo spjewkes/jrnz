@@ -52,23 +52,52 @@ int main(int argc, char **argv)
 
 		if (!step && do_break)
 		{
+			bool debug = true;
 			char ch;
-			std::cin >> ch;
 
-			switch (ch)
+			while (debug)
 			{
-			case 'c':
-				do_break = false;
-				break;
-			case 's':
-				std::cin >> step;
-				break;
-			case 'd':
-				state.dump();
-				break;
-			case 'q':
-				running = false;
-				break;
+				std::cin >> ch;
+				
+				switch (ch)
+				{
+				case 'c':
+					do_break = false;
+					debug = false;
+					break;
+				case 's':
+					std::cin >> step;
+					debug = false;
+					break;
+				case 'r':
+					state.dump();
+					break;
+				case 'd':
+					size_t offset;
+					size_t size;
+					std::cin >> offset >> size;
+					std::cout << state.mem.dump(offset, size) << std::endl;
+					break;
+				case 'n':
+					debug = false;
+					break;
+				case 'q':
+					running = false;
+					debug = false;
+					break;
+				default:
+					std::string help_text =
+						"In debug mode.\n"
+						"Help:\n"
+						"\tc = continue\n"
+						"\ts <n> = step <n> times\n"
+						"\tr = dump registers\n"
+						"\td <offset> <size> = dump memory contents starting at <offset> for <size> bytes\n"
+						"\tn = next instruction\n"
+						"\tq = quit\n";
+					std::cout << help_text;
+					break;
+				}
 			}
 		}
 
