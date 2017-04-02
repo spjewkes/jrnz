@@ -611,6 +611,17 @@ public:
 			}
 			return found;
 		}
+	void dump()
+		{
+			std::cout << "AF: " << af << std::endl;
+			std::cout << "HL: " << hl << std::endl;
+			std::cout << "BC: " << bc << std::endl;
+			std::cout << "DE: " << de << std::endl;
+			std::cout << "IX: " << ix << std::endl;
+			std::cout << "IY: " << iy << std::endl;
+			std::cout << "PC: " << pc << std::endl;
+			std::cout << "SP: " << sp << std::endl;
+		}
 
 private:
 	unsigned int get_opcode()
