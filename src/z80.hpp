@@ -601,14 +601,15 @@ public:
 				std::cout << std::left << std::setw(20) << mem.dump(curr_opcode_pc, inst.size);
 				std::cout << inst.name << std::endl;
 				pc.set(curr_opcode_pc + inst.size);
-				found = inst.execute(*this);
+				inst.execute(*this);
+				found = true;
 			}
-
-			if(!found)
+			else
 			{
 				std::cerr << "Unhandled instruction error: 0x" << std::hex << opcode << std::dec << std::endl;
 				std::cerr << mem.dump(curr_opcode_pc, 4) << std::endl;
 			}
+
 			return found;
 		}
 	void dump()

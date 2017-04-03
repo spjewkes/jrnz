@@ -41,7 +41,7 @@ public:
 	Operand dst;
 	Operand src;
 
-	bool execute(Z80 &state);
+	void execute(Z80 &state);
 
 private:
 	bool do_nop(Z80 &state);

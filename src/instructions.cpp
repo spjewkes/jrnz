@@ -7,47 +7,46 @@
 #include "storage_element.hpp"
 #include "z80.hpp"
 
-bool Instruction::execute(Z80 &state)
+void Instruction::execute(Z80 &state)
 {
 	switch (inst)
 	{
-	case InstType::NOP:  return do_nop(state);
-	case InstType::LD:   return do_ld(state);
-	case InstType::XOR:  return do_xor(state);
-	case InstType::AND:  return do_and(state);
-	case InstType::OR:   return do_or(state);
-	case InstType::JP:   return do_jp(state);
-	case InstType::DI:   return do_di(state);
-	case InstType::EI:   return do_ei(state);
-	case InstType::OUT:  return do_out(state);
-	case InstType::EX:   return do_ex(state);
-	case InstType::DEC:  return do_dec(state);
-	case InstType::CP:   return do_cp(state);
-	case InstType::JR:   return do_jr(state);
-	case InstType::DJNZ: return do_djnz(state);
-	case InstType::SUB:  return do_sub(state);
-	case InstType::SBC:  return do_sbc(state);
-	case InstType::ADD:  return do_add(state);
-	case InstType::INC:  return do_inc(state);
-	case InstType::LDDR: return do_lddr(state);
-	case InstType::LDIR: return do_ldir(state);
-	case InstType::IM:   return do_im(state);
-	case InstType::BIT:  return do_bit(state);
-	case InstType::SET:  return do_set(state);
-	case InstType::RES:  return do_res(state);
-	case InstType::CALL: return do_call(state);
-	case InstType::RET:  return do_ret(state);
-	case InstType::PUSH: return do_push(state);
-	case InstType::POP:  return do_pop(state);
-	case InstType::RRCA: return do_rrca(state);
-	case InstType::SCF:  return do_scf(state);
-	case InstType::CCF:  return do_ccf(state);
-	case InstType::RST:  return do_rst(state);
-	default:
-		std::cerr << "Unknown instruction type: " << static_cast<unsigned int>(inst) << std::endl;
+		case InstType::NOP:  do_nop(state); break;
+		case InstType::LD:   do_ld(state); break;
+		case InstType::XOR:  do_xor(state); break;
+		case InstType::AND:  do_and(state); break;
+		case InstType::OR:   do_or(state); break;
+		case InstType::JP:   do_jp(state); break;
+		case InstType::DI:   do_di(state); break;
+		case InstType::EI:   do_ei(state); break;
+		case InstType::OUT:  do_out(state); break;
+		case InstType::EX:   do_ex(state); break;
+		case InstType::DEC:  do_dec(state); break;
+		case InstType::CP:   do_cp(state); break;
+		case InstType::JR:   do_jr(state); break;
+		case InstType::DJNZ: do_djnz(state); break;
+		case InstType::SUB:  do_sub(state); break;
+		case InstType::SBC:  do_sbc(state); break;
+		case InstType::ADD:  do_add(state); break;
+		case InstType::INC:  do_inc(state); break;
+		case InstType::LDDR: do_lddr(state); break;
+		case InstType::LDIR: do_ldir(state); break;
+		case InstType::IM:   do_im(state); break;
+		case InstType::BIT:  do_bit(state); break;
+		case InstType::SET:  do_set(state); break;
+		case InstType::RES:  do_res(state); break;
+		case InstType::CALL: do_call(state); break;
+		case InstType::RET:  do_ret(state); break;
+		case InstType::PUSH: do_push(state); break;
+		case InstType::POP:  do_pop(state); break;
+		case InstType::RRCA: do_rrca(state); break;
+		case InstType::SCF:  do_scf(state); break;
+		case InstType::CCF:  do_ccf(state); break;
+		case InstType::RST:  do_rst(state); break;
+		default:
+			std::cerr << "Unknown instruction type: " << static_cast<unsigned int>(inst) << std::endl;
+			assert(false);
 	}
-
-	return false;
 }
 
 
