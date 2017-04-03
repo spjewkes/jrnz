@@ -22,7 +22,7 @@ public:
 	explicit StorageElement(unsigned char v);
 	explicit StorageElement(unsigned char lo, unsigned char hi);
 
-	static StorageElement create_element(Z80 &state, Operand operand, bool &handled);
+	static StorageElement create_element(Z80 &state, Operand operand);
 
 	StorageElement &operator=(const StorageElement &rhs);
 	StorageElement operator+(const StorageElement &rhs);

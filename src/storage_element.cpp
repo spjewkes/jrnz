@@ -50,10 +50,8 @@ StorageElement::StorageElement(unsigned int v, size_t _count) : count(_count), r
 	}
 }
 
-StorageElement StorageElement::create_element(Z80 &state, Operand operand, bool &handled)
+StorageElement StorageElement::create_element(Z80 &state, Operand operand)
 {
-	handled = true;
-
 	switch(operand)
 	{
 	case Operand::AF:       return state.af.element();
@@ -101,7 +99,6 @@ StorageElement StorageElement::create_element(Z80 &state, Operand operand, bool 
 	case Operand::IM:       return StorageElement(&state.int_mode,1);
 	case Operand::UNUSED:
 	default:
-		handled = false;
 		return StorageElement(nullptr, 0);
 	}
 }
