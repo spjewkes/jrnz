@@ -58,7 +58,7 @@ int main(int argc, char **argv)
 			while (debug)
 			{
 				std::cin >> ch;
-				
+
 				switch (ch)
 				{
 				case 'c':
