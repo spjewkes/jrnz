@@ -66,10 +66,26 @@ StorageElement StorageElement::create_element(Z80 &state, Operand operand)
 	case Operand::E:        return state.de.element_lo();
 	case Operand::H:        return state.hl.element_hi();
 	case Operand::L:        return state.hl.element_lo();
-	case Operand::N:        return StorageElement(state.mem.read(state.curr_operand_pc));
-	case Operand::NN:       return StorageElement(state.mem.read(state.curr_operand_pc), state.mem.read(state.curr_operand_pc+1));
+	case Operand::N:
+	{
+		unsigned char byte = state.mem.read(state.curr_operand_pc);
+		state.curr_operand_pc += 1;
+		return StorageElement(byte);
+	}
+	case Operand::NN:
+	{
+		unsigned char lo = state.mem.read(state.curr_operand_pc);
+		unsigned char hi = state.mem.read(state.curr_operand_pc+1);
+		state.curr_operand_pc += 2;
+		return StorageElement(lo, hi);
+	}
 	case Operand::PC:       return state.pc.element();
-	case Operand::PORT:     return state.ports.element(state.mem.read(state.curr_operand_pc));
+	case Operand::PORT:
+	{
+		unsigned char byte = state.mem.read(state.curr_operand_pc);
+		state.curr_operand_pc += 1;
+		return state.ports.element(byte);
+	}
 	case Operand::I:        return state.ir.element_hi();
 	case Operand::R:        return state.ir.element_lo();
 	case Operand::IX:       return state.ix.element();
@@ -77,10 +93,30 @@ StorageElement StorageElement::create_element(Z80 &state, Operand operand)
 	case Operand::indBC:    return StorageElement(&state.mem[state.bc.get()],1);
 	case Operand::indDE:    return StorageElement(&state.mem[state.de.get()],1);
 	case Operand::indHL:    return StorageElement(&state.mem[state.hl.get()],1);
-	case Operand::indN:     return state.mem.element(state.mem.get_addr(state.curr_operand_pc), 1);
-	case Operand::indNN:    return state.mem.element(state.mem.get_addr(state.curr_operand_pc), 2);
-	case Operand::indIXN:   return StorageElement(&state.mem[state.ix.get()] + state.mem.read(state.curr_operand_pc), 1);
-	case Operand::indIYN:   return StorageElement(&state.mem[state.iy.get()] + state.mem.read(state.curr_operand_pc), 1);
+	case Operand::indN:
+	{
+		size_t bytes = state.mem.get_addr(state.curr_operand_pc);
+		state.curr_operand_pc += 1;
+		return state.mem.element(bytes, 1);
+	}
+	case Operand::indNN:
+	{
+		size_t bytes = state.mem.get_addr(state.curr_operand_pc);
+		state.curr_operand_pc += 2;
+		return state.mem.element(bytes, 2);
+	}
+	case Operand::indIXN:
+	{
+		unsigned char *ptr = &state.mem[state.ix.get()] + state.mem.read(state.curr_operand_pc);
+		state.curr_operand_pc += 1;
+		return StorageElement(ptr, 1);
+	}
+	case Operand::indIYN:
+	{
+		unsigned char *ptr = &state.mem[state.iy.get()] + state.mem.read(state.curr_operand_pc);
+		state.curr_operand_pc += 1;
+		return StorageElement(ptr, 1);
+	}
 	case Operand::ZERO:     return StorageElement(0x00);
 	case Operand::ONE:      return StorageElement(0x01);
 	case Operand::TWO:      return StorageElement(0x02);
