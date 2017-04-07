@@ -129,6 +129,7 @@ enum class Operand
 	indNN,
 	indIXN,
 	indIYN,
+	indSP,
 	ZERO,
 	ONE,
 	TWO,

@@ -26,6 +26,7 @@ public:
 			map_inst.emplace(0x04, Instruction{InstType::INC,  "inc b",      1,  4, Operand::B, Operand::ONE});
 			map_inst.emplace(0x05, Instruction{InstType::DEC,  "dec b",      1,  4, Operand::B, Operand::ONE});
 			map_inst.emplace(0x06, Instruction{InstType::LD,   "ld b,*",     2,  7, Operand::B, Operand::N});
+			map_inst.emplace(0x08, Instruction{InstType::EX,   "ex af,af'",  1,  4, Operand::AF, Operand::UNUSED});
 			map_inst.emplace(0x09, Instruction{InstType::ADD,  "add hl,bc",  1, 11, Operand::HL, Operand::BC});
 			map_inst.emplace(0x0a, Instruction{InstType::LD,   "ld a,(bc)",  1,  7, Operand::A, Operand::indBC});
 			map_inst.emplace(0x0b, Instruction{InstType::DEC,  "dec bc",     1,  6, Operand::BC, Operand::ONE});
@@ -214,6 +215,7 @@ public:
 			map_inst.emplace(0xe0, Instruction{InstType::RET,  "ret po",     1, 11, 5, Conditional::PO, Operand::PC});
 			map_inst.emplace(0xe1, Instruction{InstType::POP,  "pop hl",     1, 10, Operand::HL});
 			map_inst.emplace(0xe2, Instruction{InstType::JP,   "jp po,**",   3, 10, Conditional::PO, Operand::PC, Operand::NN});
+			map_inst.emplace(0xe3, Instruction{InstType::EX,   "ex (sp),hl", 1, 19, Operand::indSP, Operand::HL});
 			map_inst.emplace(0xe5, Instruction{InstType::PUSH, "push hl",    1, 11, Operand::UNUSED, Operand::HL});
 			map_inst.emplace(0xe6, Instruction{InstType::AND,  "and *",      2,  7, Operand::A, Operand::N});
 			map_inst.emplace(0xe7, Instruction{InstType::RST,  "rst 20h",    1, 11, Operand::PC, Operand::HEX_0020});

@@ -173,6 +173,11 @@ void Instruction::do_ex(Z80 &state, StorageElement &dst_elem, StorageElement &sr
 		state.bc.swap();
 		state.de.swap();
 	}
+	else if ((Operand::AF == dst) && (Operand::UNUSED == src))
+	{
+		// Special case when swapping AF with AF'
+		state.af.swap();
+	}
 	else
 	{
 		dst_elem.swap(src_elem);

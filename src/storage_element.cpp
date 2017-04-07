@@ -117,6 +117,7 @@ StorageElement StorageElement::create_element(Z80 &state, Operand operand)
 		state.curr_operand_pc += 1;
 		return StorageElement(ptr, 1);
 	}
+	case Operand::indSP:    return StorageElement(&state.mem[state.sp.get()],2);
 	case Operand::ZERO:     return StorageElement(0x00);
 	case Operand::ONE:      return StorageElement(0x01);
 	case Operand::TWO:      return StorageElement(0x02);
