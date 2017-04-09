@@ -603,24 +603,36 @@ public:
 		{
 			bool found = false;
 
-			const auto opcode = get_opcode();
+			const auto opcode = get_opcode(pc.get());
+			std::cout << dump_instr_at_pc(pc.get()).str() << std::endl;
 			auto search = map_inst.find(opcode);
-			if(search != map_inst.end())
+			if (search != map_inst.end())
 			{
 				Instruction &inst = search->second;
-				std::cout << std::left << std::setw(20) << mem.dump(curr_opcode_pc, inst.size);
-				std::cout << inst.name << std::endl;
 				pc.set(curr_opcode_pc + inst.size);
 				inst.execute(*this);
 				found = true;
 			}
-			else
-			{
-				std::cerr << "Unhandled instruction error: 0x" << std::hex << opcode << std::dec << std::endl;
-				std::cerr << mem.dump(curr_opcode_pc, 4) << std::endl;
-			}
 
 			return found;
+		}
+	std::stringstream dump_instr_at_pc(unsigned short pc)
+		{
+			std::stringstream str;
+			
+			const auto opcode = get_opcode(pc);
+			auto search = map_inst.find(opcode);
+			if (search != map_inst.end())
+			{
+				Instruction &inst = search->second;
+				str << std::left << std::setw(20) << mem.dump(curr_opcode_pc, inst.size);
+				str << inst.name;
+			}
+			else
+			{
+				str << mem.dump(curr_opcode_pc, 4) << " UNKNOWN INSTRUCTION: 0x" << std::hex << opcode << std::dec << std::endl;
+			}
+			return str;
 		}
 	void dump()
 		{
@@ -635,9 +647,9 @@ public:
 		}
 
 private:
-	unsigned int get_opcode()
+	unsigned int get_opcode(unsigned short pc)
 		{
-			curr_opcode_pc = pc.get();
+			curr_opcode_pc = pc;
 			curr_operand_pc = curr_opcode_pc + 1;
 			unsigned int opcode = mem.read(curr_opcode_pc);
 

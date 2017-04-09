@@ -27,13 +27,13 @@ int main(int argc, char **argv)
 
 	if (argc < 2)
 	{
-		std::cerr << "Usage: " << argv[0] << " <binary image>" << std::endl;
+		std::cerr << "Usage: " << argv[0] << " <binary image> [<break pc>]" << std::endl;
 		return EXIT_FAILURE;
 	}
 
 	if (argc >= 3)
 	{
-		break_pc = atoi(argv[2]);
+		break_pc = strtoul(argv[2], NULL, 0);
 	}
 
 	std::string rom_file(argv[1]);
@@ -57,6 +57,7 @@ int main(int argc, char **argv)
 
 			while (debug)
 			{
+				std::cout << "Executing: " << state.dump_instr_at_pc(state.pc.get()).str() << std::endl;
 				std::cin >> ch;
 
 				switch (ch)
