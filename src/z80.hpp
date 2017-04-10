@@ -584,6 +584,7 @@ public:
 
 	unsigned short curr_opcode_pc = { 0 }; // Stores the PC of the opcode under execution
 	unsigned short curr_operand_pc = { 0 }; // Stores the PC of the expected first operand (if there are any) of the opcode under execution
+	unsigned short top_of_stack = { 0 }; // Stores the expected top of the stack (for aiding debugging)
 	Register16 pc;
 	Register16 sp;
 	Register16 ix;
@@ -647,6 +648,13 @@ public:
 			std::cout << "PC: " << pc << std::endl;
 			std::cout << "SP: " << sp << std::endl;
 		}
+	void dump_sp()
+		{
+			assert(sp.get() <= top_of_stack);
+			std::cout << "Dumping stack at SP: " << sp << std::endl;
+			std::cout << mem.dump(sp.get(), top_of_stack - sp.get()) << std::endl;
+			std::cout << "==== TOP OF THE STACK ====" << std::endl;
+		}
 	void reset()
 		{
 			pc.reset();
@@ -655,6 +663,8 @@ public:
 
 			af.set(0xffff);
 			sp.set(0xffff);
+
+			top_of_stack = 0xffff;
 		}
 
 private:

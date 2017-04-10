@@ -74,6 +74,9 @@ int main(int argc, char **argv)
 				case 'r':
 					state.dump();
 					break;
+				case 't':
+					state.dump_sp();
+					break;
 				case 'd':
 					size_t offset;
 					size_t size;
@@ -94,6 +97,7 @@ int main(int argc, char **argv)
 						"\tc = continue\n"
 						"\ts <n> = step <n> times\n"
 						"\tr = dump registers\n"
+						"\tt = dump stack\n"
 						"\td <offset> <size> = dump memory contents starting at <offset> for <size> bytes\n"
 						"\tn = next instruction\n"
 						"\tq = quit\n";

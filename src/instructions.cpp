@@ -61,6 +61,12 @@ void Instruction::do_nop(Z80 &state, StorageElement &dst_elem, StorageElement &s
 
 void Instruction::do_ld(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
+	if (Operand::SP == dst )
+	{
+		unsigned int new_sp;
+		src_elem.get_value(new_sp);
+		state.top_of_stack = static_cast<unsigned short>(new_sp);
+	}
 	dst_elem = src_elem;
 }
 
