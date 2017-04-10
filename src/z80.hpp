@@ -19,6 +19,8 @@ class Z80
 public:
 	Z80(unsigned int ram_size, std::string &rom_file) : mem(ram_size, rom_file)
 		{
+			reset();
+
 			map_inst.emplace(0x00, Instruction{InstType::NOP,  "nop",        1,  4});
 			map_inst.emplace(0x01, Instruction{InstType::LD,   "ld bc,**",   3, 10, Operand::BC, Operand::NN});
 			map_inst.emplace(0x02, Instruction{InstType::LD,   "ld (bc),a",  1,  7, Operand::indBC, Operand::A});
@@ -644,6 +646,15 @@ public:
 			std::cout << "IY: " << iy << std::endl;
 			std::cout << "PC: " << pc << std::endl;
 			std::cout << "SP: " << sp << std::endl;
+		}
+	void reset()
+		{
+			pc.reset();
+			af.reset();
+			sp.reset();
+
+			af.set(0xffff);
+			sp.set(0xffff);
 		}
 
 private:

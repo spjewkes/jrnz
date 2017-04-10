@@ -12,6 +12,7 @@ static bool enable_break(Z80 &state)
 {
 	if (state.pc.get() == break_pc)
 	{
+		std::cout << "Enabled break at 0x" << std::hex << break_pc << std::dec << std::endl;
 		return true;
 	}
 

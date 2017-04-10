@@ -16,6 +16,7 @@
 class Register16
 {
 public:
+	void reset() { reg = 0x00; alt_reg = 0x00; }
 	void hi(unsigned char v) { c_reg[WORD_HI_BYTE_IDX] = v; }
 	unsigned char hi() const { return c_reg[WORD_HI_BYTE_IDX]; }
 	void lo(unsigned char v) { c_reg[WORD_LO_BYTE_IDX] = v; }
