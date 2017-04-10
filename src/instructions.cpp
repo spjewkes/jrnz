@@ -250,7 +250,7 @@ void Instruction::do_bit(Z80 &state, StorageElement &dst_elem, StorageElement &s
 	bool is_set = dst_elem.get_bit(src_elem);
 	state.af.flag(RegisterAF::Flags::AddSubtract, false);
 	state.af.flag(RegisterAF::Flags::HalfCarry, true);
-	state.af.flag(RegisterAF::Flags::Zero, is_set);
+	state.af.flag(RegisterAF::Flags::Zero, !is_set);
 }
 
 void Instruction::do_set(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
