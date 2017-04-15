@@ -580,6 +580,156 @@ public:
 			map_inst.emplace(0xfdcbee, Instruction{InstType::SET, "set 5,(iy+*)", 4, 23, Operand::indIYN, Operand::FIVE});
 			map_inst.emplace(0xfdcbf6, Instruction{InstType::SET, "set 6,(iy+*)", 4, 23, Operand::indIYN, Operand::SIX});
 			map_inst.emplace(0xfdcbfe, Instruction{InstType::SET, "set 7,(iy+*)", 4, 23, Operand::indIYN, Operand::SEVEN});
+
+			// TODO - this needs to be included as a file rather than hardcode. It's a list of ROM routines for the 48.rom
+			map_rom.emplace(0x0000, "START");
+			map_rom.emplace(0x0008, "ERROR-1");
+			map_rom.emplace(0x0010, "PRINT-A-1");
+			map_rom.emplace(0x0018, "GET-CHAR");
+			map_rom.emplace(0x001c, "TEST-CHAR");
+			map_rom.emplace(0x0020, "NEXT-CHAR");
+			map_rom.emplace(0x0028, "FP-CALC");
+			map_rom.emplace(0x0030, "BC-SPACES");
+			map_rom.emplace(0x0038, "MASK-INT");
+			map_rom.emplace(0x0048, "KEY-INT");
+			map_rom.emplace(0x0053, "ERROR-2");
+			map_rom.emplace(0x0055, "ERROR-3");
+			map_rom.emplace(0x0066, "RESET");
+			map_rom.emplace(0x0070, "NO-RESET");
+			map_rom.emplace(0x0074, "CH-ADD+1");
+			map_rom.emplace(0x0077, "TEMP-PTR1");
+			map_rom.emplace(0x0078, "TEMP-PTR2");
+			map_rom.emplace(0x007d, "SKIP-OVER");
+			map_rom.emplace(0x0090, "SKIPS");
+			map_rom.emplace(0x0283, "KEY-SCAN");
+			map_rom.emplace(0x0296, "KEY-LINE");
+			map_rom.emplace(0x029f, "KEY-3KEYS");
+			map_rom.emplace(0x02a1, "KEY-BITS");
+			map_rom.emplace(0x02ab, "KEY-DONE");
+			map_rom.emplace(0x02bf, "KEYBOARD");
+			map_rom.emplace(0x02c6, "K-ST-LOOP");
+			map_rom.emplace(0x02d1, "K-CH-SET");
+			map_rom.emplace(0x02f1, "K-NEW");
+			map_rom.emplace(0x0308, "K-END");
+			map_rom.emplace(0x0310, "K-REPEAT");
+			map_rom.emplace(0x031e, "K-TEST");
+			map_rom.emplace(0x032c, "K-MAIN");
+			map_rom.emplace(0x0333, "K-DECODE");
+			map_rom.emplace(0x0341, "K-E-LET");
+			map_rom.emplace(0x034a, "K-LOOK-UP");
+			map_rom.emplace(0x034f, "K-KLC-LET");
+			map_rom.emplace(0x0364, "K-TOKENS");
+			map_rom.emplace(0x0367, "K-DIGIT");
+			map_rom.emplace(0x0382, "K-8-&-9");
+			map_rom.emplace(0x0389, "K-GRA-DGT");
+			map_rom.emplace(0x039d, "K-KLC-DGT");
+			map_rom.emplace(0x03b2, "K-@-CHAR");
+			map_rom.emplace(0x03b5, "BEEPER");
+			map_rom.emplace(0x03d1, "BE-IX+3");
+			map_rom.emplace(0x03d2, "BE-IX+2");
+			map_rom.emplace(0x03d3, "BE-IX+1");
+			map_rom.emplace(0x03d4, "BE-IX+0");
+			map_rom.emplace(0x03d6, "BE-H&L-LP");
+			map_rom.emplace(0x03f2, "BE-AGAIN");
+			map_rom.emplace(0x03f6, "BE-END");
+			map_rom.emplace(0x03f8, "BEEP");
+			map_rom.emplace(0x0425, "BE-I-OK");
+			map_rom.emplace(0x0427, "BE-OCTAVE");
+			map_rom.emplace(0x046c, "REPORT-B");
+			map_rom.emplace(0x04c2, "SA-BYTES");
+			map_rom.emplace(0x04d0, "SA-FLAG");
+			map_rom.emplace(0x04d8, "SA-LEADER");
+			map_rom.emplace(0x04ea, "SA-SYNC-1");
+			map_rom.emplace(0x04f2, "SA-SYNC-2");
+			map_rom.emplace(0x04fe, "SA-LOOP");
+			map_rom.emplace(0x0505, "SA-LOOP-P");
+			map_rom.emplace(0x0507, "SA-START");
+			map_rom.emplace(0x050e, "SA-PARITY");
+			map_rom.emplace(0x0511, "SA-BIT-2");
+			map_rom.emplace(0x0514, "SA-BIT-1");
+			map_rom.emplace(0x051a, "SA-SET");
+			map_rom.emplace(0x051c, "SA-OUT");
+			map_rom.emplace(0x0525, "SA-8-BITS");
+			map_rom.emplace(0x053c, "SA-DELAY");
+			map_rom.emplace(0x053f, "SA/LD-RET");
+			map_rom.emplace(0x0552, "REPORT-D");
+			map_rom.emplace(0x0554, "SA/LD-END");
+			map_rom.emplace(0x0556, "LD-BYTES");
+			map_rom.emplace(0x056b, "LD-BREAK");
+			map_rom.emplace(0x056c, "LD-START");
+			map_rom.emplace(0x0574, "LD-WAIT");
+			map_rom.emplace(0x0580, "LD-LEADER");
+			map_rom.emplace(0x058f, "LD-SYNC");
+			map_rom.emplace(0x05a9, "LD-LOOP");
+			map_rom.emplace(0x05b3, "LD-FLAG");
+			map_rom.emplace(0x05bd, "LD-VERIFY");
+			map_rom.emplace(0x05c2, "LD-NEXT");
+			map_rom.emplace(0x05c4, "LD-DEC");
+			map_rom.emplace(0x05c8, "LD-MARKER");
+			map_rom.emplace(0x05ca, "LD-8-BITS");
+			map_rom.emplace(0x05e3, "LD-EDGE-2");
+			map_rom.emplace(0x05e7, "LD-EDGE-1");
+			map_rom.emplace(0x05e9, "LD-DELAY");
+			map_rom.emplace(0x05ed, "LD-SAMPLE");
+			map_rom.emplace(0x0605, "SAVE-ETC");
+			map_rom.emplace(0x0621, "SA-SPACE");
+			map_rom.emplace(0x0629, "SA-BLANK");
+			map_rom.emplace(0x0642, "REPORT-F");
+			map_rom.emplace(0x0644, "SA-NULL");
+			map_rom.emplace(0x064b, "SA-NAME");
+			map_rom.emplace(0x0652, "SA-DATA");
+			map_rom.emplace(0x0670, "REPORT-2");
+			map_rom.emplace(0x0672, "SA-V-OLD");
+			map_rom.emplace(0x0685, "SA-V-NEW");
+			map_rom.emplace(0x068f, "SA-V-TYPE");
+			map_rom.emplace(0x0692, "SA-DATA-1");
+			map_rom.emplace(0x06a0, "SA-SCR$");
+			map_rom.emplace(0x06c3, "SA-CODE");
+			map_rom.emplace(0x06e1, "SA-CODE-1");
+			map_rom.emplace(0x06f0, "SA-CODE-2");
+			map_rom.emplace(0x06f5, "SA-CODE-3");
+			map_rom.emplace(0x06f9, "SA-CODE-4");
+			map_rom.emplace(0x0710, "SA-TYPE-3");
+			map_rom.emplace(0x0716, "SA-LINE");
+			map_rom.emplace(0x0723, "SA-LINE-1");
+			map_rom.emplace(0x073a, "SA-TYPE-0");
+			map_rom.emplace(0x075a, "SA-ALL");
+			map_rom.emplace(0x0767, "LD-LOOK-H");
+			map_rom.emplace(0x078a, "LD-TYPE");
+			map_rom.emplace(0x07ad, "LD-CH-PR");
+			map_rom.emplace(0x07cb, "VR-CONTRL");
+			map_rom.emplace(0x07e9, "VR-CONT-1");
+			map_rom.emplace(0x07f4, "VR-CONT-2");
+			map_rom.emplace(0x0800, "VR-CONT-3");
+			map_rom.emplace(0x0802, "LD-BLOCK");
+			map_rom.emplace(0x0806, "REPORT-R");
+			map_rom.emplace(0x0808, "LD-CONTRL");
+			map_rom.emplace(0x0819, "LD-CONT-1");
+			map_rom.emplace(0x0825, "LD-CONT-2");
+			map_rom.emplace(0x082e, "LD-DATA");
+			map_rom.emplace(0x084c, "LD-DATA-1");
+			map_rom.emplace(0x0873, "LD-PROG");
+			map_rom.emplace(0x08ad, "LD-PROG-1");
+			map_rom.emplace(0x08b6, "ME-CONTRL");
+			map_rom.emplace(0x08d2, "ME-NEW-LP");
+			map_rom.emplace(0x08d7, "ME-OLD-LP");
+			map_rom.emplace(0x08df, "ME-OLD-L1");
+			map_rom.emplace(0x08eb, "ME-NEW-L2");
+			map_rom.emplace(0x08f0, "ME-VAR-LP");
+			map_rom.emplace(0x08f9, "ME-OLD-VP");
+			map_rom.emplace(0x0901, "ME-OLD-V1");
+			map_rom.emplace(0x0909, "ME-OLD-V2");
+			map_rom.emplace(0x0912, "ME-OLD-V3");
+			map_rom.emplace(0x091e, "ME-OLD-V4");
+			map_rom.emplace(0x0921, "ME-VAR-L1");
+			map_rom.emplace(0x0923, "ME-VAR-L2");
+			map_rom.emplace(0x092c, "ME-ENTER");
+			map_rom.emplace(0x093e, "ME-ENT-1");
+			map_rom.emplace(0x0955, "ME-ENT-2");
+			map_rom.emplace(0x0958, "ME-ENT-3");
+			map_rom.emplace(0x0970, "SA-CONTROL");
+			map_rom.emplace(0x0991, "SA-1-SEC");
+			
 		}
 
 	unsigned short curr_opcode_pc = { 0 }; // Stores the PC of the opcode under execution
@@ -622,18 +772,24 @@ public:
 	std::stringstream dump_instr_at_pc(unsigned short pc)
 		{
 			std::stringstream str;
-			
+
 			const auto opcode = get_opcode(pc);
-			auto search = map_inst.find(opcode);
-			if (search != map_inst.end())
+			auto search_op = map_inst.find(opcode);
+			if (search_op != map_inst.end())
 			{
-				Instruction &inst = search->second;
+				Instruction &inst = search_op->second;
 				str << std::left << std::setw(20) << mem.dump(curr_opcode_pc, inst.size);
-				str << inst.name;
+				str << std::setw(20) << inst.name;
+
+				auto search_rom = map_rom.find(pc);
+				if (search_rom != map_rom.end())
+				{
+					str << "Routine: " << search_rom->second;
+				}
 			}
 			else
 			{
-				str << mem.dump(curr_opcode_pc, 4) << " UNKNOWN INSTRUCTION: 0x" << std::hex << opcode << std::dec << std::endl;
+				str << mem.dump(curr_opcode_pc, 4) << " UNKNOWN INSTRUCTION: 0x" << std::hex << opcode << std::dec;
 			}
 			return str;
 		}
@@ -703,6 +859,7 @@ private:
 			return opcode;
 		}
 	std::map<unsigned int, Instruction> map_inst;
+	std::map<unsigned int, std::string> map_rom;
 };
 
 #endif // __Z80_HPP__
