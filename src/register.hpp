@@ -68,7 +68,7 @@ public:
 			unsigned char bit = 0x1 << static_cast<unsigned int>(f);
 			flags((flags() & ~bit) | (v?bit:0));
 		}
-	bool flag(Flags f)
+	bool flag(Flags f) const
 		{
 			unsigned char bit = 0x1 << static_cast<unsigned int>(f);
 			return (flags() & bit) != 0;
@@ -81,6 +81,8 @@ public:
 				flag(f, true);
 		}
 
+	friend std::ostream& operator<<(std::ostream& stream, const RegisterAF& e);
+
 private:
 	bool sig_bit(unsigned int v, size_t count, bool ishalf=false)
 		{
@@ -89,5 +91,7 @@ private:
 			return (v & mask) != 0;
 		}
 };
+
+std::ostream& operator<<(std::ostream& stream, const RegisterAF& e);
 
 #endif // __REGISTER_HPP__
