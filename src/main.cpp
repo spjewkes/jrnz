@@ -78,11 +78,15 @@ int main(int argc, char **argv)
 					state.dump_sp();
 					break;
 				case 'd':
-					size_t offset;
-					size_t size;
-					std::cin >> offset >> size;
+				{
+					std::string str_offset;
+					std::string str_size;
+					std::cin >> str_offset >> str_size;
+					size_t offset = strtoul(str_offset.c_str(), NULL, 0);
+					size_t size = strtoul(str_size.c_str(), NULL, 0);
 					std::cout << state.mem.dump(offset, size) << std::endl;
 					break;
+				}
 				case 'n':
 					debug = false;
 					break;
