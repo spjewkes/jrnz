@@ -219,15 +219,15 @@ void StorageElement::reset_bit(StorageElement &rhs)
 
 size_t StorageElement::push(Memory &mem, size_t addr)
 {
-	mem.write(addr-1, ptr[WORD_LO_BYTE_IDX]);
-	mem.write(addr-2, ptr[WORD_HI_BYTE_IDX]);
+	mem.write(addr-1, ptr[WORD_HI_BYTE_IDX]);
+	mem.write(addr-2, ptr[WORD_LO_BYTE_IDX]);
 	return addr-2;
 }
 
 size_t StorageElement::pop(Memory &mem, size_t addr)
 {
-	ptr[WORD_HI_BYTE_IDX] = mem.read(addr);
-	ptr[WORD_LO_BYTE_IDX] = mem.read(addr+1);
+	ptr[WORD_LO_BYTE_IDX] = mem.read(addr);
+	ptr[WORD_HI_BYTE_IDX] = mem.read(addr+1);
 	return addr+2;
 }
 
