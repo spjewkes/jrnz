@@ -13,6 +13,7 @@ std::ostream& operator<<(std::ostream& stream, const Register16& e)
 std::ostream& operator<<(std::ostream& stream, const RegisterAF& e)
 {
 	stream << "A: " << std::dec << static_cast<int>(e.hi()) << " (0x" << std::hex << static_cast<unsigned int>(e.hi()) << ")" << std::dec;
+	stream << " F: " << std::dec << static_cast<int>(e.lo()) << " (0x" << std::hex << static_cast<unsigned int>(e.lo()) << ")" << std::dec;
 	stream << "    Flags:";
 	stream << " C:" << e.flag(RegisterAF::Flags::Carry);
 	stream << " N:" << e.flag(RegisterAF::Flags::AddSubtract);
