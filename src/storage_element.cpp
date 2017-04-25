@@ -338,6 +338,12 @@ void StorageElement::update_carry(const StorageElement &op1, const StorageElemen
 		v = true;
 	}
 
+	// If both significant bits are set then we will overflow on addition
+	if (op1_bit && op2_bit)
+	{
+		v = true;
+	}
+
 	if (is_half)
 	{
 		flag_half_carry = v;
@@ -389,6 +395,6 @@ void StorageElement::update_overflow(const StorageElement &op1, const StorageEle
 
 std::ostream& operator<<(std::ostream& stream, const StorageElement& e)
 {
-	stream << std::dec << e.to_s32() << " (0x" << std::hex << e.to_u32() << ")" << " count: " << e.count << std::dec;
+	stream << std::dec << e.to_s32() << " (0x" << std::hex << e.to_u32() << ")" << " [" << e.count << "]" << std::dec;
 	return stream;
 }
