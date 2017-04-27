@@ -116,7 +116,7 @@ void Instruction::do_and(Z80 &state, StorageElement &dst_elem, StorageElement &s
 	state.af.flag(RegisterAF::Flags::Carry, false);
 	state.af.flag(RegisterAF::Flags::AddSubtract, false);
 	state.af.flag(RegisterAF::Flags::ParityOverflow, dst_elem.is_even_parity());
-	state.af.flag(RegisterAF::Flags::HalfCarry, false);
+	state.af.flag(RegisterAF::Flags::HalfCarry, true);
 	state.af.flag(RegisterAF::Flags::Zero, dst_elem.is_zero());
 	state.af.flag(RegisterAF::Flags::Sign, dst_elem.is_neg());
 }
