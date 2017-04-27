@@ -61,6 +61,7 @@ private:
 	 * Conversion to/from storage element.
 	 */
 	unsigned int to_u32() const;
+	unsigned int to_u32_half() const;
 	int to_s32() const;
 	void from_u32(unsigned int v);
 

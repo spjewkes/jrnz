@@ -285,6 +285,28 @@ unsigned int StorageElement::to_u32() const
 	return v;
 }
 
+unsigned int StorageElement::to_u32_half() const
+{
+	unsigned int v = 0;
+
+	switch (count)
+	{
+	case 1:
+		v = static_cast<unsigned char>(*ptr);
+		v &= 0x0f;
+		break;
+	case 2:
+		v = static_cast<unsigned int>(ptr[WORD_LO_BYTE_IDX] & 0xff);
+		v |= static_cast<unsigned int>(ptr[WORD_HI_BYTE_IDX] & 0xff) << 8;
+		v &= 0xff;
+		break;
+	default:
+		assert(false); // Should not get here
+	}
+
+	return v;
+}
+
 int StorageElement::to_s32() const
 {
 	int v = 0;
@@ -356,23 +378,27 @@ void StorageElement::update_carry(const StorageElement &op1, const StorageElemen
 
 void StorageElement::update_borrow(const StorageElement &op1, const StorageElement &op2, bool is_half)
 {
-	bool res_bit = significant_bit(is_half);
-	bool op1_bit = op1.significant_bit(is_half);
-	bool op2_bit = op2.significant_bit(is_half);
-	bool v = false;
-
-	if (!op1_bit && !op2_bit && res_bit)
- 	{
-		v = true;
-	}
-
 	if (is_half)
 	{
-		flag_half_carry = v;
+		if (op1.to_u32_half() < op2.to_u32_half())
+		{
+			flag_half_carry = true;
+		}
+		else
+		{
+			flag_half_carry = false;
+		}
 	}
 	else
 	{
-		flag_carry = v;
+		if (op1.to_u32() < op2.to_u32())
+		{
+			flag_carry = true;
+		}
+		else
+		{
+			flag_carry = false;
+		}
 	}
 }
 
