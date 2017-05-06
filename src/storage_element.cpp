@@ -231,7 +231,7 @@ size_t StorageElement::pop(Memory &mem, size_t addr)
 	return addr+2;
 }
 
-void StorageElement::shift_right(bool rotate)
+void StorageElement::shift_right(bool rotate, bool carry_inst, bool carry)
 {
 	assert(is_8bit());
 
@@ -239,16 +239,21 @@ void StorageElement::shift_right(bool rotate)
 	unsigned int shifted_bit = (val & 0x1) << 7;
 
 	val >>= 1;
-	if (rotate)
+	if (rotate && carry_inst)
 	{
 		val |= shifted_bit;
+		flag_carry = (shifted_bit != 0);
+	}
+	else if (rotate && !carry_inst)
+	{
+		val |= (carry ? 0x80 : 0x00);
 		flag_carry = (shifted_bit != 0);
 	}
 
 	from_u32(val & 0xff);
 }
 
-void StorageElement::shift_left(bool rotate)
+void StorageElement::shift_left(bool rotate, bool carry_inst, bool carry)
 {
 	assert(is_8bit());
 
@@ -256,12 +261,17 @@ void StorageElement::shift_left(bool rotate)
 	unsigned int shifted_bit = (val & 0x80) >> 7;
 
 	val <<= 1;
-	if (rotate)
+	if (rotate && carry_inst)
 	{
 		val |= shifted_bit;
 		flag_carry = (shifted_bit != 0);
 	}
-
+	else if (rotate && !carry_inst)
+	{
+		val |= (carry ? 0x1 : 0x0);
+		flag_carry = (shifted_bit != 0);
+	}
+	
 	from_u32(val & 0xff);
 }
 

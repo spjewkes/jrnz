@@ -73,6 +73,7 @@ private:
 	void do_inc(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
 	void do_push(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
 	void do_pop(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
+	void do_rra(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
 	void do_rrca(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
 	void do_scf(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
 	void do_ccf(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);

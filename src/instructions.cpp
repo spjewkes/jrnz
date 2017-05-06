@@ -14,41 +14,42 @@ void Instruction::execute(Z80 &state)
 
 	switch (inst)
 	{
-		case InstType::NOP:  do_nop(state, dst_elem, src_elem); break;
-		case InstType::LD:   do_ld(state, dst_elem, src_elem); break;
-		case InstType::XOR:  do_xor(state, dst_elem, src_elem); break;
-		case InstType::AND:  do_and(state, dst_elem, src_elem); break;
-		case InstType::OR:   do_or(state, dst_elem, src_elem); break;
-		case InstType::JP:   do_jp(state, dst_elem, src_elem); break;
-		case InstType::DI:   do_di(state, dst_elem, src_elem); break;
-		case InstType::EI:   do_ei(state, dst_elem, src_elem); break;
-		case InstType::OUT:  do_out(state, dst_elem, src_elem); break;
-		case InstType::EX:   do_ex(state, dst_elem, src_elem); break;
-		case InstType::DEC:  do_dec(state, dst_elem, src_elem); break;
-		case InstType::CP:   do_cp(state, dst_elem, src_elem); break;
-		case InstType::JR:   do_jr(state, dst_elem, src_elem); break;
-		case InstType::DJNZ: do_djnz(state, dst_elem, src_elem); break;
-		case InstType::SUB:  do_sub(state, dst_elem, src_elem); break;
-		case InstType::SBC:  do_sbc(state, dst_elem, src_elem); break;
-		case InstType::ADD:  do_add(state, dst_elem, src_elem); break;
-		case InstType::INC:  do_inc(state, dst_elem, src_elem); break;
-		case InstType::LDDR: do_lddr(state, dst_elem, src_elem); break;
-		case InstType::LDIR: do_ldir(state, dst_elem, src_elem); break;
-		case InstType::IM:   do_im(state, dst_elem, src_elem); break;
-		case InstType::BIT:  do_bit(state, dst_elem, src_elem); break;
-		case InstType::SET:  do_set(state, dst_elem, src_elem); break;
-		case InstType::RES:  do_res(state, dst_elem, src_elem); break;
-		case InstType::CALL: do_call(state, dst_elem, src_elem); break;
-		case InstType::RET:  do_ret(state, dst_elem, src_elem); break;
-		case InstType::PUSH: do_push(state, dst_elem, src_elem); break;
-		case InstType::POP:  do_pop(state, dst_elem, src_elem); break;
-		case InstType::RRCA: do_rrca(state, dst_elem, src_elem); break;
-		case InstType::SCF:  do_scf(state, dst_elem, src_elem); break;
-		case InstType::CCF:  do_ccf(state, dst_elem, src_elem); break;
-		case InstType::RST:  do_rst(state, dst_elem, src_elem); break;
-		default:
-			std::cerr << "Unknown instruction type: " << static_cast<unsigned int>(inst) << std::endl;
-			assert(false);
+	case InstType::NOP:  do_nop(state, dst_elem, src_elem); break;
+	case InstType::LD:   do_ld(state, dst_elem, src_elem); break;
+	case InstType::XOR:  do_xor(state, dst_elem, src_elem); break;
+	case InstType::AND:  do_and(state, dst_elem, src_elem); break;
+	case InstType::OR:   do_or(state, dst_elem, src_elem); break;
+	case InstType::JP:   do_jp(state, dst_elem, src_elem); break;
+	case InstType::DI:   do_di(state, dst_elem, src_elem); break;
+	case InstType::EI:   do_ei(state, dst_elem, src_elem); break;
+	case InstType::OUT:  do_out(state, dst_elem, src_elem); break;
+	case InstType::EX:   do_ex(state, dst_elem, src_elem); break;
+	case InstType::DEC:  do_dec(state, dst_elem, src_elem); break;
+	case InstType::CP:   do_cp(state, dst_elem, src_elem); break;
+	case InstType::JR:   do_jr(state, dst_elem, src_elem); break;
+	case InstType::DJNZ: do_djnz(state, dst_elem, src_elem); break;
+	case InstType::SUB:  do_sub(state, dst_elem, src_elem); break;
+	case InstType::SBC:  do_sbc(state, dst_elem, src_elem); break;
+	case InstType::ADD:  do_add(state, dst_elem, src_elem); break;
+	case InstType::INC:  do_inc(state, dst_elem, src_elem); break;
+	case InstType::LDDR: do_lddr(state, dst_elem, src_elem); break;
+	case InstType::LDIR: do_ldir(state, dst_elem, src_elem); break;
+	case InstType::IM:   do_im(state, dst_elem, src_elem); break;
+	case InstType::BIT:  do_bit(state, dst_elem, src_elem); break;
+	case InstType::SET:  do_set(state, dst_elem, src_elem); break;
+	case InstType::RES:  do_res(state, dst_elem, src_elem); break;
+	case InstType::CALL: do_call(state, dst_elem, src_elem); break;
+	case InstType::RET:  do_ret(state, dst_elem, src_elem); break;
+	case InstType::PUSH: do_push(state, dst_elem, src_elem); break;
+	case InstType::POP:  do_pop(state, dst_elem, src_elem); break;
+	case InstType::RRA:  do_rra(state, dst_elem, src_elem); break;
+	case InstType::RRCA: do_rrca(state, dst_elem, src_elem); break;
+	case InstType::SCF:  do_scf(state, dst_elem, src_elem); break;
+	case InstType::CCF:  do_ccf(state, dst_elem, src_elem); break;
+	case InstType::RST:  do_rst(state, dst_elem, src_elem); break;
+	default:
+		std::cerr << "Unknown instruction type: " << static_cast<unsigned int>(inst) << std::endl;
+		assert(false);
 	}
 }
 
@@ -365,11 +366,22 @@ void Instruction::do_pop(Z80 &state, StorageElement &dst_elem, StorageElement &s
 	state.sp.set(new_sp);
 }
 
+void Instruction::do_rra(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+{
+	assert(Operand::UNUSED == src);
+
+	dst_elem.shift_right(true, false, state.af.flag(RegisterAF::Flags::Carry));
+
+	state.af.flag(RegisterAF::Flags::Carry, dst_elem.is_carry());
+	state.af.flag(RegisterAF::Flags::AddSubtract, false);
+	state.af.flag(RegisterAF::Flags::HalfCarry, false);
+}
+
 void Instruction::do_rrca(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
 	assert(Operand::UNUSED == src);
 
-	dst_elem.shift_right(true);
+	dst_elem.shift_right(true, true, state.af.flag(RegisterAF::Flags::Carry));
 
 	state.af.flag(RegisterAF::Flags::Carry, dst_elem.is_carry());
 	state.af.flag(RegisterAF::Flags::AddSubtract, false);

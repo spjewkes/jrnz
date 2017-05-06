@@ -37,6 +37,7 @@ Z80::Z80(unsigned int ram_size, std::string &rom_file) : mem(ram_size, rom_file)
 	map_inst.emplace(0x1c, Instruction{InstType::INC,  "inc e",      1,  4, Operand::E, Operand::ONE});
 	map_inst.emplace(0x1d, Instruction{InstType::DEC,  "dec e",      1,  4, Operand::E, Operand::ONE});
 	map_inst.emplace(0x1e, Instruction{InstType::LD,   "ld e,*",     2,  7, Operand::E, Operand::N});
+	map_inst.emplace(0x1f, Instruction{InstType::RRA,  "rra",        1,  4, Operand::A});
 	map_inst.emplace(0x20, Instruction{InstType::JR,   "jr nz,*",    2, 12, 7, Conditional::NZ, Operand::PC, Operand::N});
 	map_inst.emplace(0x21, Instruction{InstType::LD,   "ld hl,**",   3, 10, Operand::HL, Operand::NN});
 	map_inst.emplace(0x22, Instruction{InstType::LD,   "ld (**),hl", 3, 16, Operand::indNN, Operand::HL});

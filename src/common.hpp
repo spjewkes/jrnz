@@ -74,6 +74,7 @@ enum class InstType
 	RET,
 	PUSH,
 	POP,
+	RRA,
 	RRCA,
 	SCF,
 	CCF,
