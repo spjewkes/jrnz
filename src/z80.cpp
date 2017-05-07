@@ -147,6 +147,14 @@ Z80::Z80(unsigned int ram_size, std::string &rom_file) : mem(ram_size, rom_file)
 	map_inst.emplace(0x95, Instruction{InstType::SUB,  "sub l",      1,  4, Operand::A, Operand::L});
 	map_inst.emplace(0x96, Instruction{InstType::SUB,  "sub (hl)",   1,  7, Operand::A, Operand::indHL});
 	map_inst.emplace(0x97, Instruction{InstType::SUB,  "sub a",      1,  4, Operand::A, Operand::A});
+	map_inst.emplace(0x98, Instruction{InstType::SBC,  "sbc a,b",    1,  4, Operand::A, Operand::B});
+	map_inst.emplace(0x99, Instruction{InstType::SBC,  "sbc a,c",    1,  4, Operand::A, Operand::C});
+	map_inst.emplace(0x9a, Instruction{InstType::SBC,  "sbc a,d",    1,  4, Operand::A, Operand::D});
+	map_inst.emplace(0x9b, Instruction{InstType::SBC,  "sbc a,e",    1,  4, Operand::A, Operand::E});
+	map_inst.emplace(0x9c, Instruction{InstType::SBC,  "sbc a,h",    1,  4, Operand::A, Operand::H});
+	map_inst.emplace(0x9d, Instruction{InstType::SBC,  "sbc a,l",    1,  4, Operand::A, Operand::L});
+	map_inst.emplace(0x9e, Instruction{InstType::SBC,  "sbc a,(hl)", 1,  7, Operand::A, Operand::indHL});
+	map_inst.emplace(0x9f, Instruction{InstType::SBC,  "sbc a,a",    1,  4, Operand::A, Operand::A});
 	map_inst.emplace(0xa0, Instruction{InstType::AND,  "and b",      1,  4, Operand::A, Operand::B});
 	map_inst.emplace(0xa1, Instruction{InstType::AND,  "and c",      1,  4, Operand::A, Operand::C});
 	map_inst.emplace(0xa2, Instruction{InstType::AND,  "and d",      1,  4, Operand::A, Operand::D});
@@ -205,6 +213,7 @@ Z80::Z80(unsigned int ram_size, std::string &rom_file) : mem(ram_size, rom_file)
 	map_inst.emplace(0xd9, Instruction{InstType::EX,   "exx",        1,  4});
 	map_inst.emplace(0xda, Instruction{InstType::JP,   "jp c,**",    3, 10, Conditional::C, Operand::PC, Operand::NN});
 	map_inst.emplace(0xdc, Instruction{InstType::CALL, "call c,**",  3, 17, 10, Conditional::C, Operand::PC, Operand::NN});
+	map_inst.emplace(0xde, Instruction{InstType::SBC,  "sbc a,*",    2,  7, Operand::A, Operand::N});
 	map_inst.emplace(0xdf, Instruction{InstType::RST,  "rst 18h",    1, 11, Operand::PC, Operand::HEX_0018});
 	map_inst.emplace(0xe0, Instruction{InstType::RET,  "ret po",     1, 11, 5, Conditional::PO, Operand::PC});
 	map_inst.emplace(0xe1, Instruction{InstType::POP,  "pop hl",     1, 10, Operand::HL});
@@ -430,6 +439,7 @@ Z80::Z80(unsigned int ram_size, std::string &rom_file) : mem(ram_size, rom_file)
 	map_inst.emplace(0xcbfe, Instruction{InstType::SET,  "set 7,(hl)", 2, 15, Operand::indHL, Operand::SEVEN});
 	map_inst.emplace(0xcbff, Instruction{InstType::SET,  "set 7,a",    2,  8, Operand::A, Operand::SEVEN});
 
+	map_inst.emplace(0xed42, Instruction{InstType::SBC,  "sbc hl,bc",  2, 15, Operand::HL, Operand::BC});
 	map_inst.emplace(0xed43, Instruction{InstType::LD,   "ld (**),bc", 4, 20, Operand::indNN, Operand::BC});
 	map_inst.emplace(0xed47, Instruction{InstType::LD,   "ld i,a",     2,  9, Operand::I, Operand::A});
 	map_inst.emplace(0xed4b, Instruction{InstType::LD,   "ld bc,(**)", 4, 20, Operand::BC, Operand::indNN});
@@ -440,6 +450,8 @@ Z80::Z80(unsigned int ram_size, std::string &rom_file) : mem(ram_size, rom_file)
 	map_inst.emplace(0xed57, Instruction{InstType::LD,   "ld a,i",     2,  9, Operand::A, Operand::I});
 	map_inst.emplace(0xed5b, Instruction{InstType::LD,   "ld de,(**)", 4, 20, Operand::DE, Operand::indNN});
 	map_inst.emplace(0xed5f, Instruction{InstType::LD,   "ld a,r",     2,  9, Operand::A, Operand::R});
+	map_inst.emplace(0xed62, Instruction{InstType::SBC,  "sbc hl,hl",  2, 15, Operand::HL, Operand::HL});
+	map_inst.emplace(0xed72, Instruction{InstType::SBC,  "sbc hl,sp",  2, 15, Operand::HL, Operand::SP});
 	map_inst.emplace(0xed73, Instruction{InstType::LD,   "ld (**),sp", 4, 20, Operand::indNN, Operand::SP});
 	map_inst.emplace(0xed7b, Instruction{InstType::LD,   "ld sp,(**)", 4, 20, Operand::SP, Operand::indNN});
 	map_inst.emplace(0xedb0, Instruction{InstType::LDIR, "ldir",       2, 21, 16, Operand::indDE, Operand::indHL});
@@ -473,6 +485,7 @@ Z80::Z80(unsigned int ram_size, std::string &rom_file) : mem(ram_size, rom_file)
 	map_inst.emplace(0xdd7e, Instruction{InstType::LD,   "ld a,(ix+*)",  3, 19, Operand::A, Operand::indIXN});
 	map_inst.emplace(0xdd86, Instruction{InstType::ADD,  "add a,(ix+*)", 3, 19, Operand::A, Operand::indIXN});
 	map_inst.emplace(0xdd96, Instruction{InstType::SUB,  "sub (ix+*)",   3, 19, Operand::A, Operand::indIXN});
+	map_inst.emplace(0xdd9e, Instruction{InstType::SBC,  "sbc a,(ix+*)", 3, 19, Operand::A, Operand::indIXN});
 	map_inst.emplace(0xdda6, Instruction{InstType::AND,  "and (ix+*)",   3, 19, Operand::A, Operand::indIXN});
 	map_inst.emplace(0xddae, Instruction{InstType::XOR,  "xor (ix+*)",   3, 19, Operand::A, Operand::indIXN});
 	map_inst.emplace(0xddb6, Instruction{InstType::OR,   "or (ix+*)",    3, 19, Operand::A, Operand::indIXN});
@@ -535,6 +548,7 @@ Z80::Z80(unsigned int ram_size, std::string &rom_file) : mem(ram_size, rom_file)
 	map_inst.emplace(0xfd7e, Instruction{InstType::LD,   "ld a,(iy+*)",  3, 19, Operand::A, Operand::indIYN});
 	map_inst.emplace(0xfd86, Instruction{InstType::ADD,  "add a,(iy+*)", 3, 19, Operand::A, Operand::indIYN});
 	map_inst.emplace(0xfd96, Instruction{InstType::SUB,  "sub (iy+*)",   3, 19, Operand::A, Operand::indIYN});
+	map_inst.emplace(0xfd9e, Instruction{InstType::SBC,  "sbc a,(iy+*)", 3, 19, Operand::A, Operand::indIYN});
 	map_inst.emplace(0xfda6, Instruction{InstType::AND,  "and (iy+*)",   3, 19, Operand::A, Operand::indIYN});
 	map_inst.emplace(0xfdae, Instruction{InstType::XOR,  "xor (iy+*)",   3, 19, Operand::A, Operand::indIYN});
 	map_inst.emplace(0xfdb6, Instruction{InstType::OR,   "or (iy+*)",    3, 19, Operand::A, Operand::indIYN});
