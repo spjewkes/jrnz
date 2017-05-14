@@ -308,7 +308,11 @@ void Instruction::impl_add(Z80 &state, StorageElement &dst_elem, StorageElement 
 
 	if (update_flags)
 	{
-		state.af.flag(RegisterAF::Flags::Carry, result.is_carry());
+		if (!is_inc)
+		{
+			// Carry flag is never updated by the inc instruction
+			state.af.flag(RegisterAF::Flags::Carry, result.is_carry());
+		}
 		state.af.flag(RegisterAF::Flags::AddSubtract, false);
 		state.af.flag(RegisterAF::Flags::ParityOverflow, result.is_overflow());
 		state.af.flag(RegisterAF::Flags::HalfCarry, result.is_half());
@@ -336,6 +340,10 @@ void Instruction::impl_sub(Z80 &state, StorageElement &dst_elem, StorageElement 
 
 	if (update_flags)
 	{
+		if (!is_dec)
+		{
+			// Carry flag is never updated by the dec instruction
+		}
 		state.af.flag(RegisterAF::Flags::Carry, result.is_carry() || res_src.is_carry());
 		state.af.flag(RegisterAF::Flags::AddSubtract, true);
 		state.af.flag(RegisterAF::Flags::ParityOverflow, result.is_overflow() || res_src.is_carry());
@@ -370,6 +378,7 @@ void Instruction::do_rra(Z80 &state, StorageElement &dst_elem, StorageElement &s
 {
 	assert(Operand::UNUSED == src);
 
+	std::cout << "TOTO: doing RRA\n";
 	dst_elem.shift_right(true, false, state.af.flag(RegisterAF::Flags::Carry));
 
 	state.af.flag(RegisterAF::Flags::Carry, dst_elem.is_carry());
