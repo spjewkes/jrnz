@@ -893,6 +893,34 @@ Z80::Z80(unsigned int ram_size, std::string &rom_file) : mem(ram_size, rom_file)
 	map_rom.emplace(0x1376, "MAIN-7");
 	map_rom.emplace(0x1384, "MAIN-8");
 	map_rom.emplace(0x1386, "MAIN-9");
+	map_rom.emplace(0x155d, "MAIN-ADD");
+	map_rom.emplace(0x157d, "MAIN-ADD1");
+	map_rom.emplace(0x15ab, "MAIN-ADD2");
+	map_rom.emplace(0x15d4, "WAIT-KEY");
+	map_rom.emplace(0x15de, "WAIT-KEY1");
+	map_rom.emplace(0x15e4, "REPORT-8");
+	map_rom.emplace(0x15e6, "INPUT-AD");
+	map_rom.emplace(0x15ef, "OUT-CODE");
+	map_rom.emplace(0x15f2, "PRINT-A-2");
+	map_rom.emplace(0x15f7, "CALL-SUB");
+	map_rom.emplace(0x1601, "CHAN-OPEN");
+	map_rom.emplace(0x160e, "REPORT-O");
+	map_rom.emplace(0x1610, "CHAN-OP-1");
+	map_rom.emplace(0x1615, "CHAN-FLAG");
+	map_rom.emplace(0x162c, "CALL-JUMP");
+	map_rom.emplace(0x1634, "CHAN-K");
+	map_rom.emplace(0x1642, "CHAN-S");
+	map_rom.emplace(0x1646, "CHAN-S-1");
+	map_rom.emplace(0x164d, "CHAN-P");
+	map_rom.emplace(0x1652, "ONE-SPACE");
+	map_rom.emplace(0x1655, "MAKE-ROOM");
+	map_rom.emplace(0x1664, "POINTERS");
+	map_rom.emplace(0x166b, "PTR-NEXT");
+	map_rom.emplace(0x167f, "PTR-DONE");
+	map_rom.emplace(0x168f, "LINE-ZERO");
+	map_rom.emplace(0x1691, "LINE-NO-A");
+	map_rom.emplace(0x1695, "LINE-NO");
+	map_rom.emplace(0x169e, "RESERVE");
 }
 
 bool Z80::clock()
