@@ -441,6 +441,7 @@ Z80::Z80(unsigned int ram_size, std::string &rom_file) : mem(ram_size, rom_file)
 
 	map_inst.emplace(0xed42, Instruction{InstType::SBC,  "sbc hl,bc",  2, 15, Operand::HL, Operand::BC});
 	map_inst.emplace(0xed43, Instruction{InstType::LD,   "ld (**),bc", 4, 20, Operand::indNN, Operand::BC});
+	map_inst.emplace(0xed46, Instruction{InstType::IM,   "im 0",       2,  8, Operand::IM, Operand::ZERO});
 	map_inst.emplace(0xed47, Instruction{InstType::LD,   "ld i,a",     2,  9, Operand::I, Operand::A});
 	map_inst.emplace(0xed4b, Instruction{InstType::LD,   "ld bc,(**)", 4, 20, Operand::BC, Operand::indNN});
 	map_inst.emplace(0xed4f, Instruction{InstType::LD,   "ld r,a",     2,  9, Operand::R, Operand::A});
@@ -449,11 +450,15 @@ Z80::Z80(unsigned int ram_size, std::string &rom_file) : mem(ram_size, rom_file)
 	map_inst.emplace(0xed56, Instruction{InstType::IM,   "im 1",       2,  8, Operand::IM, Operand::ONE});
 	map_inst.emplace(0xed57, Instruction{InstType::LD,   "ld a,i",     2,  9, Operand::A, Operand::I});
 	map_inst.emplace(0xed5b, Instruction{InstType::LD,   "ld de,(**)", 4, 20, Operand::DE, Operand::indNN});
+	map_inst.emplace(0xed5e, Instruction{InstType::IM,   "im 2",       2,  8, Operand::IM, Operand::TWO});
 	map_inst.emplace(0xed5f, Instruction{InstType::LD,   "ld a,r",     2,  9, Operand::A, Operand::R});
 	map_inst.emplace(0xed62, Instruction{InstType::SBC,  "sbc hl,hl",  2, 15, Operand::HL, Operand::HL});
+	map_inst.emplace(0xed66, Instruction{InstType::IM,   "im 0",       2,  8, Operand::IM, Operand::ZERO});
 	map_inst.emplace(0xed72, Instruction{InstType::SBC,  "sbc hl,sp",  2, 15, Operand::HL, Operand::SP});
 	map_inst.emplace(0xed73, Instruction{InstType::LD,   "ld (**),sp", 4, 20, Operand::indNN, Operand::SP});
+	map_inst.emplace(0xed76, Instruction{InstType::IM,   "im 1",       2,  8, Operand::IM, Operand::ONE});
 	map_inst.emplace(0xed7b, Instruction{InstType::LD,   "ld sp,(**)", 4, 20, Operand::SP, Operand::indNN});
+	map_inst.emplace(0xed7e, Instruction{InstType::IM,   "im 2",       2,  8, Operand::IM, Operand::TWO});
 	map_inst.emplace(0xedb0, Instruction{InstType::LDIR, "ldir",       2, 21, 16, Operand::indDE, Operand::indHL});
 	map_inst.emplace(0xedb8, Instruction{InstType::LDDR, "lddr",       2, 21, 16, Operand::indDE, Operand::indHL});
 
@@ -976,6 +981,7 @@ void Z80::dump()
 	std::cout << "IY: " << iy << std::endl;
 	std::cout << "PC: " << pc << std::endl;
 	std::cout << "SP: " << sp << std::endl;
+	std::cout << "IM: " << static_cast<unsigned int>(int_mode) << " ei: " << (int_on ? "on" : "off") << std::endl;
 }
 
 void Z80::dump_sp()

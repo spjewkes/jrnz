@@ -378,7 +378,6 @@ void Instruction::do_rra(Z80 &state, StorageElement &dst_elem, StorageElement &s
 {
 	assert(Operand::UNUSED == src);
 
-	std::cout << "TOTO: doing RRA\n";
 	dst_elem.shift_right(true, false, state.af.flag(RegisterAF::Flags::Carry));
 
 	state.af.flag(RegisterAF::Flags::Carry, dst_elem.is_carry());

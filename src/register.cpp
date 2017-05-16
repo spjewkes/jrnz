@@ -6,14 +6,14 @@
 
 std::ostream& operator<<(std::ostream& stream, const Register16& e)
 {
-	stream << std::dec << e.get() << " (0x" << std::hex << e.get() << ")" << std::dec;
+	stream << "0x" << std::hex << std::setfill('0') << std::setw(4) << e.get() << std::dec << " (" << e.get() << ")";
 	return stream;
 }
 
 std::ostream& operator<<(std::ostream& stream, const RegisterAF& e)
 {
-	stream << "A: " << std::dec << static_cast<int>(e.hi()) << " (0x" << std::hex << static_cast<unsigned int>(e.hi()) << ")" << std::dec;
-	stream << " F: " << std::dec << static_cast<int>(e.lo()) << " (0x" << std::hex << static_cast<unsigned int>(e.lo()) << ")" << std::dec;
+	stream << "A: 0x" << std::hex << std::setfill('0') << std::setw(4) << static_cast<unsigned int>(e.hi()) << std::dec << " (" << static_cast<unsigned int>(e.hi()) << ") ";
+	stream << "F: 0x" << std::hex << std::setfill('0') << std::setw(4) << static_cast<unsigned int>(e.lo()) << std::dec << " (" << static_cast<unsigned int>(e.lo()) << ") ";
 	stream << "    Flags:";
 	stream << " C:" << e.flag(RegisterAF::Flags::Carry);
 	stream << " N:" << e.flag(RegisterAF::Flags::AddSubtract);
