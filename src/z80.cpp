@@ -974,13 +974,13 @@ std::stringstream Z80::dump_instr_at_pc(unsigned short pc)
 void Z80::dump()
 {
 	std::cout << "AF: " << af << std::endl;
-	std::cout << "HL: " << hl << std::endl;
-	std::cout << "BC: " << bc << std::endl;
-	std::cout << "DE: " << de << std::endl;
-	std::cout << "IX: " << ix << std::endl;
-	std::cout << "IY: " << iy << std::endl;
 	std::cout << "PC: " << pc << std::endl;
 	std::cout << "SP: " << sp << std::endl;
+	std::cout << "BC: " << bc << std::endl;
+	std::cout << "DE: " << de << std::endl;
+	std::cout << "HL: " << hl << std::endl;
+	std::cout << "IX: " << ix << std::endl;
+	std::cout << "IY: " << iy << std::endl;
 	std::cout << "IM: " << static_cast<unsigned int>(int_mode) << " ei: " << (int_on ? "on" : "off") << std::endl;
 }
 
