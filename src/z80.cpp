@@ -938,6 +938,7 @@ bool Z80::clock()
 		inst.execute(*this);
 		pc.set(0x66);
 		int_nmi = false;
+		found = true;
 	}
 	else
 	{

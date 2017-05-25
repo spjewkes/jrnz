@@ -90,6 +90,9 @@ int main(int argc, char **argv)
 				case 'n':
 					debug = false;
 					break;
+				case 'i':
+					state.int_nmi = true;
+					break;
 				case 'q':
 					running = false;
 					debug = false;
@@ -104,6 +107,7 @@ int main(int argc, char **argv)
 						"\tt = dump stack\n"
 						"\td <offset> <size> = dump memory contents starting at <offset> for <size> bytes\n"
 						"\tn = next instruction\n"
+						"\ti = NMI\n"
 						"\tq = quit\n";
 					std::cout << help_text;
 					break;
