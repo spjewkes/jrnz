@@ -31,7 +31,7 @@ public:
 	Register16 hl;
 	Register16 bc;
 	Register16 de;
-	bool int_on = { false };
+	bool int_enabled = { false };
 	unsigned char int_mode = { 0 };
 
 	Memory mem;

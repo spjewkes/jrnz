@@ -149,7 +149,7 @@ void Instruction::do_di(Z80 &state, StorageElement &dst_elem, StorageElement &sr
 	assert(Operand::UNUSED == dst);
 	assert(Operand::UNUSED == src);
 
-	state.int_on = false;
+	state.int_enabled = false;
 }
 
 void Instruction::do_ei(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
@@ -157,7 +157,7 @@ void Instruction::do_ei(Z80 &state, StorageElement &dst_elem, StorageElement &sr
 	assert(Operand::UNUSED == dst);
 	assert(Operand::UNUSED == src);
 
-	state.int_on = true;
+	state.int_enabled = true;
 }
 
 void Instruction::do_im(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)

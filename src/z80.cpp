@@ -981,7 +981,7 @@ void Z80::dump()
 	std::cout << "HL: " << hl << std::endl;
 	std::cout << "IX: " << ix << std::endl;
 	std::cout << "IY: " << iy << std::endl;
-	std::cout << "IM: " << static_cast<unsigned int>(int_mode) << " ei: " << (int_on ? "on" : "off") << std::endl;
+	std::cout << "IM: " << static_cast<unsigned int>(int_mode) << " ei: " << (int_enabled ? "on" : "off") << std::endl;
 }
 
 void Z80::dump_sp()
