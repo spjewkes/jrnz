@@ -33,6 +33,7 @@ public:
 	Register16 de;
 	bool int_enabled = { false };
 	unsigned char int_mode = { 0 };
+	bool int_nmi = { false };
 
 	Memory mem;
 	Ports ports;
