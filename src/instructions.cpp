@@ -7,54 +7,56 @@
 #include "storage_element.hpp"
 #include "z80.hpp"
 
-void Instruction::execute(Z80 &state)
+size_t Instruction::execute(Z80 &state)
 {
 	StorageElement dst_elem = StorageElement::create_element(state, dst);
 	StorageElement src_elem = StorageElement::create_element(state, src);
 
 	switch (inst)
 	{
-	case InstType::NOP:  do_nop(state, dst_elem, src_elem); break;
-	case InstType::LD:   do_ld(state, dst_elem, src_elem); break;
-	case InstType::XOR:  do_xor(state, dst_elem, src_elem); break;
-	case InstType::AND:  do_and(state, dst_elem, src_elem); break;
-	case InstType::OR:   do_or(state, dst_elem, src_elem); break;
-	case InstType::JP:   do_jp(state, dst_elem, src_elem); break;
-	case InstType::DI:   do_di(state, dst_elem, src_elem); break;
-	case InstType::EI:   do_ei(state, dst_elem, src_elem); break;
-	case InstType::OUT:  do_out(state, dst_elem, src_elem); break;
-	case InstType::EX:   do_ex(state, dst_elem, src_elem); break;
-	case InstType::DEC:  do_dec(state, dst_elem, src_elem); break;
-	case InstType::CP:   do_cp(state, dst_elem, src_elem); break;
-	case InstType::JR:   do_jr(state, dst_elem, src_elem); break;
-	case InstType::DJNZ: do_djnz(state, dst_elem, src_elem); break;
-	case InstType::SUB:  do_sub(state, dst_elem, src_elem); break;
-	case InstType::SBC:  do_sbc(state, dst_elem, src_elem); break;
-	case InstType::ADD:  do_add(state, dst_elem, src_elem); break;
-	case InstType::INC:  do_inc(state, dst_elem, src_elem); break;
-	case InstType::LDDR: do_lddr(state, dst_elem, src_elem); break;
-	case InstType::LDIR: do_ldir(state, dst_elem, src_elem); break;
-	case InstType::IM:   do_im(state, dst_elem, src_elem); break;
-	case InstType::BIT:  do_bit(state, dst_elem, src_elem); break;
-	case InstType::SET:  do_set(state, dst_elem, src_elem); break;
-	case InstType::RES:  do_res(state, dst_elem, src_elem); break;
-	case InstType::CALL: do_call(state, dst_elem, src_elem); break;
-	case InstType::RET:  do_ret(state, dst_elem, src_elem); break;
-	case InstType::PUSH: do_push(state, dst_elem, src_elem); break;
-	case InstType::POP:  do_pop(state, dst_elem, src_elem); break;
-	case InstType::RRA:  do_rra(state, dst_elem, src_elem); break;
-	case InstType::RRCA: do_rrca(state, dst_elem, src_elem); break;
-	case InstType::SCF:  do_scf(state, dst_elem, src_elem); break;
-	case InstType::CCF:  do_ccf(state, dst_elem, src_elem); break;
-	case InstType::RST:  do_rst(state, dst_elem, src_elem); break;
+	case InstType::NOP:  return do_nop(state, dst_elem, src_elem); break;
+	case InstType::LD:   return do_ld(state, dst_elem, src_elem); break;
+	case InstType::XOR:  return do_xor(state, dst_elem, src_elem); break;
+	case InstType::AND:  return do_and(state, dst_elem, src_elem); break;
+	case InstType::OR:   return do_or(state, dst_elem, src_elem); break;
+	case InstType::JP:   return do_jp(state, dst_elem, src_elem); break;
+	case InstType::DI:   return do_di(state, dst_elem, src_elem); break;
+	case InstType::EI:   return do_ei(state, dst_elem, src_elem); break;
+	case InstType::OUT:  return do_out(state, dst_elem, src_elem); break;
+	case InstType::EX:   return do_ex(state, dst_elem, src_elem); break;
+	case InstType::DEC:  return do_dec(state, dst_elem, src_elem); break;
+	case InstType::CP:   return do_cp(state, dst_elem, src_elem); break;
+	case InstType::JR:   return do_jr(state, dst_elem, src_elem); break;
+	case InstType::DJNZ: return do_djnz(state, dst_elem, src_elem); break;
+	case InstType::SUB:  return do_sub(state, dst_elem, src_elem); break;
+	case InstType::SBC:  return do_sbc(state, dst_elem, src_elem); break;
+	case InstType::ADD:  return do_add(state, dst_elem, src_elem); break;
+	case InstType::INC:  return do_inc(state, dst_elem, src_elem); break;
+	case InstType::LDDR: return do_lddr(state, dst_elem, src_elem); break;
+	case InstType::LDIR: return do_ldir(state, dst_elem, src_elem); break;
+	case InstType::IM:   return do_im(state, dst_elem, src_elem); break;
+	case InstType::BIT:  return do_bit(state, dst_elem, src_elem); break;
+	case InstType::SET:  return do_set(state, dst_elem, src_elem); break;
+	case InstType::RES:  return do_res(state, dst_elem, src_elem); break;
+	case InstType::CALL: return do_call(state, dst_elem, src_elem); break;
+	case InstType::RET:  return do_ret(state, dst_elem, src_elem); break;
+	case InstType::PUSH: return do_push(state, dst_elem, src_elem); break;
+	case InstType::POP:  return do_pop(state, dst_elem, src_elem); break;
+	case InstType::RRA:  return do_rra(state, dst_elem, src_elem); break;
+	case InstType::RRCA: return do_rrca(state, dst_elem, src_elem); break;
+	case InstType::SCF:  return do_scf(state, dst_elem, src_elem); break;
+	case InstType::CCF:  return do_ccf(state, dst_elem, src_elem); break;
+	case InstType::RST:  return do_rst(state, dst_elem, src_elem); break;
 	default:
 		std::cerr << "Unknown instruction type: " << static_cast<uint32_t>(inst) << std::endl;
 		assert(false);
 	}
+
+	return 0;
 }
 
 
-void Instruction::do_nop(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+size_t Instruction::do_nop(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
 	UNUSED(state);
 	UNUSED(dst_elem);
@@ -62,9 +64,11 @@ void Instruction::do_nop(Z80 &state, StorageElement &dst_elem, StorageElement &s
 
 	assert(Operand::UNUSED == dst);
 	assert(Operand::UNUSED == src);
+
+	return cycles;
 }
 
-void Instruction::do_ld(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+size_t Instruction::do_ld(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
 	if (Operand::SP == dst )
 	{
@@ -73,19 +77,21 @@ void Instruction::do_ld(Z80 &state, StorageElement &dst_elem, StorageElement &sr
 		state.top_of_stack = static_cast<uint16_t>(new_sp);
 	}
 	dst_elem = src_elem;
+
+	return cycles;
 }
 
-void Instruction::do_lddr(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+size_t Instruction::do_lddr(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
-	impl_ld_block(state, dst_elem, src_elem, false /* inc */);
+	return impl_ld_block(state, dst_elem, src_elem, false /* inc */);
 }
 
-void Instruction::do_ldir(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+size_t Instruction::do_ldir(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
-	impl_ld_block(state, dst_elem, src_elem, true /* inc */);
+	return impl_ld_block(state, dst_elem, src_elem, true /* inc */);
 }
 
-void Instruction::impl_ld_block(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem, bool inc)
+size_t Instruction::impl_ld_block(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem, bool inc)
 {
 	dst_elem = src_elem;
 
@@ -100,9 +106,11 @@ void Instruction::impl_ld_block(Z80 &state, StorageElement &dst_elem, StorageEle
 	{
 		state.pc.set(state.pc.get() - size);
 	}
+
+	return cycles;
 }
 
-void Instruction::do_xor(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+size_t Instruction::do_xor(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
 	dst_elem ^= src_elem;
 
@@ -112,9 +120,11 @@ void Instruction::do_xor(Z80 &state, StorageElement &dst_elem, StorageElement &s
 	state.af.flag(RegisterAF::Flags::HalfCarry, false);
 	state.af.flag(RegisterAF::Flags::Zero, dst_elem.is_zero());
 	state.af.flag(RegisterAF::Flags::Sign, dst_elem.is_neg());
+
+	return cycles;
 }
 
-void Instruction::do_and(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+size_t Instruction::do_and(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
 	dst_elem &= src_elem;
 
@@ -124,9 +134,11 @@ void Instruction::do_and(Z80 &state, StorageElement &dst_elem, StorageElement &s
 	state.af.flag(RegisterAF::Flags::HalfCarry, true);
 	state.af.flag(RegisterAF::Flags::Zero, dst_elem.is_zero());
 	state.af.flag(RegisterAF::Flags::Sign, dst_elem.is_neg());
+
+	return cycles;
 }
 
-void Instruction::do_or(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+size_t Instruction::do_or(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
 	dst_elem |= src_elem;
 
@@ -136,9 +148,11 @@ void Instruction::do_or(Z80 &state, StorageElement &dst_elem, StorageElement &sr
 	state.af.flag(RegisterAF::Flags::HalfCarry, false);
 	state.af.flag(RegisterAF::Flags::Zero, dst_elem.is_zero());
 	state.af.flag(RegisterAF::Flags::Sign, dst_elem.is_neg());
+
+	return cycles;
 }
 
-void Instruction::do_jp(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+size_t Instruction::do_jp(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
 	assert(Operand::PC == dst);
 
@@ -146,9 +160,11 @@ void Instruction::do_jp(Z80 &state, StorageElement &dst_elem, StorageElement &sr
 	{
 		dst_elem = src_elem;
 	}
+
+	return cycles;
 }
 
-void Instruction::do_di(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+size_t Instruction::do_di(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
 	UNUSED(dst_elem);
 	UNUSED(src_elem);
@@ -157,9 +173,11 @@ void Instruction::do_di(Z80 &state, StorageElement &dst_elem, StorageElement &sr
 	assert(Operand::UNUSED == src);
 
 	state.int_enabled = false;
+
+	return cycles;
 }
 
-void Instruction::do_ei(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+size_t Instruction::do_ei(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
 	UNUSED(dst_elem);
 	UNUSED(src_elem);
@@ -168,25 +186,31 @@ void Instruction::do_ei(Z80 &state, StorageElement &dst_elem, StorageElement &sr
 	assert(Operand::UNUSED == src);
 
 	state.int_enabled = true;
+
+	return cycles;
 }
 
-void Instruction::do_im(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+size_t Instruction::do_im(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
 	UNUSED(state);
 
 	dst_elem = src_elem;
+
+	return cycles;
 }
 
-void Instruction::do_out(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+size_t Instruction::do_out(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
 	UNUSED(state);
 
 	// This is effectively a load instruction with a port being the destination
 	assert(Operand::PORT == dst);
 	dst_elem = src_elem;
+
+	return cycles;
 }
 
-void Instruction::do_ex(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+size_t Instruction::do_ex(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
 	if ((Operand::UNUSED == dst) && (Operand::UNUSED == src))
 	{
@@ -203,19 +227,21 @@ void Instruction::do_ex(Z80 &state, StorageElement &dst_elem, StorageElement &sr
 	{
 		dst_elem.swap(src_elem);
 	}
+
+	return cycles;
 }
 
-void Instruction::do_dec(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+size_t Instruction::do_dec(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
-	impl_sub(state, dst_elem, src_elem, true /* store */, false /* use_carry */, true /* is_dec */);
+	return impl_sub(state, dst_elem, src_elem, true /* store */, false /* use_carry */, true /* is_dec */);
 }
 
-void Instruction::do_cp(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+size_t Instruction::do_cp(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
-	impl_sub(state, dst_elem, src_elem, false /* store */, false /* use_carry */, false /* is_dec */);
+	return impl_sub(state, dst_elem, src_elem, false /* store */, false /* use_carry */, false /* is_dec */);
 }
 
-void Instruction::do_jr(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+size_t Instruction::do_jr(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
 	assert(Operand::PC == dst);
 
@@ -223,9 +249,11 @@ void Instruction::do_jr(Z80 &state, StorageElement &dst_elem, StorageElement &sr
 	{
 		dst_elem = dst_elem + src_elem;
 	}
+
+	return cycles;
 }
 
-void Instruction::do_djnz(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+size_t Instruction::do_djnz(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
 	assert(Operand::PC == dst);
 	assert(Conditional::NZ == cond);
@@ -235,9 +263,11 @@ void Instruction::do_djnz(Z80 &state, StorageElement &dst_elem, StorageElement &
 	{
 		dst_elem = dst_elem + src_elem;
 	}
+
+	return cycles;
 }
 
-void Instruction::do_call(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+size_t Instruction::do_call(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
 	assert(Operand::PC == dst);
 
@@ -247,9 +277,11 @@ void Instruction::do_call(Z80 &state, StorageElement &dst_elem, StorageElement &
 		state.sp.set(new_sp);
 		dst_elem = src_elem;
 	}
+
+	return cycles;
 }
 
-void Instruction::do_ret(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+size_t Instruction::do_ret(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
 	UNUSED(src_elem);
 
@@ -260,27 +292,31 @@ void Instruction::do_ret(Z80 &state, StorageElement &dst_elem, StorageElement &s
 		size_t new_sp = dst_elem.pop(state.mem, state.sp.get());
 		state.sp.set(new_sp);
 	}
+
+	return cycles;
 }
 
-void Instruction::do_bit(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+size_t Instruction::do_bit(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
 	bool is_set = dst_elem.get_bit(src_elem);
 	state.af.flag(RegisterAF::Flags::AddSubtract, false);
 	state.af.flag(RegisterAF::Flags::HalfCarry, true);
 	state.af.flag(RegisterAF::Flags::Zero, !is_set);
+
+	return cycles;
 }
 
-void Instruction::do_set(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+size_t Instruction::do_set(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
-	impl_set_bit(state, dst_elem, src_elem, true /* set */);
+	return impl_set_bit(state, dst_elem, src_elem, true /* set */);
 }
 
-void Instruction::do_res(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+size_t Instruction::do_res(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
-	impl_set_bit(state, dst_elem, src_elem, false /* set */);
+	return impl_set_bit(state, dst_elem, src_elem, false /* set */);
 }
 
-void Instruction::impl_set_bit(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem, bool set)
+size_t Instruction::impl_set_bit(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem, bool set)
 {
 	UNUSED(state);
 
@@ -292,29 +328,31 @@ void Instruction::impl_set_bit(Z80 &state, StorageElement &dst_elem, StorageElem
 	{
 		dst_elem.reset_bit(src_elem);
 	}
+
+	return cycles;
 }
 
-void Instruction::do_sub(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+size_t Instruction::do_sub(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
-	impl_sub(state, dst_elem, src_elem, true /* store */, false /* use_carry */, false /* is_dec */);
+	return impl_sub(state, dst_elem, src_elem, true /* store */, false /* use_carry */, false /* is_dec */);
 }
 
-void Instruction::do_sbc(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+size_t Instruction::do_sbc(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
-	impl_sub(state, dst_elem, src_elem, true /* store */, true /* use_carry */, false /* is_dec */);
+	return impl_sub(state, dst_elem, src_elem, true /* store */, true /* use_carry */, false /* is_dec */);
 }
 
-void Instruction::do_add(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+size_t Instruction::do_add(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
-	impl_add(state, dst_elem, src_elem, true /* store */, false /* is_inc */);
+	return impl_add(state, dst_elem, src_elem, true /* store */, false /* is_inc */);
 }
 
-void Instruction::do_inc(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+size_t Instruction::do_inc(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
-	impl_add(state, dst_elem, src_elem, true /* store */, true /* is_inc */);
+	return impl_add(state, dst_elem, src_elem, true /* store */, true /* is_inc */);
 }
 
-void Instruction::impl_add(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem, bool store, bool is_inc)
+size_t Instruction::impl_add(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem, bool store, bool is_inc)
 {
 	StorageElement result = dst_elem + src_elem;
 
@@ -342,9 +380,11 @@ void Instruction::impl_add(Z80 &state, StorageElement &dst_elem, StorageElement 
 	{
 		dst_elem = result;
 	}
+
+	return cycles;
 }
 
-void Instruction::impl_sub(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem, bool store, bool use_carry, bool is_dec)
+size_t Instruction::impl_sub(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem, bool store, bool use_carry, bool is_dec)
 {
 	StorageElement carry(use_carry && state.af.flag(RegisterAF::Flags::Carry) ? 1 : 0);
 	StorageElement res_src = src_elem - carry;
@@ -374,9 +414,11 @@ void Instruction::impl_sub(Z80 &state, StorageElement &dst_elem, StorageElement 
 	{
 		dst_elem = result;
 	}
+
+	return cycles;
 }
 
-void Instruction::do_push(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+size_t Instruction::do_push(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
 	UNUSED(dst_elem);
 
@@ -384,9 +426,11 @@ void Instruction::do_push(Z80 &state, StorageElement &dst_elem, StorageElement &
 
 	size_t new_sp = src_elem.push(state.mem, state.sp.get());
 	state.sp.set(new_sp);
+
+	return cycles;
 }
 
-void Instruction::do_pop(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+size_t Instruction::do_pop(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
 	UNUSED(src_elem);
 
@@ -394,9 +438,11 @@ void Instruction::do_pop(Z80 &state, StorageElement &dst_elem, StorageElement &s
 
 	size_t new_sp = dst_elem.pop(state.mem, state.sp.get());
 	state.sp.set(new_sp);
+
+	return cycles;
 }
 
-void Instruction::do_rra(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+size_t Instruction::do_rra(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
 	UNUSED(src_elem);
 
@@ -407,9 +453,11 @@ void Instruction::do_rra(Z80 &state, StorageElement &dst_elem, StorageElement &s
 	state.af.flag(RegisterAF::Flags::Carry, dst_elem.is_carry());
 	state.af.flag(RegisterAF::Flags::AddSubtract, false);
 	state.af.flag(RegisterAF::Flags::HalfCarry, false);
+
+	return cycles;
 }
 
-void Instruction::do_rrca(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+size_t Instruction::do_rrca(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
 	UNUSED(src_elem);
 
@@ -420,9 +468,11 @@ void Instruction::do_rrca(Z80 &state, StorageElement &dst_elem, StorageElement &
 	state.af.flag(RegisterAF::Flags::Carry, dst_elem.is_carry());
 	state.af.flag(RegisterAF::Flags::AddSubtract, false);
 	state.af.flag(RegisterAF::Flags::HalfCarry, false);
+
+	return cycles;
 }
 
-void Instruction::do_scf(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+size_t Instruction::do_scf(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
 	UNUSED(dst_elem);
 	UNUSED(src_elem);
@@ -430,9 +480,11 @@ void Instruction::do_scf(Z80 &state, StorageElement &dst_elem, StorageElement &s
 	state.af.flag(RegisterAF::Flags::Carry, true);
 	state.af.flag(RegisterAF::Flags::AddSubtract, false);
 	state.af.flag(RegisterAF::Flags::HalfCarry, false);
+
+	return cycles;
 }
 
-void Instruction::do_ccf(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+size_t Instruction::do_ccf(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
 	UNUSED(dst_elem);
 	UNUSED(src_elem);
@@ -440,9 +492,11 @@ void Instruction::do_ccf(Z80 &state, StorageElement &dst_elem, StorageElement &s
 	state.af.inv_flag(RegisterAF::Flags::Carry);
 	state.af.flag(RegisterAF::Flags::AddSubtract, false);
 	state.af.inv_flag(RegisterAF::Flags::HalfCarry);
+
+	return cycles;
 }
 
-void Instruction::do_rst(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+size_t Instruction::do_rst(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
 	UNUSED(dst_elem);
 
@@ -451,6 +505,8 @@ void Instruction::do_rst(Z80 &state, StorageElement &dst_elem, StorageElement &s
 	size_t new_sp = dst_elem.push(state.mem, state.sp.get());
 	state.sp.set(new_sp);
 	dst_elem = src_elem;
+
+	return cycles;
 }
 
 bool Instruction::is_cond_set(Conditional cond, Z80 &state)

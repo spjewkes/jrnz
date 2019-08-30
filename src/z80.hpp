@@ -36,6 +36,8 @@ public:
 	uint8_t int_mode = { 0 };
 	bool int_nmi = { false };
 
+	uint32_t cycles_left = { 0 };
+
 	Memory mem;
 	Ports ports;
 

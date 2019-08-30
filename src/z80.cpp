@@ -932,26 +932,34 @@ bool Z80::clock()
 {
 	bool found = false;
 
-	if (int_nmi)
+	if (cycles_left == 0)
 	{
-		Instruction inst {InstType::PUSH, "NMI", 1, 13, Operand::UNUSED, Operand::PC};
-		inst.execute(*this);
-		pc.set(0x66);
-		int_nmi = false;
-		found = true;
+		if (int_nmi)
+		{
+			Instruction inst {InstType::PUSH, "NMI", 1, 11, Operand::UNUSED, Operand::PC};
+			cycles_left = inst.execute(*this);
+			pc.set(0x66);
+			int_nmi = false;
+			found = true;
+		}
+		else
+		{
+			const auto opcode = get_opcode(pc.get());
+			std::cout << dump_instr_at_pc(pc.get()).str() << std::endl;
+			auto search = map_inst.find(opcode);
+			if (search != map_inst.end())
+			{
+				Instruction &inst = search->second;
+				pc.set(curr_opcode_pc + inst.size);
+				cycles_left = inst.execute(*this);
+				found = true;
+			}
+		}
 	}
 	else
 	{
-		const auto opcode = get_opcode(pc.get());
-		std::cout << dump_instr_at_pc(pc.get()).str() << std::endl;
-		auto search = map_inst.find(opcode);
-		if (search != map_inst.end())
-		{
-			Instruction &inst = search->second;
-			pc.set(curr_opcode_pc + inst.size);
-			inst.execute(*this);
-			found = true;
-		}
+		cycles_left--;
+		found = true;
 	}
 
 	return found;
