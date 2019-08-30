@@ -42,6 +42,11 @@
 #endif
 
 /**
+ * Mark a variable as unused to silence compiler errors.
+ */
+#define UNUSED(expr) do { (void)(expr); } while (0)
+
+/**
  * @brief Defines instruction type.
  */
 enum class InstType

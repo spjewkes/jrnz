@@ -46,6 +46,7 @@ public:
 	void execute(Z80 &state);
 
 private:
+	// All instructions have the same signature regardless of whether they make use of them or not.
 	void do_nop(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
 	void do_ld(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
 	void do_lddr(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);

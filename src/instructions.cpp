@@ -56,6 +56,10 @@ void Instruction::execute(Z80 &state)
 
 void Instruction::do_nop(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
+	UNUSED(state);
+	UNUSED(dst_elem);
+	UNUSED(src_elem);
+
 	assert(Operand::UNUSED == dst);
 	assert(Operand::UNUSED == src);
 }
@@ -146,6 +150,9 @@ void Instruction::do_jp(Z80 &state, StorageElement &dst_elem, StorageElement &sr
 
 void Instruction::do_di(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
+	UNUSED(dst_elem);
+	UNUSED(src_elem);
+
 	assert(Operand::UNUSED == dst);
 	assert(Operand::UNUSED == src);
 
@@ -154,6 +161,9 @@ void Instruction::do_di(Z80 &state, StorageElement &dst_elem, StorageElement &sr
 
 void Instruction::do_ei(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
+	UNUSED(dst_elem);
+	UNUSED(src_elem);
+
 	assert(Operand::UNUSED == dst);
 	assert(Operand::UNUSED == src);
 
@@ -162,11 +172,15 @@ void Instruction::do_ei(Z80 &state, StorageElement &dst_elem, StorageElement &sr
 
 void Instruction::do_im(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
+	UNUSED(state);
+
 	dst_elem = src_elem;
 }
 
 void Instruction::do_out(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
+	UNUSED(state);
+
 	// This is effectively a load instruction with a port being the destination
 	assert(Operand::PORT == dst);
 	dst_elem = src_elem;
@@ -237,6 +251,8 @@ void Instruction::do_call(Z80 &state, StorageElement &dst_elem, StorageElement &
 
 void Instruction::do_ret(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
+	UNUSED(src_elem);
+
 	assert(Operand::UNUSED == src);
 
 	if (is_cond_set(cond, state))
@@ -266,6 +282,8 @@ void Instruction::do_res(Z80 &state, StorageElement &dst_elem, StorageElement &s
 
 void Instruction::impl_set_bit(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem, bool set)
 {
+	UNUSED(state);
+
 	if (set)
 	{
 		dst_elem.set_bit(src_elem);
@@ -360,6 +378,8 @@ void Instruction::impl_sub(Z80 &state, StorageElement &dst_elem, StorageElement 
 
 void Instruction::do_push(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
+	UNUSED(dst_elem);
+
 	assert(Operand::UNUSED == dst);
 
 	size_t new_sp = src_elem.push(state.mem, state.sp.get());
@@ -368,6 +388,8 @@ void Instruction::do_push(Z80 &state, StorageElement &dst_elem, StorageElement &
 
 void Instruction::do_pop(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
+	UNUSED(src_elem);
+
 	assert(Operand::UNUSED == src);
 
 	size_t new_sp = dst_elem.pop(state.mem, state.sp.get());
@@ -376,6 +398,8 @@ void Instruction::do_pop(Z80 &state, StorageElement &dst_elem, StorageElement &s
 
 void Instruction::do_rra(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
+	UNUSED(src_elem);
+
 	assert(Operand::UNUSED == src);
 
 	dst_elem.shift_right(true, false, state.af.flag(RegisterAF::Flags::Carry));
@@ -387,6 +411,8 @@ void Instruction::do_rra(Z80 &state, StorageElement &dst_elem, StorageElement &s
 
 void Instruction::do_rrca(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
+	UNUSED(src_elem);
+
 	assert(Operand::UNUSED == src);
 
 	dst_elem.shift_right(true, true, state.af.flag(RegisterAF::Flags::Carry));
@@ -398,6 +424,9 @@ void Instruction::do_rrca(Z80 &state, StorageElement &dst_elem, StorageElement &
 
 void Instruction::do_scf(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
+	UNUSED(dst_elem);
+	UNUSED(src_elem);
+
 	state.af.flag(RegisterAF::Flags::Carry, true);
 	state.af.flag(RegisterAF::Flags::AddSubtract, false);
 	state.af.flag(RegisterAF::Flags::HalfCarry, false);
@@ -405,6 +434,9 @@ void Instruction::do_scf(Z80 &state, StorageElement &dst_elem, StorageElement &s
 
 void Instruction::do_ccf(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
+	UNUSED(dst_elem);
+	UNUSED(src_elem);
+
 	state.af.inv_flag(RegisterAF::Flags::Carry);
 	state.af.flag(RegisterAF::Flags::AddSubtract, false);
 	state.af.inv_flag(RegisterAF::Flags::HalfCarry);
@@ -412,6 +444,8 @@ void Instruction::do_ccf(Z80 &state, StorageElement &dst_elem, StorageElement &s
 
 void Instruction::do_rst(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
+	UNUSED(dst_elem);
+
 	assert(Operand::PC == dst);
 
 	size_t new_sp = dst_elem.push(state.mem, state.sp.get());
