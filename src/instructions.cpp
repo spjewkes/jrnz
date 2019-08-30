@@ -48,7 +48,7 @@ void Instruction::execute(Z80 &state)
 	case InstType::CCF:  do_ccf(state, dst_elem, src_elem); break;
 	case InstType::RST:  do_rst(state, dst_elem, src_elem); break;
 	default:
-		std::cerr << "Unknown instruction type: " << static_cast<unsigned int>(inst) << std::endl;
+		std::cerr << "Unknown instruction type: " << static_cast<uint32_t>(inst) << std::endl;
 		assert(false);
 	}
 }
@@ -64,9 +64,9 @@ void Instruction::do_ld(Z80 &state, StorageElement &dst_elem, StorageElement &sr
 {
 	if (Operand::SP == dst )
 	{
-		unsigned int new_sp;
+		uint32_t new_sp;
 		src_elem.get_value(new_sp);
-		state.top_of_stack = static_cast<unsigned short>(new_sp);
+		state.top_of_stack = static_cast<uint16_t>(new_sp);
 	}
 	dst_elem = src_elem;
 }

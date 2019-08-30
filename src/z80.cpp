@@ -4,7 +4,7 @@
 
 #include "z80.hpp"
 
-Z80::Z80(unsigned int ram_size, std::string &rom_file) : mem(ram_size, rom_file)
+Z80::Z80(size_t ram_size, std::string &rom_file) : mem(ram_size, rom_file)
 {
 	reset();
 
@@ -957,7 +957,7 @@ bool Z80::clock()
 	return found;
 }
 
-std::stringstream Z80::dump_instr_at_pc(unsigned short pc)
+std::stringstream Z80::dump_instr_at_pc(uint16_t pc)
 {
 	std::stringstream str;
 
@@ -992,7 +992,7 @@ void Z80::dump()
 	std::cout << "HL: " << hl << std::endl;
 	std::cout << "IX: " << ix << std::endl;
 	std::cout << "IY: " << iy << std::endl;
-	std::cout << "IM: " << static_cast<unsigned int>(int_mode) << " ei: " << (int_enabled ? "on" : "off") << std::endl;
+	std::cout << "IM: " << static_cast<uint32_t>(int_mode) << " ei: " << (int_enabled ? "on" : "off") << std::endl;
 }
 
 void Z80::dump_sp()
@@ -1015,11 +1015,11 @@ void Z80::reset()
 	top_of_stack = 0xffff;
 }
 
-unsigned int Z80::get_opcode(unsigned short pc)
+unsigned int Z80::get_opcode(uint16_t pc)
 {
 	curr_opcode_pc = pc;
 	curr_operand_pc = curr_opcode_pc + 1;
-	unsigned int opcode = mem.read(curr_opcode_pc);
+	uint32_t opcode = mem.read(curr_opcode_pc);
 
 	// Handled extended instructions
 	switch(opcode)

@@ -3,7 +3,7 @@
 
 #include "z80.hpp"
 
-static unsigned short break_pc = 0xffff;
+static uint16_t break_pc = 0xffff;
 
 /**
  * Should we enable a debug break?

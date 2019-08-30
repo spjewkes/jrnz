@@ -6,6 +6,7 @@
 #define __INSTRUCTIONS_HPP__
 
 #include <string>
+#include <cstdint>
 #include "common.hpp"
 
 /**
@@ -20,24 +21,24 @@ class StorageElement;
 class Instruction
 {
 public:
-	Instruction(InstType _inst, const char *_name, unsigned int _size, unsigned int _cycles,
+	Instruction(InstType _inst, const char *_name, size_t _size, size_t _cycles,
 				Operand _dst = Operand::UNUSED, Operand _src = Operand::UNUSED)
 		: inst(_inst), name(_name), size(_size), cycles(_cycles), cond(Conditional::UNUSED), dst(_dst), src(_src) {}
-	Instruction(InstType _inst, const char *_name, unsigned int _size, unsigned int _cycles,
-				unsigned int _cycles_not_cond, Operand _dst, Operand _src)
+	Instruction(InstType _inst, const char *_name, size_t _size, size_t _cycles,
+				size_t _cycles_not_cond, Operand _dst, Operand _src)
 		: inst(_inst), name(_name), size(_size), cycles(_cycles), cycles_not_cond(_cycles_not_cond), cond(Conditional::UNUSED), dst(_dst), src(_src) {}
-	Instruction(InstType _inst, const char *_name, unsigned int _size, unsigned int _cycles,
-				unsigned int _cycles_not_cond, Conditional _cond, Operand _dst, Operand _src = Operand::UNUSED)
+	Instruction(InstType _inst, const char *_name, size_t _size, size_t _cycles,
+				size_t _cycles_not_cond, Conditional _cond, Operand _dst, Operand _src = Operand::UNUSED)
 		: inst(_inst), name(_name), size(_size), cycles(_cycles), cycles_not_cond(_cycles_not_cond), cond(_cond), dst(_dst), src(_src) {}
-	Instruction(InstType _inst, const char *_name, unsigned int _size, unsigned int _cycles,
+	Instruction(InstType _inst, const char *_name, size_t _size, size_t _cycles,
 				Conditional _cond, Operand _dst, Operand _src = Operand::UNUSED)
 		: inst(_inst), name(_name), size(_size), cycles(_cycles), cond(_cond), dst(_dst), src(_src) {}
 
 	InstType inst;
 	std::string name;
-	unsigned int size;
-	unsigned int cycles = { 0 };
-	unsigned int cycles_not_cond = { 0 };
+	size_t size;
+	size_t cycles = { 0 };
+	size_t cycles_not_cond = { 0 };
 	Conditional cond = { Conditional::UNUSED };
 	Operand dst;
 	Operand src;

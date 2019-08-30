@@ -7,7 +7,7 @@
 #include "storage_element.hpp"
 #include "z80.hpp"
 
-StorageElement::StorageElement(unsigned char *_ptr, size_t _count, bool _readonly) : ptr(_ptr), count(_count), readonly(_readonly)
+StorageElement::StorageElement(uint8_t *_ptr, size_t _count, bool _readonly) : ptr(_ptr), count(_count), readonly(_readonly)
 {
 	if (readonly)
 	{
@@ -16,13 +16,13 @@ StorageElement::StorageElement(unsigned char *_ptr, size_t _count, bool _readonl
 	}
 }
 
-StorageElement::StorageElement(unsigned char v) : ptr(nullptr), count(1), readonly(true)
+StorageElement::StorageElement(uint8_t v) : ptr(nullptr), count(1), readonly(true)
 {
 	read_only.push_back(v);
 	ptr = &read_only[0];
 }
 
-StorageElement::StorageElement(unsigned char lo, unsigned char hi) : ptr(nullptr), count(2), readonly(true)
+StorageElement::StorageElement(uint8_t lo, uint8_t hi) : ptr(nullptr), count(2), readonly(true)
 {
 	read_only.resize(count);
 	read_only[WORD_LO_BYTE_IDX] = lo;
@@ -30,7 +30,7 @@ StorageElement::StorageElement(unsigned char lo, unsigned char hi) : ptr(nullptr
 	ptr = &read_only[0];
 }
 
-StorageElement::StorageElement(unsigned int v, size_t _count) : count(_count), readonly(true)
+StorageElement::StorageElement(uint32_t v, size_t _count) : count(_count), readonly(true)
 {
 	assert((count == 1) || (count == 2));
 	read_only.resize(count);
@@ -39,11 +39,11 @@ StorageElement::StorageElement(unsigned int v, size_t _count) : count(_count), r
 	switch (count)
 	{
 	case 1:
-		read_only[WORD_LO_BYTE_IDX] = static_cast<unsigned char>(v);
+		read_only[WORD_LO_BYTE_IDX] = static_cast<uint8_t>(v);
 		break;
 	case 2:
-		ptr[WORD_LO_BYTE_IDX] = static_cast<unsigned char>(v & 0xff);
-		ptr[WORD_HI_BYTE_IDX] = static_cast<unsigned char>((v >> 8) & 0xff);
+		ptr[WORD_LO_BYTE_IDX] = static_cast<uint8_t>(v & 0xff);
+		ptr[WORD_HI_BYTE_IDX] = static_cast<uint8_t>((v >> 8) & 0xff);
 		break;
 	default:
 		assert(false); // Should not get here
@@ -68,21 +68,21 @@ StorageElement StorageElement::create_element(Z80 &state, Operand operand)
 	case Operand::L:        return state.hl.element_lo();
 	case Operand::N:
 	{
-		unsigned char byte = state.mem.read(state.curr_operand_pc);
+		uint8_t byte = state.mem.read(state.curr_operand_pc);
 		state.curr_operand_pc += 1;
 		return StorageElement(byte);
 	}
 	case Operand::NN:
 	{
-		unsigned char lo = state.mem.read(state.curr_operand_pc);
-		unsigned char hi = state.mem.read(state.curr_operand_pc+1);
+		uint8_t lo = state.mem.read(state.curr_operand_pc);
+		uint8_t hi = state.mem.read(state.curr_operand_pc+1);
 		state.curr_operand_pc += 2;
 		return StorageElement(lo, hi);
 	}
 	case Operand::PC:       return state.pc.element();
 	case Operand::PORT:
 	{
-		unsigned char byte = state.mem.read(state.curr_operand_pc);
+		uint8_t byte = state.mem.read(state.curr_operand_pc);
 		state.curr_operand_pc += 1;
 		return state.ports.element(byte);
 	}
@@ -107,13 +107,13 @@ StorageElement StorageElement::create_element(Z80 &state, Operand operand)
 	}
 	case Operand::indIXN:
 	{
-		unsigned char *ptr = &state.mem[state.ix.get()] + state.mem.read(state.curr_operand_pc);
+		uint8_t *ptr = &state.mem[state.ix.get()] + state.mem.read(state.curr_operand_pc);
 		state.curr_operand_pc += 1;
 		return StorageElement(ptr, 1);
 	}
 	case Operand::indIYN:
 	{
-		unsigned char *ptr = &state.mem[state.iy.get()] + state.mem.read(state.curr_operand_pc);
+		uint8_t *ptr = &state.mem[state.iy.get()] + state.mem.read(state.curr_operand_pc);
 		state.curr_operand_pc += 1;
 		return StorageElement(ptr, 1);
 	}
@@ -126,13 +126,13 @@ StorageElement StorageElement::create_element(Z80 &state, Operand operand)
 	case Operand::FIVE:     return StorageElement(0x05);
 	case Operand::SIX:      return StorageElement(0x06);
 	case Operand::SEVEN:    return StorageElement(0x07);
-	case Operand::HEX_0008: return StorageElement(0x08, static_cast<unsigned char>(0x00));
-	case Operand::HEX_0010: return StorageElement(0x10, static_cast<unsigned char>(0x00));
-	case Operand::HEX_0018: return StorageElement(0x18, static_cast<unsigned char>(0x00));
-	case Operand::HEX_0020: return StorageElement(0x20, static_cast<unsigned char>(0x00));
-	case Operand::HEX_0028: return StorageElement(0x28, static_cast<unsigned char>(0x00));
-	case Operand::HEX_0030: return StorageElement(0x30, static_cast<unsigned char>(0x00));
-	case Operand::HEX_0038: return StorageElement(0x38, static_cast<unsigned char>(0x00));
+	case Operand::HEX_0008: return StorageElement(0x08, static_cast<uint8_t>(0x00));
+	case Operand::HEX_0010: return StorageElement(0x10, static_cast<uint8_t>(0x00));
+	case Operand::HEX_0018: return StorageElement(0x18, static_cast<uint8_t>(0x00));
+	case Operand::HEX_0020: return StorageElement(0x20, static_cast<uint8_t>(0x00));
+	case Operand::HEX_0028: return StorageElement(0x28, static_cast<uint8_t>(0x00));
+	case Operand::HEX_0030: return StorageElement(0x30, static_cast<uint8_t>(0x00));
+	case Operand::HEX_0038: return StorageElement(0x38, static_cast<uint8_t>(0x00));
 	case Operand::IM:       return StorageElement(&state.int_mode,1);
 	case Operand::UNUSED:
 	default:
@@ -191,28 +191,28 @@ StorageElement &StorageElement::operator|=(const StorageElement &rhs)
 
 void StorageElement::swap(StorageElement &rhs)
 {
-	unsigned int tmp = to_u32();
+	uint32_t tmp = to_u32();
 	from_u32(rhs.to_u32());
 	rhs.from_u32(tmp);
 }
 
 bool StorageElement::get_bit(StorageElement &rhs)
 {
-	unsigned int tmp = to_u32();
-	unsigned int mask = 1 << rhs.to_u32();
+	uint32_t tmp = to_u32();
+	uint32_t mask = 1 << rhs.to_u32();
 	return (tmp & mask) != 0;
 }
 
 void StorageElement::set_bit(StorageElement &rhs)
 {
-	unsigned int tmp = to_u32();
+	uint32_t tmp = to_u32();
 	tmp |= 1 << rhs.to_u32();
 	from_u32(tmp);
 }
 
 void StorageElement::reset_bit(StorageElement &rhs)
 {
-	unsigned int tmp = to_u32();
+	uint32_t tmp = to_u32();
 	tmp &= ~(1 << rhs.to_u32()) & 0xFF;
 	from_u32(tmp);
 }
@@ -235,8 +235,8 @@ void StorageElement::shift_right(bool rotate, bool carry_inst, bool carry)
 {
 	assert(is_8bit());
 
-	unsigned int val = to_u32();
-	unsigned int shifted_bit = (val & 0x1) << 7;
+	uint32_t val = to_u32();
+	uint32_t shifted_bit = (val & 0x1) << 7;
 
 	val >>= 1;
 	if (rotate && carry_inst)
@@ -257,8 +257,8 @@ void StorageElement::shift_left(bool rotate, bool carry_inst, bool carry)
 {
 	assert(is_8bit());
 
-	unsigned int val = to_u32();
-	unsigned int shifted_bit = (val & 0x80) >> 7;
+	uint32_t val = to_u32();
+	uint32_t shifted_bit = (val & 0x80) >> 7;
 
 	val <<= 1;
 	if (rotate && carry_inst)
@@ -275,18 +275,18 @@ void StorageElement::shift_left(bool rotate, bool carry_inst, bool carry)
 	from_u32(val & 0xff);
 }
 
-unsigned int StorageElement::to_u32() const
+uint32_t StorageElement::to_u32() const
 {
-	unsigned int v = 0;
+	uint32_t v = 0;
 	
 	switch (count)
 	{
 	case 1:
-		v = static_cast<unsigned char>(*ptr);
+		v = static_cast<uint8_t>(*ptr);
 		break;
 	case 2:
-		v = static_cast<unsigned int>(ptr[WORD_LO_BYTE_IDX] & 0xff);
-		v |= static_cast<unsigned int>(ptr[WORD_HI_BYTE_IDX] & 0xff) << 8;
+		v = static_cast<uint32_t>(ptr[WORD_LO_BYTE_IDX] & 0xff);
+		v |= static_cast<uint32_t>(ptr[WORD_HI_BYTE_IDX] & 0xff) << 8;
 		break;
 	default:
 		assert(false); // Should not get here
@@ -295,19 +295,19 @@ unsigned int StorageElement::to_u32() const
 	return v;
 }
 
-unsigned int StorageElement::to_u32_half() const
+uint32_t StorageElement::to_u32_half() const
 {
-	unsigned int v = 0;
+	uint32_t v = 0;
 
 	switch (count)
 	{
 	case 1:
-		v = static_cast<unsigned char>(*ptr);
+		v = static_cast<uint8_t>(*ptr);
 		v &= 0x0f;
 		break;
 	case 2:
-		v = static_cast<unsigned int>(ptr[WORD_LO_BYTE_IDX] & 0xff);
-		v |= static_cast<unsigned int>(ptr[WORD_HI_BYTE_IDX] & 0xff) << 8;
+		v = static_cast<uint32_t>(ptr[WORD_LO_BYTE_IDX] & 0xff);
+		v |= static_cast<uint32_t>(ptr[WORD_HI_BYTE_IDX] & 0xff) << 8;
 		v &= 0xff;
 		break;
 	default:
@@ -335,16 +335,16 @@ int StorageElement::to_s32() const
 	return v;
 }
 
-void StorageElement::from_u32(unsigned int v)
+void StorageElement::from_u32(uint32_t v)
 {
 	switch (count)
 	{
 	case 1:
-		*static_cast<unsigned char *>(ptr) = static_cast<unsigned char>(v);
+		*static_cast<uint8_t *>(ptr) = static_cast<uint8_t>(v);
 		break;
 	case 2:
-		ptr[WORD_LO_BYTE_IDX] = static_cast<unsigned char>(v & 0xff);
-		ptr[WORD_HI_BYTE_IDX] = static_cast<unsigned char>((v >> 8) & 0xff);
+		ptr[WORD_LO_BYTE_IDX] = static_cast<uint8_t>(v & 0xff);
+		ptr[WORD_HI_BYTE_IDX] = static_cast<uint8_t>((v >> 8) & 0xff);
 		break;
 	default:
 		assert(false); // Should not get here
@@ -353,8 +353,8 @@ void StorageElement::from_u32(unsigned int v)
 
 bool StorageElement::significant_bit(bool ishalf) const
 {
-	unsigned int div = (ishalf ? 2 : 1);
-	unsigned int mask = 0x1 << ((8 * count / div) - 1);
+	uint32_t div = (ishalf ? 2 : 1);
+	uint32_t mask = 0x1 << ((8 * count / div) - 1);
 	return (to_u32() & mask) != 0;
 }
 

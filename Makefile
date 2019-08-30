@@ -1,5 +1,5 @@
 CPP=g++
-CPPFLAGS=-std=c++11
+CPPFLAGS=-std=c++11 # -Wall -Wextra -Werror -pedantic
 EXE=run_jrnz
 
 OBJ_DIR=obj

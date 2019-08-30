@@ -17,12 +17,12 @@ class Register16
 {
 public:
 	void reset() { reg = 0x00; alt_reg = 0x00; }
-	void hi(unsigned char v) { c_reg[WORD_HI_BYTE_IDX] = v; }
-	unsigned char hi() const { return c_reg[WORD_HI_BYTE_IDX]; }
-	void lo(unsigned char v) { c_reg[WORD_LO_BYTE_IDX] = v; }
-	unsigned char lo() const { return c_reg[WORD_LO_BYTE_IDX]; }
-	void set(unsigned short v) { reg = v; }
-	unsigned short get() const { return reg; }
+	void hi(uint8_t v) { c_reg[WORD_HI_BYTE_IDX] = v; }
+	uint8_t hi() const { return c_reg[WORD_HI_BYTE_IDX]; }
+	void lo(uint8_t v) { c_reg[WORD_LO_BYTE_IDX] = v; }
+	uint8_t lo() const { return c_reg[WORD_LO_BYTE_IDX]; }
+	void set(uint16_t v) { reg = v; }
+	uint16_t get() const { return reg; }
 	void swap() { std::swap(reg, alt_reg); }
 
 	StorageElement element() { return StorageElement(&c_reg[0], 2); }
@@ -34,10 +34,10 @@ public:
 private:
 	union
 	{
-		unsigned short reg = 0;
-		unsigned char c_reg[2];
+		uint16_t reg = 0;
+		uint8_t c_reg[2];
 	};
-	unsigned short alt_reg = 0;
+	uint16_t alt_reg = 0;
 };
 
 std::ostream& operator<<(std::ostream& stream, const Register16& e);
@@ -58,19 +58,19 @@ public:
 		Sign = 7
 	};
 
-	void accum(unsigned char v) { hi(v); }
-	unsigned char accum() const { return hi(); }
-	void flags(unsigned char v) { lo(v); }
-	unsigned char flags() const { return lo(); }
+	void accum(uint8_t v) { hi(v); }
+	uint8_t accum() const { return hi(); }
+	void flags(uint8_t v) { lo(v); }
+	uint8_t flags() const { return lo(); }
 
 	void flag(Flags f, bool v)
 		{
-			unsigned char bit = 0x1 << static_cast<unsigned int>(f);
+			uint8_t bit = 0x1 << static_cast<unsigned int>(f);
 			flags((flags() & ~bit) | (v?bit:0));
 		}
 	bool flag(Flags f) const
 		{
-			unsigned char bit = 0x1 << static_cast<unsigned int>(f);
+			uint8_t bit = 0x1 << static_cast<unsigned int>(f);
 			return (flags() & bit) != 0;
 		}
 	void inv_flag(Flags f)

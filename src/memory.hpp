@@ -11,6 +11,7 @@
 #include <iomanip>
 #include <vector>
 #include <cassert>
+#include <cstdint>
 #include "storage_element.hpp"
 #include "common.hpp"
 
@@ -36,10 +37,10 @@ public:
 				std::cerr << "ROM uninitialized" << std::endl;
 			}
 		}
-	unsigned char &operator[](size_t pos) { return mem[pos]; }
+	uint8_t &operator[](size_t pos) { return mem[pos]; }
 
-	unsigned char read(size_t pos) const { return mem[pos]; }
-	void write(size_t pos, unsigned char v)
+	uint8_t read(size_t pos) const { return mem[pos]; }
+	void write(size_t pos, uint8_t v)
 		{
 			if(pos >= ram_start)
 			{
@@ -90,7 +91,7 @@ public:
 		}
 
 private:
-	std::vector<unsigned char> mem;
+	std::vector<uint8_t> mem;
 	size_t ram_start;
 };
 

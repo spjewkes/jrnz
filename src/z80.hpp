@@ -5,6 +5,7 @@
 #ifndef __Z80_HPP__
 #define __Z80_HPP__
 
+#include <cstdint>
 #include <map>
 #include "memory.hpp"
 #include "ports.hpp"
@@ -17,11 +18,11 @@
 class Z80
 {
 public:
-	Z80(unsigned int ram_size, std::string &rom_file);
+	Z80(size_t ram_size, std::string &rom_file);
 
-	unsigned short curr_opcode_pc = { 0 }; // Stores the PC of the opcode under execution
-	unsigned short curr_operand_pc = { 0 }; // Stores the PC of the expected first operand (if there are any) of the opcode under execution
-	unsigned short top_of_stack = { 0 }; // Stores the expected top of the stack (for aiding debugging)
+	uint16_t curr_opcode_pc = { 0 }; // Stores the PC of the opcode under execution
+	uint16_t curr_operand_pc = { 0 }; // Stores the PC of the expected first operand (if there are any) of the opcode under execution
+	uint16_t top_of_stack = { 0 }; // Stores the expected top of the stack (for aiding debugging)
 	Register16 pc;
 	Register16 sp;
 	Register16 ix;
@@ -32,7 +33,7 @@ public:
 	Register16 bc;
 	Register16 de;
 	bool int_enabled = { false };
-	unsigned char int_mode = { 0 };
+	uint8_t int_mode = { 0 };
 	bool int_nmi = { false };
 
 	Memory mem;
@@ -41,16 +42,16 @@ public:
 	Register16 ir;
 
 	bool clock();
-	std::stringstream dump_instr_at_pc(unsigned short pc);
+	std::stringstream dump_instr_at_pc(uint16_t pc);
 	void dump();
 	void dump_sp();
 	void reset();
 
 private:
-	unsigned int get_opcode(unsigned short pc);
+	uint32_t get_opcode(uint16_t pc);
 
-	std::map<unsigned int, Instruction> map_inst;
-	std::map<unsigned int, std::string> map_rom;
+	std::map<uint32_t, Instruction> map_inst;
+	std::map<uint32_t, std::string> map_rom;
 };
 
 #endif // __Z80_HPP__

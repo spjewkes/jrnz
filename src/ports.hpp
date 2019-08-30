@@ -6,6 +6,7 @@
 #define __PORTS_HPP__
 
 #include <vector>
+#include <cstdint>
 
 /**
  * @brief Defines the ports.
@@ -18,13 +19,13 @@ public:
 			ports.resize(256);
 		}
 
-	unsigned char read(size_t pos) const { return ports[pos]; }
-	void write(size_t pos, unsigned char v) { ports[pos] = v; }
+	uint8_t read(size_t pos) const { return ports[pos]; }
+	void write(size_t pos, uint8_t v) { ports[pos] = v; }
 
 	StorageElement element(size_t pos) { return StorageElement(&ports[pos], 1); }
 
 private:
-	std::vector<unsigned char> ports;
+	std::vector<uint8_t> ports;
 };
 
 #endif // __PORTS_HPP__
