@@ -8,20 +8,6 @@
 static uint16_t break_pc = 0xffff;
 
 /**
- * Should we enable a debug break?
- */
-static bool enable_break(Z80 &state)
-{
-	if (state.pc.get() == break_pc)
-	{
-		std::cout << "Enabled break at 0x" << std::hex << break_pc << std::dec << std::endl;
-		return true;
-	}
-
-	return false;
-}
-
-/**
  * @brief Main entry-point into application.
  */
 int main(int argc, char **argv)
@@ -34,15 +20,16 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	if (argc >= 3)
-	{
-		break_pc = strtoul(argv[2], NULL, 0);
-	}
-
 	std::string rom_file(argv[1]);
 	Memory mem(65536, rom_file);
 	Z80 state(mem);
 	System sys(state, mem);
+
+	if (argc >= 3)
+	{
+		break_pc = strtoul(argv[2], NULL, 0);
+		sys.set_break(true, break_pc);
+	}
 
 	bool running = true;
 	bool do_break = false;
@@ -50,7 +37,7 @@ int main(int argc, char **argv)
 
 	do
 	{
-		if (!do_break && enable_break(sys.z80()))
+		if (!do_break && sys.break_ready())
 		{
 			do_break = true;
 		}
