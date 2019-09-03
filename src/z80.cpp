@@ -4,7 +4,7 @@
 
 #include "z80.hpp"
 
-Z80::Z80(size_t ram_size, std::string &rom_file) : mem(ram_size, rom_file)
+Z80::Z80(Memory &memory) : mem(memory)
 {
 	reset();
 
@@ -1023,7 +1023,7 @@ void Z80::reset()
 	top_of_stack = 0xffff;
 }
 
-unsigned int Z80::get_opcode(uint16_t pc)
+uint32_t Z80::get_opcode(uint16_t pc)
 {
 	curr_opcode_pc = pc;
 	curr_operand_pc = curr_opcode_pc + 1;

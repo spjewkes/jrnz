@@ -2,6 +2,8 @@
 #include <cstdlib>
 
 #include "z80.hpp"
+#include "memory.hpp"
+#include "system.hpp"
 
 static uint16_t break_pc = 0xffff;
 
@@ -38,7 +40,9 @@ int main(int argc, char **argv)
 	}
 
 	std::string rom_file(argv[1]);
-	Z80 state(65536, rom_file);
+	Memory mem(65536, rom_file);
+	Z80 state(mem);
+	System sys(state, mem);
 
 	bool running = true;
 	bool do_break = false;
@@ -46,7 +50,7 @@ int main(int argc, char **argv)
 
 	do
 	{
-		if (!do_break && enable_break(state))
+		if (!do_break && enable_break(sys.z80()))
 		{
 			do_break = true;
 		}
@@ -58,7 +62,7 @@ int main(int argc, char **argv)
 
 			while (debug)
 			{
-				std::cout << "Executing: " << state.dump_instr_at_pc(state.pc.get()).str() << std::endl;
+				std::cout << "Executing: " << sys.z80().dump_instr_at_pc(sys.z80().pc.get()).str() << std::endl;
 				std::cin >> ch;
 
 				switch (ch)
@@ -72,10 +76,10 @@ int main(int argc, char **argv)
 					debug = false;
 					break;
 				case 'r':
-					state.dump();
+					sys.z80().dump();
 					break;
 				case 't':
-					state.dump_sp();
+					sys.z80().dump_sp();
 					break;
 				case 'd':
 				{
@@ -84,14 +88,14 @@ int main(int argc, char **argv)
 					std::cin >> str_offset >> str_size;
 					size_t offset = strtoul(str_offset.c_str(), NULL, 0);
 					size_t size = strtoul(str_size.c_str(), NULL, 0);
-					std::cout << state.mem.dump(offset, size) << std::endl;
+					std::cout << sys.z80().mem.dump(offset, size) << std::endl;
 					break;
 				}
 				case 'n':
 					debug = false;
 					break;
 				case 'i':
-					state.int_nmi = true;
+					sys.z80().int_nmi = true;
 					break;
 				case 'q':
 					running = false;
@@ -120,7 +124,7 @@ int main(int argc, char **argv)
 			step--;
 		}
 
-	} while (running && state.clock());
+	} while (running && sys.clock());
 
 	return EXIT_SUCCESS;
 }
