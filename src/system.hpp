@@ -19,22 +19,14 @@ public:
 	System(Z80 &_z80, Memory &_memory) : _z80(_z80), _memory(_memory) {}
 	virtual ~System() {}
 
-	void set_break(bool enable, uint16_t break_pc = 0x0000);
-	bool break_ready();
-
-	bool clock();
+	bool clock(bool no_cycles);
 
 	Z80& z80() { return _z80; }
 	Memory& memory() { return _memory; }
 
 private:
-	Z80 _z80;
-	Memory _memory;
-
-	size_t break_step = { 0ull };
-	bool break_enabled = { false };
-	bool break_at_pc = { false };
-	uint16_t break_pc = { 0x0000 };
+	Z80 &_z80;
+	Memory &_memory;
 };
 
 #endif // __SYSTEM_HPP__

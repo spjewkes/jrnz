@@ -4,6 +4,7 @@
 #include "z80.hpp"
 #include "memory.hpp"
 #include "system.hpp"
+#include "debugger.hpp"
 
 static uint16_t break_pc = 0xffff;
 
@@ -23,19 +24,23 @@ int main(int argc, char **argv)
 	std::string rom_file(argv[1]);
 	Memory mem(65536, rom_file);
 	Z80 state(mem);
-	System sys(state, mem);
 
+	// Set up debugging class
+	Debugger debug(state, mem);
 	if (argc >= 3)
 	{
 		break_pc = strtoul(argv[2], NULL, 0);
-		sys.set_break(true, break_pc);
+		debug.set_break(true, break_pc);
 	}
+
+	System sys(state, mem);
 
 	bool running = true;
 
 	do
 	{
-		running = sys.clock();
+		running = debug.clock();
+		running &= sys.clock(debug.is_break_enabled());
 	} while (running);
 
 	return EXIT_SUCCESS;
