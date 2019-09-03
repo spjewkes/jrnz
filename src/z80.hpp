@@ -35,6 +35,7 @@ public:
 	bool int_enabled = { false };
 	uint8_t int_mode = { 0 };
 	bool int_nmi = { false };
+	bool interrupt = { false };
 
 	uint32_t cycles_left = { 0 };
 

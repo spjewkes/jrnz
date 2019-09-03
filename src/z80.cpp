@@ -942,6 +942,33 @@ bool Z80::clock(bool no_cycles)
 			int_nmi = false;
 			found = true;
 		}
+		else if (interrupt)
+		{
+			switch (int_mode)
+			{
+			case 0:
+			{
+				//! TODO - we don't currently support mode 0
+				assert(false);
+				break;
+			}
+			case 1:
+			{
+				Instruction inst {InstType::PUSH, "INT1", 1, 13, Operand::UNUSED, Operand::PC};
+				cycles_left = inst.execute(*this);
+				pc.set(0x38);
+				interrupt = false;
+				found = true;
+				break;
+			}
+			case 2:
+			{
+				//! TODO - we don't currently support mode 2
+				assert(false);
+				break;
+			}
+			}
+		}
 		else
 		{
 			const auto opcode = get_opcode(pc.get());
