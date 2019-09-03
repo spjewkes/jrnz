@@ -928,7 +928,7 @@ Z80::Z80(Memory &memory) : mem(memory)
 	map_rom.emplace(0x169e, "RESERVE");
 }
 
-bool Z80::clock()
+bool Z80::clock(bool debug)
 {
 	bool found = false;
 
@@ -960,6 +960,12 @@ bool Z80::clock()
 	{
 		cycles_left--;
 		found = true;
+	}
+
+	if (debug)
+	{
+		// Ignore instruction cycle counts when debugging
+		cycles_left = 0;
 	}
 
 	return found;

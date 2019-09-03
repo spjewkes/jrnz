@@ -31,6 +31,8 @@ private:
 	Z80 _z80;
 	Memory _memory;
 
+	size_t break_step = { 0ull };
+	bool do_break = { false };
 	bool break_enabled = { false };
 	uint16_t break_pc = { 0x0000 };
 };
