@@ -14,7 +14,7 @@ void System::set_break(bool enable, uint16_t _break_pc)
 
 bool System::break_ready()
 {
-	if (do_break && _z80.pc.get() == break_pc)
+	if (!break_enabled && do_break && _z80.pc.get() == break_pc)
 	{
 		std::cout << "Enabled break at 0x" << std::hex << break_pc << std::dec << std::endl;
 		break_enabled = true;
@@ -28,7 +28,7 @@ bool System::clock()
 {
 	bool running = true;
 
-	if (!break_step && break_ready())
+	if ((break_enabled && !break_step) || break_ready())
 	{
 		bool debug = true;
 		char ch;
@@ -98,5 +98,5 @@ bool System::clock()
 		break_step--;
 	}
 
-	return running && _z80.clock(do_break);
+	return running && _z80.clock(break_enabled);
 }
