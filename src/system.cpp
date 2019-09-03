@@ -8,16 +8,17 @@
 
 void System::set_break(bool enable, uint16_t _break_pc)
 {
-	do_break = enable;
+	break_at_pc = enable;
 	break_pc = _break_pc;
 }
 
 bool System::break_ready()
 {
-	if (!break_enabled && do_break && _z80.pc.get() == break_pc)
+	if (break_at_pc && _z80.pc.get() == break_pc)
 	{
 		std::cout << "Enabled break at 0x" << std::hex << break_pc << std::dec << std::endl;
 		break_enabled = true;
+		break_at_pc = false;
 		return true;
 	}
 
@@ -30,24 +31,30 @@ bool System::clock()
 
 	if ((break_enabled && !break_step) || break_ready())
 	{
-		bool debug = true;
+		bool paused = true;
 		char ch;
 
-		while (debug)
+		while (paused)
 		{
 			std::cout << "Executing: " << _z80.dump_instr_at_pc(_z80.pc.get()).str() << std::endl;
 			std::cin >> ch;
 
 			switch (ch)
 			{
+			case 'b':
+				break_at_pc = true;
+				std::cin >> std::hex >> break_pc;
+				paused = false;
+				break_enabled = false;
+				break;
 			case 'c':
-				do_break = false;
-				debug = false;
+				break_at_pc = false;
+				paused = false;
 				break_enabled = false;
 				break;
 			case 's':
 				std::cin >> break_step;
-				debug = false;
+				paused = false;
 				break;
 			case 'r':
 				_z80.dump();
@@ -66,14 +73,14 @@ bool System::clock()
 				break;
 			}
 			case 'n':
-				debug = false;
+				paused = false;
 				break;
 			case 'i':
 				_z80.int_nmi = true;
 				break;
 			case 'q':
 				running = false;
-				debug = false;
+				paused = false;
 				break;
 			default:
 				std::string help_text =
