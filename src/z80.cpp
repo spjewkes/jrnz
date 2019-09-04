@@ -5,7 +5,7 @@
 #include "z80.hpp"
 #include "decoder.hpp"
 
-Z80::Z80(Memory &memory) : mem(memory)
+Z80::Z80(Bus &memory) : mem(memory)
 {
 	reset();
 }

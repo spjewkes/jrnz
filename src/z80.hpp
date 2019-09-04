@@ -6,7 +6,7 @@
 #define __Z80_HPP__
 
 #include <cstdint>
-#include "memory.hpp"
+#include "bus.hpp"
 #include "ports.hpp"
 #include "register.hpp"
 #include "instructions.hpp"
@@ -17,7 +17,7 @@
 class Z80
 {
 public:
-	Z80(Memory &memory);
+	Z80(Bus &memory);
 
 	uint16_t curr_opcode_pc = { 0 }; // Stores the PC of the opcode under execution
 	uint16_t curr_operand_pc = { 0 }; // Stores the PC of the expected first operand (if there are any) of the opcode under execution
@@ -38,7 +38,7 @@ public:
 
 	uint32_t cycles_left = { 0 };
 
-	Memory &mem;
+	Bus &mem;
 	Ports ports;
 
 	Register16 ir;

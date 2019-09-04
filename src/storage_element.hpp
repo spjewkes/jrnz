@@ -11,7 +11,7 @@
 #include "common.hpp"
 
 class Z80;
-class Memory;
+class Bus;
 
 /**
  * @brief Defines a standard storage element type to allow operations between registers/memory.
@@ -35,8 +35,8 @@ public:
 	bool get_bit(StorageElement &rhs);
 	void set_bit(StorageElement &rhs);
 	void reset_bit(StorageElement &rhs);
-	size_t push(Memory &mem, size_t addr);
-	size_t pop(Memory &mem, size_t addr);
+	size_t push(Bus &mem, size_t addr);
+	size_t pop(Bus &mem, size_t addr);
 	void shift_right(bool rotate, bool carry_inst, bool carry);
 	void shift_left(bool rotate, bool carry_inst, bool carry);
 

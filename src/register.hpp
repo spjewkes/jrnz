@@ -6,7 +6,7 @@
 #define __REGISTER_HPP__
 
 #include <bitset>
-#include "memory.hpp"
+#include "bus.hpp"
 #include "storage_element.hpp"
 #include "common.hpp"
 

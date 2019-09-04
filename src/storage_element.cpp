@@ -95,15 +95,15 @@ StorageElement StorageElement::create_element(Z80 &state, Operand operand)
 	case Operand::indHL:    return StorageElement(&state.mem[state.hl.get()],1);
 	case Operand::indN:
 	{
-		size_t bytes = state.mem.get_addr(state.curr_operand_pc);
+		size_t bytes = state.mem.read_addr(state.curr_operand_pc);
 		state.curr_operand_pc += 1;
-		return state.mem.element(bytes, 1);
+		return state.mem.element_at(bytes, 1);
 	}
 	case Operand::indNN:
 	{
-		size_t bytes = state.mem.get_addr(state.curr_operand_pc);
+		size_t bytes = state.mem.read_addr(state.curr_operand_pc);
 		state.curr_operand_pc += 2;
-		return state.mem.element(bytes, 2);
+		return state.mem.element_at(bytes, 2);
 	}
 	case Operand::indIXN:
 	{
@@ -217,14 +217,14 @@ void StorageElement::reset_bit(StorageElement &rhs)
 	from_u32(tmp);
 }
 
-size_t StorageElement::push(Memory &mem, size_t addr)
+size_t StorageElement::push(Bus &mem, size_t addr)
 {
 	mem.write(addr-1, ptr[WORD_HI_BYTE_IDX]);
 	mem.write(addr-2, ptr[WORD_LO_BYTE_IDX]);
 	return addr-2;
 }
 
-size_t StorageElement::pop(Memory &mem, size_t addr)
+size_t StorageElement::pop(Bus &mem, size_t addr)
 {
 	ptr[WORD_LO_BYTE_IDX] = mem.read(addr);
 	ptr[WORD_HI_BYTE_IDX] = mem.read(addr+1);

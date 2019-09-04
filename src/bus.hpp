@@ -1,9 +1,9 @@
 /**
- * @brief Class managing memory of the system.
+ * @brief Class managing memory/data bus of the system.
  */
 
-#ifndef __MEMORY_HPP__
-#define __MEMORY_HPP__
+#ifndef __BUS_HPP__
+#define __BUS_HPP__
 
 #include <iostream>
 #include <sstream>
@@ -16,12 +16,12 @@
 #include "common.hpp"
 
 /**
- * @brief Defines the memory of the device.
+ * @brief Defines the memory/data bus of the device.
  */
-class Memory
+class Bus
 {
 public:
-	Memory(size_t size, std::string &rom_file) : mem(size)
+	Bus(size_t size, std::string &rom_file) : mem(size)
 		{
 			if(std::ifstream rom{rom_file, std::ios::binary | std::ios::ate})
 			{
@@ -48,17 +48,17 @@ public:
 			}
 		}
 
-	StorageElement element(uint16_t addr, size_t count) { return StorageElement(&mem[addr], count, (addr < ram_start)); }
-	uint16_t get_addr(uint16_t addr) const
+	StorageElement element_at(uint16_t addr, size_t count) { return StorageElement(&mem[addr], count, (addr < ram_start)); }
+	uint16_t read_addr(uint16_t addr) const
 		{
 			uint16_t ret_addr = mem[addr];
 			ret_addr |= mem[addr+1] << 8;
 			return ret_addr;
 		}
-	void write_addr(uint16_t loc, uint16_t addr)
+	void write_addr(uint16_t addr, uint16_t addr_to_write)
 		{
-			mem[loc] = addr & 0xff;
-			mem[loc+1] = (addr >> 8) & 0xff;
+			mem[addr] = addr_to_write & 0xff;
+			mem[addr+1] = (addr_to_write >> 8) & 0xff;
 		}
 
 	std::string dump(uint16_t addr, size_t size, bool add_eol=false) const
@@ -133,4 +133,4 @@ private:
 	uint16_t ram_start;
 };
 
-#endif // __MEMORY_HPP__
+#endif // __BUS_HPP__

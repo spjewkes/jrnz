@@ -8,7 +8,7 @@
 #include <cstdlib>
 
 #include "z80.hpp"
-#include "memory.hpp"
+#include "bus.hpp"
 
 /**
  * Defines the debugger class.
@@ -16,7 +16,7 @@
 class Debugger
 {
 public:
-	Debugger(Z80 &_z80, Memory &_memory) : _z80(_z80), _memory(_memory) {}
+	Debugger(Z80 &_z80, Bus &_memory) : _z80(_z80), _memory(_memory) {}
 	virtual ~Debugger() {}
 
 	void set_break(bool enable, uint16_t _break_pc = 0x0000);
@@ -31,7 +31,7 @@ public:
 
 public:
 	Z80 &_z80;
-	Memory &_memory;
+	Bus &_memory;
 
 	size_t break_step = { 0ull };
 	bool break_enabled = { false };

@@ -8,7 +8,7 @@
 #include <cstdlib>
 
 #include "z80.hpp"
-#include "memory.hpp"
+#include "bus.hpp"
 
 /**
  * Defines the system class.
@@ -16,17 +16,17 @@
 class System
 {
 public:
-	System(Z80 &_z80, Memory &_memory) : _z80(_z80), _memory(_memory) {}
+	System(Z80 &_z80, Bus &_memory) : _z80(_z80), _memory(_memory) {}
 	virtual ~System() {}
 
 	bool clock(bool no_cycles);
 
 	Z80& z80() { return _z80; }
-	Memory& memory() { return _memory; }
+	Bus& memory() { return _memory; }
 
 private:
 	Z80 &_z80;
-	Memory &_memory;
+	Bus &_memory;
 };
 
 #endif // __SYSTEM_HPP__

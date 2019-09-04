@@ -2,7 +2,7 @@
 #include <cstdlib>
 
 #include "z80.hpp"
-#include "memory.hpp"
+#include "bus.hpp"
 #include "system.hpp"
 #include "debugger.hpp"
 
@@ -22,7 +22,7 @@ int main(int argc, char **argv)
 	}
 
 	std::string rom_file(argv[1]);
-	Memory mem(65536, rom_file);
+	Bus mem(65536, rom_file);
 	Z80 state(mem);
 
 	// Set up debugging class
