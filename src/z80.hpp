@@ -48,9 +48,6 @@ public:
 	void dump();
 	void dump_sp();
 	void reset();
-
-private:
-	uint32_t get_opcode(uint16_t pc);
 };
 
 #endif // __Z80_HPP__

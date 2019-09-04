@@ -90,6 +90,44 @@ public:
 			return output.str();
 		}
 
+	uint32_t get_opcode(uint16_t addr, size_t* operand_offset = nullptr)
+		{
+			size_t offset = 1;
+			uint32_t opcode = read(addr);
+
+			// Handled extended instructions
+			switch(opcode)
+			{
+			case 0xed:
+			case 0xcb:
+			case 0xdd:
+			case 0xfd:
+			{
+				opcode = (opcode << 8) | read(addr + 1);
+				offset++;
+
+				// Handle IX and IY bit instructions, the opcode comes after
+				// the displacement byte:
+				// 0xddcb <displacement byte> <opcode>
+				// oxfdcb <displacement byte> <opcode>
+				// Make sure the operand is not in the returned opcode
+				switch(opcode)
+				{
+				case 0xddcb:
+				case 0xfdcb:
+					opcode = (opcode << 8) | read(addr + 3);
+				}
+			}
+			}
+
+			if (operand_offset != nullptr)
+			{
+				*operand_offset = offset;
+			}
+
+			return opcode;
+		}
+
 private:
 	std::vector<uint8_t> mem;
 	size_t ram_start;

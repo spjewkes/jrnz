@@ -53,7 +53,13 @@ bool Z80::clock(bool no_cycles)
 		}
 		else
 		{
-			const auto opcode = get_opcode(pc.get());
+			curr_opcode_pc = pc.get();
+
+			size_t operand_offset = 0;
+			const auto opcode = mem.get_opcode(curr_opcode_pc, &operand_offset);
+			assert(operand_offset != 0);
+			curr_operand_pc = curr_opcode_pc + operand_offset;
+			
 			std::cout << dump_instr_at_pc(pc.get()).str() << std::endl;
 			const Instruction &inst = decode_opcode(opcode);
 			if (inst.inst != InstType::INV)
@@ -83,7 +89,8 @@ std::stringstream Z80::dump_instr_at_pc(uint16_t pc)
 {
 	std::stringstream str;
 
-	const auto opcode = get_opcode(pc);
+	// const auto opcode = get_opcode(pc);
+	const auto opcode = mem.get_opcode(pc);
 	const Instruction &inst = decode_opcode(opcode);
 	if (inst.inst != InstType::INV)
 	{
@@ -133,39 +140,4 @@ void Z80::reset()
 	sp.set(0xffff);
 
 	top_of_stack = 0xffff;
-}
-
-uint32_t Z80::get_opcode(uint16_t pc)
-{
-	curr_opcode_pc = pc;
-	curr_operand_pc = curr_opcode_pc + 1;
-	uint32_t opcode = mem.read(curr_opcode_pc);
-
-	// Handled extended instructions
-	switch(opcode)
-	{
-	case 0xed:
-	case 0xcb:
-	case 0xdd:
-	case 0xfd:
-	{
-		opcode = (opcode << 8) | mem.read(curr_operand_pc);
-		curr_operand_pc++;
-
-		// Handle IX and IY bit instructions, the opcode comes after
-		// the displacement byte:
-		// 0xddcb <displacement byte> <opcode>
-		// oxfdcb <displacement byte> <opcode>
-		// Make sure the operand is not in the returned opcode
-		switch(opcode)
-		{
-		case 0xddcb:
-		case 0xfdcb:
-			opcode = (opcode << 8) | mem.read(curr_operand_pc+1);
-			// Don't increment the operand any further
-		}
-	}
-	}
-
-	return opcode;
 }
