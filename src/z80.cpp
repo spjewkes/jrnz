@@ -60,7 +60,6 @@ bool Z80::clock(bool no_cycles)
 			assert(operand_offset != 0);
 			curr_operand_pc = curr_opcode_pc + operand_offset;
 			
-			std::cout << dump_instr_at_pc(pc.get()).str() << std::endl;
 			const Instruction &inst = decode_opcode(opcode);
 			if (inst.inst != InstType::INV)
 			{
@@ -83,30 +82,6 @@ bool Z80::clock(bool no_cycles)
 	}
 
 	return found;
-}
-
-std::stringstream Z80::dump_instr_at_pc(uint16_t pc)
-{
-	std::stringstream str;
-
-	// const auto opcode = get_opcode(pc);
-	const auto opcode = mem.get_opcode(pc);
-	const Instruction &inst = decode_opcode(opcode);
-	if (inst.inst != InstType::INV)
-	{
-		str << std::left << std::setw(20) << mem.dump(curr_opcode_pc, inst.size);
-		str << std::setw(20) << inst.name;
-
-		if (has_rom_label(pc))
-		{
-			str << "Routine: " << decode_rom_label(pc);
-		}
-	}
-	else
-	{
-		str << mem.dump(curr_opcode_pc, 4) << " UNKNOWN INSTRUCTION: 0x" << std::hex << opcode << std::dec;
-	}
-	return str;
 }
 
 void Z80::dump()

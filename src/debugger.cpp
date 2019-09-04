@@ -3,6 +3,7 @@
  */
 
 #include "debugger.hpp"
+#include "decoder.hpp"
 
 void Debugger::set_break(bool enable, uint16_t _break_pc)
 {
@@ -34,7 +35,7 @@ bool Debugger::clock()
 
 		while (paused)
 		{
-			std::cout << "Executing: " << _z80.dump_instr_at_pc(_z80.pc.get()).str() << std::endl;
+			std::cout << "Executing: " << dump_instr_at_addr(_z80.pc.get()).str() << std::endl;
 			std::cin >> ch;
 
 			switch (ch)
@@ -67,7 +68,7 @@ bool Debugger::clock()
 				std::cin >> str_offset >> str_size;
 				size_t offset = strtoul(str_offset.c_str(), NULL, 0);
 				size_t size = strtoul(str_size.c_str(), NULL, 0);
-				std::cout << _z80.mem.dump(offset, size) << std::endl;
+				std::cout << _memory.dump(offset, size) << std::endl;
 				break;
 			}
 			case 'n':
@@ -97,6 +98,15 @@ bool Debugger::clock()
 			}
 		}
 	}
+	else
+	{
+		// Only dump current instruction we're not clocking the current instruction
+		if (!_z80.cycles_left)
+		{
+			std::cout << dump_instr_at_addr(_z80.pc.get()).str() << std::endl;
+		}
+	}
+
 
 	if (break_step)
 	{
@@ -104,4 +114,28 @@ bool Debugger::clock()
 	}
 
 	return running;
+}
+
+std::stringstream Debugger::dump_instr_at_addr(uint16_t addr)
+{
+	std::stringstream str;
+
+	const auto opcode = _memory.get_opcode(addr);
+	const Instruction &inst = decode_opcode(opcode);
+	if (inst.inst != InstType::INV)
+	{
+		str << std::left << std::setw(20) << _memory.dump(addr, inst.size);
+		str << std::setw(20) << inst.name;
+
+		if (has_rom_label(addr))
+		{
+			str << "Routine: " << decode_rom_label(addr);
+		}
+	}
+	else
+	{
+		str << _memory.dump(addr, 4) << " UNKNOWN INSTRUCTION: 0x" << std::hex << opcode << std::dec;
+	}
+
+	return str;
 }

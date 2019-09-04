@@ -25,6 +25,8 @@ public:
 
 	bool clock();
 
+	std::stringstream dump_instr_at_addr(uint16_t addr);
+
 public:
 	Z80 &_z80;
 	Memory &_memory;

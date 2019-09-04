@@ -44,9 +44,10 @@ public:
 	Register16 ir;
 
 	bool clock(bool no_cycles = false);
-	std::stringstream dump_instr_at_pc(uint16_t pc);
+
 	void dump();
 	void dump_sp();
+
 	void reset();
 };
 
