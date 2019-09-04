@@ -94,4 +94,7 @@ void Z80::reset()
 	sp.set(0xffff);
 
 	top_of_stack = 0xffff;
+
+	int_enabled = false;
+	int_mode = 0;
 }
