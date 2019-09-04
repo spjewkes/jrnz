@@ -77,7 +77,8 @@ bool Z80::clock(bool no_cycles)
 
 	if (no_cycles)
 	{
-		// Ignore instruction cycle count (needed by debugger)
+		// Ignore instruction cycle count. This is typically used by the debugger to
+		// allow it to single step through the code
 		cycles_left = 0;
 	}
 
