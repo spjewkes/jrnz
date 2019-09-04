@@ -68,7 +68,7 @@ bool Debugger::clock()
 				std::cin >> str_offset >> str_size;
 				size_t offset = strtoul(str_offset.c_str(), NULL, 0);
 				size_t size = strtoul(str_size.c_str(), NULL, 0);
-				std::cout << _memory.dump(offset, size) << std::endl;
+				std::cout << _bus.dump_mem_at(offset, size) << std::endl;
 				break;
 			}
 			case 'n':
@@ -120,11 +120,11 @@ std::stringstream Debugger::dump_instr_at_addr(uint16_t addr)
 {
 	std::stringstream str;
 
-	const auto opcode = _memory.get_opcode(addr);
+	const auto opcode = _bus.read_opcode_from_mem(addr);
 	const Instruction &inst = decode_opcode(opcode);
 	if (inst.inst != InstType::INV)
 	{
-		str << std::left << std::setw(20) << _memory.dump(addr, inst.size);
+		str << std::left << std::setw(20) << _bus.dump_mem_at(addr, inst.size);
 		str << std::setw(20) << inst.name;
 
 		if (has_rom_label(addr))
@@ -134,7 +134,7 @@ std::stringstream Debugger::dump_instr_at_addr(uint16_t addr)
 	}
 	else
 	{
-		str << _memory.dump(addr, 4) << " UNKNOWN INSTRUCTION: 0x" << std::hex << opcode << std::dec;
+		str << _bus.dump_mem_at(addr, 4) << " UNKNOWN INSTRUCTION: 0x" << std::hex << opcode << std::dec;
 	}
 
 	return str;
@@ -157,6 +157,6 @@ void Debugger::dump_sp()
 {
 	assert(_z80.sp.get() <= _z80.top_of_stack);
 	std::cout << "Dumping stack at SP: " << _z80.sp << std::endl;
-	std::cout << _memory.dump(_z80.sp.get(), _z80.top_of_stack - _z80.sp.get()) << std::endl;
+	std::cout << _bus.dump_mem_at(_z80.sp.get(), _z80.top_of_stack - _z80.sp.get()) << std::endl;
 	std::cout << "==== TOP OF THE STACK ====" << std::endl;
 }

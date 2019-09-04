@@ -68,21 +68,21 @@ StorageElement StorageElement::create_element(Z80 &state, Operand operand)
 	case Operand::L:        return state.hl.element_lo();
 	case Operand::N:
 	{
-		uint8_t byte = state.mem.read(state.curr_operand_pc);
+		uint8_t byte = state.bus.read_data(state.curr_operand_pc);
 		state.curr_operand_pc += 1;
 		return StorageElement(byte);
 	}
 	case Operand::NN:
 	{
-		uint8_t lo = state.mem.read(state.curr_operand_pc);
-		uint8_t hi = state.mem.read(state.curr_operand_pc+1);
+		uint8_t lo = state.bus.read_data(state.curr_operand_pc);
+		uint8_t hi = state.bus.read_data(state.curr_operand_pc+1);
 		state.curr_operand_pc += 2;
 		return StorageElement(lo, hi);
 	}
 	case Operand::PC:       return state.pc.element();
 	case Operand::PORT:
 	{
-		uint8_t byte = state.mem.read(state.curr_operand_pc);
+		uint8_t byte = state.bus.read_data(state.curr_operand_pc);
 		state.curr_operand_pc += 1;
 		return state.ports.element(byte);
 	}
@@ -90,34 +90,34 @@ StorageElement StorageElement::create_element(Z80 &state, Operand operand)
 	case Operand::R:        return state.ir.element_lo();
 	case Operand::IX:       return state.ix.element();
 	case Operand::IY:       return state.iy.element();
-	case Operand::indBC:    return StorageElement(&state.mem[state.bc.get()],1);
-	case Operand::indDE:    return StorageElement(&state.mem[state.de.get()],1);
-	case Operand::indHL:    return StorageElement(&state.mem[state.hl.get()],1);
+	case Operand::indBC:    return StorageElement(&state.bus[state.bc.get()],1);
+	case Operand::indDE:    return StorageElement(&state.bus[state.de.get()],1);
+	case Operand::indHL:    return StorageElement(&state.bus[state.hl.get()],1);
 	case Operand::indN:
 	{
-		size_t bytes = state.mem.read_addr(state.curr_operand_pc);
+		size_t bytes = state.bus.read_addr_from_mem(state.curr_operand_pc);
 		state.curr_operand_pc += 1;
-		return state.mem.element_at(bytes, 1);
+		return state.bus.read_element_from_mem(bytes, 1);
 	}
 	case Operand::indNN:
 	{
-		size_t bytes = state.mem.read_addr(state.curr_operand_pc);
+		size_t bytes = state.bus.read_addr_from_mem(state.curr_operand_pc);
 		state.curr_operand_pc += 2;
-		return state.mem.element_at(bytes, 2);
+		return state.bus.read_element_from_mem(bytes, 2);
 	}
 	case Operand::indIXN:
 	{
-		uint8_t *ptr = &state.mem[state.ix.get()] + state.mem.read(state.curr_operand_pc);
+		uint8_t *ptr = &state.bus[state.ix.get()] + state.bus.read_data(state.curr_operand_pc);
 		state.curr_operand_pc += 1;
 		return StorageElement(ptr, 1);
 	}
 	case Operand::indIYN:
 	{
-		uint8_t *ptr = &state.mem[state.iy.get()] + state.mem.read(state.curr_operand_pc);
+		uint8_t *ptr = &state.bus[state.iy.get()] + state.bus.read_data(state.curr_operand_pc);
 		state.curr_operand_pc += 1;
 		return StorageElement(ptr, 1);
 	}
-	case Operand::indSP:    return StorageElement(&state.mem[state.sp.get()],2);
+	case Operand::indSP:    return StorageElement(&state.bus[state.sp.get()],2);
 	case Operand::ZERO:     return StorageElement(0x00);
 	case Operand::ONE:      return StorageElement(0x01);
 	case Operand::TWO:      return StorageElement(0x02);
@@ -217,17 +217,17 @@ void StorageElement::reset_bit(StorageElement &rhs)
 	from_u32(tmp);
 }
 
-size_t StorageElement::push(Bus &mem, size_t addr)
+size_t StorageElement::push(Bus &bus, size_t addr)
 {
-	mem.write(addr-1, ptr[WORD_HI_BYTE_IDX]);
-	mem.write(addr-2, ptr[WORD_LO_BYTE_IDX]);
+	bus.write_data(addr-1, ptr[WORD_HI_BYTE_IDX]);
+	bus.write_data(addr-2, ptr[WORD_LO_BYTE_IDX]);
 	return addr-2;
 }
 
-size_t StorageElement::pop(Bus &mem, size_t addr)
+size_t StorageElement::pop(Bus &bus, size_t addr)
 {
-	ptr[WORD_LO_BYTE_IDX] = mem.read(addr);
-	ptr[WORD_HI_BYTE_IDX] = mem.read(addr+1);
+	ptr[WORD_LO_BYTE_IDX] = bus.read_data(addr);
+	ptr[WORD_HI_BYTE_IDX] = bus.read_data(addr+1);
 	return addr+2;
 }
 

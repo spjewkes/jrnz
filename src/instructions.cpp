@@ -273,7 +273,7 @@ size_t Instruction::do_call(Z80 &state, StorageElement &dst_elem, StorageElement
 
 	if (is_cond_set(cond, state))
 	{
-		size_t new_sp = dst_elem.push(state.mem, state.sp.get());
+		size_t new_sp = dst_elem.push(state.bus, state.sp.get());
 		state.sp.set(new_sp);
 		dst_elem = src_elem;
 	}
@@ -289,7 +289,7 @@ size_t Instruction::do_ret(Z80 &state, StorageElement &dst_elem, StorageElement 
 
 	if (is_cond_set(cond, state))
 	{
-		size_t new_sp = dst_elem.pop(state.mem, state.sp.get());
+		size_t new_sp = dst_elem.pop(state.bus, state.sp.get());
 		state.sp.set(new_sp);
 	}
 
@@ -424,7 +424,7 @@ size_t Instruction::do_push(Z80 &state, StorageElement &dst_elem, StorageElement
 
 	assert(Operand::UNUSED == dst);
 
-	size_t new_sp = src_elem.push(state.mem, state.sp.get());
+	size_t new_sp = src_elem.push(state.bus, state.sp.get());
 	state.sp.set(new_sp);
 
 	return cycles;
@@ -436,7 +436,7 @@ size_t Instruction::do_pop(Z80 &state, StorageElement &dst_elem, StorageElement 
 
 	assert(Operand::UNUSED == src);
 
-	size_t new_sp = dst_elem.pop(state.mem, state.sp.get());
+	size_t new_sp = dst_elem.pop(state.bus, state.sp.get());
 	state.sp.set(new_sp);
 
 	return cycles;
@@ -502,7 +502,7 @@ size_t Instruction::do_rst(Z80 &state, StorageElement &dst_elem, StorageElement 
 
 	assert(Operand::PC == dst);
 
-	size_t new_sp = dst_elem.push(state.mem, state.sp.get());
+	size_t new_sp = dst_elem.push(state.bus, state.sp.get());
 	state.sp.set(new_sp);
 	dst_elem = src_elem;
 

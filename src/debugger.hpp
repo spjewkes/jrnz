@@ -16,7 +16,7 @@
 class Debugger
 {
 public:
-	Debugger(Z80 &_z80, Bus &_memory) : _z80(_z80), _memory(_memory) {}
+	Debugger(Z80 &_z80, Bus &_bus) : _z80(_z80), _bus(_bus) {}
 	virtual ~Debugger() {}
 
 	void set_break(bool enable, uint16_t _break_pc = 0x0000);
@@ -31,7 +31,7 @@ public:
 
 public:
 	Z80 &_z80;
-	Bus &_memory;
+	Bus &_bus;
 
 	size_t break_step = { 0ull };
 	bool break_enabled = { false };

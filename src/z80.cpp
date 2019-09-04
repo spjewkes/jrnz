@@ -5,7 +5,7 @@
 #include "z80.hpp"
 #include "decoder.hpp"
 
-Z80::Z80(Bus &memory) : mem(memory)
+Z80::Z80(Bus &_bus) : bus(_bus)
 {
 	reset();
 }
@@ -56,7 +56,7 @@ bool Z80::clock(bool no_cycles)
 			curr_opcode_pc = pc.get();
 
 			uint16_t operand_offset = 0;
-			const auto opcode = mem.get_opcode(curr_opcode_pc, &operand_offset);
+			const auto opcode = bus.read_opcode_from_mem(curr_opcode_pc, &operand_offset);
 			assert(operand_offset != 0);
 			curr_operand_pc = curr_opcode_pc + operand_offset;
 			

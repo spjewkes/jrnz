@@ -39,8 +39,8 @@ public:
 		}
 	uint8_t &operator[](uint16_t addr) { return mem[addr]; }
 
-	uint8_t read(uint16_t addr) const { return mem[addr]; }
-	void write(uint16_t addr, uint8_t v)
+	uint8_t read_data(uint16_t addr) const { return mem[addr]; }
+	void write_data(uint16_t addr, uint8_t v)
 		{
 			if(addr >= ram_start)
 			{
@@ -48,20 +48,21 @@ public:
 			}
 		}
 
-	StorageElement element_at(uint16_t addr, size_t count) { return StorageElement(&mem[addr], count, (addr < ram_start)); }
-	uint16_t read_addr(uint16_t addr) const
+	uint16_t read_addr_from_mem(uint16_t addr) const
 		{
 			uint16_t ret_addr = mem[addr];
 			ret_addr |= mem[addr+1] << 8;
 			return ret_addr;
 		}
-	void write_addr(uint16_t addr, uint16_t addr_to_write)
+	void write_addr_to_mem(uint16_t addr, uint16_t addr_to_write)
 		{
 			mem[addr] = addr_to_write & 0xff;
 			mem[addr+1] = (addr_to_write >> 8) & 0xff;
 		}
 
-	std::string dump(uint16_t addr, size_t size, bool add_eol=false) const
+	StorageElement read_element_from_mem(uint16_t addr, size_t count) { return StorageElement(&mem[addr], count, (addr < ram_start)); }
+
+	std::string dump_mem_at(uint16_t addr, size_t size, bool add_eol=false) const
 		{
 			std::ostringstream output;
 			const auto end = addr + size;
@@ -90,10 +91,10 @@ public:
 			return output.str();
 		}
 
-	uint32_t get_opcode(uint16_t addr, uint16_t* operand_offset = nullptr)
+	uint32_t read_opcode_from_mem(uint16_t addr, uint16_t* operand_offset = nullptr)
 		{
 			uint16_t offset = 1;
-			uint32_t opcode = read(addr);
+			uint32_t opcode = mem[addr];
 
 			// Handled extended instructions
 			switch(opcode)
@@ -103,7 +104,7 @@ public:
 			case 0xdd:
 			case 0xfd:
 			{
-				opcode = (opcode << 8) | read(addr + 1);
+				opcode = (opcode << 8) | mem[addr + 1];
 				offset++;
 
 				// Handle IX and IY bit instructions, the opcode comes after
@@ -115,7 +116,7 @@ public:
 				{
 				case 0xddcb:
 				case 0xfdcb:
-					opcode = (opcode << 8) | read(addr + 3);
+					opcode = (opcode << 8) | mem[addr + 3];
 				}
 			}
 			}
