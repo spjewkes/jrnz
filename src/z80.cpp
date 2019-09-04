@@ -55,7 +55,7 @@ bool Z80::clock(bool no_cycles)
 		{
 			curr_opcode_pc = pc.get();
 
-			size_t operand_offset = 0;
+			uint16_t operand_offset = 0;
 			const auto opcode = mem.get_opcode(curr_opcode_pc, &operand_offset);
 			assert(operand_offset != 0);
 			curr_operand_pc = curr_opcode_pc + operand_offset;

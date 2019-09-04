@@ -37,37 +37,37 @@ public:
 				std::cerr << "ROM uninitialized" << std::endl;
 			}
 		}
-	uint8_t &operator[](size_t pos) { return mem[pos]; }
+	uint8_t &operator[](uint16_t addr) { return mem[addr]; }
 
-	uint8_t read(size_t pos) const { return mem[pos]; }
-	void write(size_t pos, uint8_t v)
+	uint8_t read(uint16_t addr) const { return mem[addr]; }
+	void write(uint16_t addr, uint8_t v)
 		{
-			if(pos >= ram_start)
+			if(addr >= ram_start)
 			{
-				mem[pos] = v;
+				mem[addr] = v;
 			}
 		}
 
-	StorageElement element(size_t pos, size_t count) { return StorageElement(&mem[pos], count, (pos < ram_start)); }
-	size_t get_addr(size_t pos) const
+	StorageElement element(uint16_t addr, size_t count) { return StorageElement(&mem[addr], count, (addr < ram_start)); }
+	uint16_t get_addr(uint16_t addr) const
 		{
-			size_t addr = mem[pos];
-			addr |= mem[pos+1] << 8;
-			return addr;
+			uint16_t ret_addr = mem[addr];
+			ret_addr |= mem[addr+1] << 8;
+			return ret_addr;
 		}
-	void write_addr(size_t loc, size_t addr)
+	void write_addr(uint16_t loc, uint16_t addr)
 		{
 			mem[loc] = addr & 0xff;
 			mem[loc+1] = (addr >> 8) & 0xff;
 		}
 
-	std::string dump(size_t offset, size_t size, bool add_eol=false) const
+	std::string dump(uint16_t addr, size_t size, bool add_eol=false) const
 		{
 			std::ostringstream output;
-			const auto end = offset + size;
+			const auto end = addr + size;
 			const auto per_line = 16;
 			auto line_count = 0;
-			for(auto pos = offset; pos < end; pos++)
+			for(auto pos = addr; pos < end; pos++)
 			{
 				if(0 == line_count)
 				{
@@ -90,9 +90,9 @@ public:
 			return output.str();
 		}
 
-	uint32_t get_opcode(uint16_t addr, size_t* operand_offset = nullptr)
+	uint32_t get_opcode(uint16_t addr, uint16_t* operand_offset = nullptr)
 		{
-			size_t offset = 1;
+			uint16_t offset = 1;
 			uint32_t opcode = read(addr);
 
 			// Handled extended instructions
@@ -130,7 +130,7 @@ public:
 
 private:
 	std::vector<uint8_t> mem;
-	size_t ram_start;
+	uint16_t ram_start;
 };
 
 #endif // __MEMORY_HPP__
