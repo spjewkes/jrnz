@@ -45,9 +45,6 @@ public:
 
 	bool clock(bool no_cycles = false);
 
-	void dump();
-	void dump_sp();
-
 	void reset();
 };
 

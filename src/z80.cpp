@@ -84,27 +84,6 @@ bool Z80::clock(bool no_cycles)
 	return found;
 }
 
-void Z80::dump()
-{
-	std::cout << "AF: " << af << std::endl;
-	std::cout << "PC: " << pc << std::endl;
-	std::cout << "SP: " << sp << std::endl;
-	std::cout << "BC: " << bc << std::endl;
-	std::cout << "DE: " << de << std::endl;
-	std::cout << "HL: " << hl << std::endl;
-	std::cout << "IX: " << ix << std::endl;
-	std::cout << "IY: " << iy << std::endl;
-	std::cout << "IM: " << static_cast<uint32_t>(int_mode) << " ei: " << (int_enabled ? "on" : "off") << std::endl;
-}
-
-void Z80::dump_sp()
-{
-	assert(sp.get() <= top_of_stack);
-	std::cout << "Dumping stack at SP: " << sp << std::endl;
-	std::cout << mem.dump(sp.get(), top_of_stack - sp.get()) << std::endl;
-	std::cout << "==== TOP OF THE STACK ====" << std::endl;
-}
-
 void Z80::reset()
 {
 	pc.reset();

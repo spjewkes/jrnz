@@ -56,10 +56,10 @@ bool Debugger::clock()
 				paused = false;
 				break;
 			case 'r':
-				_z80.dump();
+				dump();
 				break;
 			case 't':
-				_z80.dump_sp();
+				dump_sp();
 				break;
 			case 'd':
 			{
@@ -138,4 +138,25 @@ std::stringstream Debugger::dump_instr_at_addr(uint16_t addr)
 	}
 
 	return str;
+}
+
+void Debugger::dump()
+{
+	std::cout << "AF: " << _z80.af << std::endl;
+	std::cout << "PC: " << _z80.pc << std::endl;
+	std::cout << "SP: " << _z80.sp << std::endl;
+	std::cout << "BC: " << _z80.bc << std::endl;
+	std::cout << "DE: " << _z80.de << std::endl;
+	std::cout << "HL: " << _z80.hl << std::endl;
+	std::cout << "IX: " << _z80.ix << std::endl;
+	std::cout << "IY: " << _z80.iy << std::endl;
+	std::cout << "IM: " << static_cast<uint32_t>(_z80.int_mode) << " ei: " << (_z80.int_enabled ? "on" : "off") << std::endl;
+}
+
+void Debugger::dump_sp()
+{
+	assert(_z80.sp.get() <= _z80.top_of_stack);
+	std::cout << "Dumping stack at SP: " << _z80.sp << std::endl;
+	std::cout << _memory.dump(_z80.sp.get(), _z80.top_of_stack - _z80.sp.get()) << std::endl;
+	std::cout << "==== TOP OF THE STACK ====" << std::endl;
 }
