@@ -51,6 +51,7 @@
  */
 enum class InstType
 {
+	INV,
 	NOP,
 	LD,
 	AND,

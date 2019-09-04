@@ -6,7 +6,6 @@
 #define __Z80_HPP__
 
 #include <cstdint>
-#include <map>
 #include "memory.hpp"
 #include "ports.hpp"
 #include "register.hpp"
@@ -52,9 +51,6 @@ public:
 
 private:
 	uint32_t get_opcode(uint16_t pc);
-
-	std::map<uint32_t, Instruction> map_inst;
-	std::map<uint32_t, std::string> map_rom;
 };
 
 #endif // __Z80_HPP__
