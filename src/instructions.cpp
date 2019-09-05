@@ -47,6 +47,7 @@ size_t Instruction::execute(Z80 &state)
 	case InstType::RRCA: return do_rrca(state, dst_elem, src_elem); break;
 	case InstType::SCF:  return do_scf(state, dst_elem, src_elem); break;
 	case InstType::CCF:  return do_ccf(state, dst_elem, src_elem); break;
+	case InstType::CPL:  return do_cpl(state, dst_elem, src_elem); break;
 	case InstType::RST:  return do_rst(state, dst_elem, src_elem); break;
 	default:
 		std::cerr << "Unknown instruction type: " << static_cast<uint32_t>(inst) << std::endl;
@@ -504,6 +505,16 @@ size_t Instruction::do_ccf(Z80 &state, StorageElement &dst_elem, StorageElement 
 	state.af.inv_flag(RegisterAF::Flags::Carry);
 	state.af.flag(RegisterAF::Flags::AddSubtract, false);
 	state.af.inv_flag(RegisterAF::Flags::HalfCarry);
+
+	return cycles;
+}
+
+size_t Instruction::do_cpl(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+{
+	UNUSED(dst_elem);
+	UNUSED(src_elem);
+
+	state.af.accum(~state.af.accum());
 
 	return cycles;
 }

@@ -85,6 +85,7 @@ enum class InstType
 	RRCA,
 	SCF,
 	CCF,
+	CPL,
 	RST,
 };
 

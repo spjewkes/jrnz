@@ -107,7 +107,6 @@ bool Debugger::clock()
 		}
 	}
 
-
 	if (break_step)
 	{
 		break_step--;

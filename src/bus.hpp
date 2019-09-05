@@ -37,12 +37,14 @@ public:
 				std::cerr << "ROM uninitialized" << std::endl;
 			}
 		}
+
 	uint8_t &operator[](uint16_t addr)
 		{
 			return mem[addr];
 		}
 
 	uint8_t read_data(uint16_t addr) const { return mem[addr]; }
+
 	void write_data(uint16_t addr, uint8_t v)
 		{
 			if(addr >= ram_start)
@@ -132,6 +134,11 @@ public:
 			return opcode;
 		}
 
+	void clock()
+		{
+			// Not actively used at the moment but may be useful for debugging
+		}
+	
 private:
 	std::vector<uint8_t> mem;
 	uint16_t ram_start;

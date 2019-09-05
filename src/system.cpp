@@ -8,6 +8,7 @@
 
 bool System::clock(bool no_cycles)
 {
+	_bus.clock();
 	_ula.clock();
 	return _z80.clock(no_cycles);
 }
