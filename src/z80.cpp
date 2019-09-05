@@ -24,7 +24,7 @@ bool Z80::clock(bool no_cycles)
 			int_nmi = false;
 			found = true;
 		}
-		else if (interrupt)
+		else if (int_enabled && interrupt)
 		{
 			switch (int_mode)
 			{

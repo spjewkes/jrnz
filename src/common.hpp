@@ -60,6 +60,7 @@ enum class InstType
 	JP,
 	DI,
 	EI,
+	IN,
 	OUT,
 	DEC,
 	CP,

@@ -22,6 +22,7 @@ size_t Instruction::execute(Z80 &state)
 	case InstType::JP:   return do_jp(state, dst_elem, src_elem); break;
 	case InstType::DI:   return do_di(state, dst_elem, src_elem); break;
 	case InstType::EI:   return do_ei(state, dst_elem, src_elem); break;
+	case InstType::IN:   return do_in(state, dst_elem, src_elem); break;
 	case InstType::OUT:  return do_out(state, dst_elem, src_elem); break;
 	case InstType::EX:   return do_ex(state, dst_elem, src_elem); break;
 	case InstType::DEC:  return do_dec(state, dst_elem, src_elem); break;
@@ -194,6 +195,17 @@ size_t Instruction::do_im(Z80 &state, StorageElement &dst_elem, StorageElement &
 {
 	UNUSED(state);
 
+	dst_elem = src_elem;
+
+	return cycles;
+}
+
+size_t Instruction::do_in(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+{
+	UNUSED(state);
+
+	// This is effectively a load instruction with a port being the source
+	assert(Operand::PORT == src);
 	dst_elem = src_elem;
 
 	return cycles;

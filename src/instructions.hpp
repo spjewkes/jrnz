@@ -58,6 +58,7 @@ private:
 	size_t do_di(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
 	size_t do_ei(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
 	size_t do_im(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
+	size_t do_in(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
 	size_t do_out(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
 	size_t do_ex(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
 	size_t do_dec(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);

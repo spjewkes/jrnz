@@ -5,6 +5,8 @@
 #ifndef __ULA_HPP__
 #define __ULA_HPP__
 
+#include <cstdint>
+
 #include "z80.hpp"
 #include "bus.hpp"
 
@@ -22,6 +24,8 @@ public:
 private:
 	Z80 &_z80;
 	Bus &_bus;
+
+	uint64_t counter = { 0 };
 };
 
 #endif // __ULA_HPP__

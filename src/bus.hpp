@@ -37,7 +37,10 @@ public:
 				std::cerr << "ROM uninitialized" << std::endl;
 			}
 		}
-	uint8_t &operator[](uint16_t addr) { return mem[addr]; }
+	uint8_t &operator[](uint16_t addr)
+		{
+			return mem[addr];
+		}
 
 	uint8_t read_data(uint16_t addr) const { return mem[addr]; }
 	void write_data(uint16_t addr, uint8_t v)
@@ -56,8 +59,8 @@ public:
 		}
 	void write_addr_to_mem(uint16_t addr, uint16_t addr_to_write)
 		{
-			mem[addr] = addr_to_write & 0xff;
-			mem[addr+1] = (addr_to_write >> 8) & 0xff;
+			write_data(addr, addr_to_write & 0xff);
+			write_data(addr + 1, (addr_to_write >> 8) & 0xff);
 		}
 
 	StorageElement read_element_from_mem(uint16_t addr, size_t count) { return StorageElement(&mem[addr], count, (addr < ram_start)); }
