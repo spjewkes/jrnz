@@ -76,8 +76,14 @@ private:
 	size_t do_inc(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
 	size_t do_push(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
 	size_t do_pop(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
-	size_t do_rra(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
-	size_t do_rrca(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
+	size_t do_rlc(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
+	size_t do_rl(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
+	size_t do_rrc(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
+	size_t do_rr(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
+	size_t do_sla(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
+	size_t do_sll(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
+	size_t do_sra(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
+	size_t do_srl(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
 	size_t do_scf(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
 	size_t do_ccf(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
 	size_t do_cpl(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);

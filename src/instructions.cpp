@@ -43,8 +43,14 @@ size_t Instruction::execute(Z80 &state)
 	case InstType::RET:  return do_ret(state, dst_elem, src_elem); break;
 	case InstType::PUSH: return do_push(state, dst_elem, src_elem); break;
 	case InstType::POP:  return do_pop(state, dst_elem, src_elem); break;
-	case InstType::RRA:  return do_rra(state, dst_elem, src_elem); break;
-	case InstType::RRCA: return do_rrca(state, dst_elem, src_elem); break;
+	case InstType::RLC:  return do_rlc(state, dst_elem, src_elem); break;
+	case InstType::RL:   return do_rl(state, dst_elem, src_elem); break;
+	case InstType::RRC:  return do_rrc(state, dst_elem, src_elem); break;
+	case InstType::RR:   return do_rr(state, dst_elem, src_elem); break;
+	case InstType::SLA:  return do_sla(state, dst_elem, src_elem); break;
+	case InstType::SLL:   return do_sll(state, dst_elem, src_elem); break;
+	case InstType::SRA:  return do_sra(state, dst_elem, src_elem); break;
+	case InstType::SRL:   return do_srl(state, dst_elem, src_elem); break;
 	case InstType::SCF:  return do_scf(state, dst_elem, src_elem); break;
 	case InstType::CCF:  return do_ccf(state, dst_elem, src_elem); break;
 	case InstType::CPL:  return do_cpl(state, dst_elem, src_elem); break;
@@ -455,7 +461,52 @@ size_t Instruction::do_pop(Z80 &state, StorageElement &dst_elem, StorageElement 
 	return cycles;
 }
 
-size_t Instruction::do_rra(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+size_t Instruction::do_rlc(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+{
+	UNUSED(src_elem);
+
+	assert(Operand::UNUSED == src);
+
+	dst_elem.shift_left(true, true, state.af.flag(RegisterAF::Flags::Carry));
+
+	state.af.flag(RegisterAF::Flags::Carry, dst_elem.is_carry());
+	state.af.flag(RegisterAF::Flags::AddSubtract, false);
+	state.af.flag(RegisterAF::Flags::HalfCarry, false);
+
+	return cycles;
+}
+
+size_t Instruction::do_rl(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+{
+	UNUSED(src_elem);
+
+	assert(Operand::UNUSED == src);
+
+	dst_elem.shift_left(true, false, state.af.flag(RegisterAF::Flags::Carry));
+
+	state.af.flag(RegisterAF::Flags::Carry, dst_elem.is_carry());
+	state.af.flag(RegisterAF::Flags::AddSubtract, false);
+	state.af.flag(RegisterAF::Flags::HalfCarry, false);
+
+	return cycles;
+}
+
+size_t Instruction::do_rrc(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+{
+	UNUSED(src_elem);
+
+	assert(Operand::UNUSED == src);
+
+	dst_elem.shift_right(true, true, state.af.flag(RegisterAF::Flags::Carry));
+
+	state.af.flag(RegisterAF::Flags::Carry, dst_elem.is_carry());
+	state.af.flag(RegisterAF::Flags::AddSubtract, false);
+	state.af.flag(RegisterAF::Flags::HalfCarry, false);
+
+	return cycles;
+}
+
+size_t Instruction::do_rr(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
 	UNUSED(src_elem);
 
@@ -470,13 +521,58 @@ size_t Instruction::do_rra(Z80 &state, StorageElement &dst_elem, StorageElement 
 	return cycles;
 }
 
-size_t Instruction::do_rrca(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+size_t Instruction::do_sla(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
 	UNUSED(src_elem);
 
 	assert(Operand::UNUSED == src);
 
-	dst_elem.shift_right(true, true, state.af.flag(RegisterAF::Flags::Carry));
+	dst_elem.shift_left(false, true, state.af.flag(RegisterAF::Flags::Carry));
+
+	state.af.flag(RegisterAF::Flags::Carry, dst_elem.is_carry());
+	state.af.flag(RegisterAF::Flags::AddSubtract, false);
+	state.af.flag(RegisterAF::Flags::HalfCarry, false);
+
+	return cycles;
+}
+
+size_t Instruction::do_sll(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+{
+	UNUSED(src_elem);
+
+	assert(Operand::UNUSED == src);
+
+	dst_elem.shift_left(false, false, state.af.flag(RegisterAF::Flags::Carry));
+
+	state.af.flag(RegisterAF::Flags::Carry, dst_elem.is_carry());
+	state.af.flag(RegisterAF::Flags::AddSubtract, false);
+	state.af.flag(RegisterAF::Flags::HalfCarry, false);
+
+	return cycles;
+}
+
+size_t Instruction::do_sra(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+{
+	UNUSED(src_elem);
+
+	assert(Operand::UNUSED == src);
+
+	dst_elem.shift_right(false, true, state.af.flag(RegisterAF::Flags::Carry));
+
+	state.af.flag(RegisterAF::Flags::Carry, dst_elem.is_carry());
+	state.af.flag(RegisterAF::Flags::AddSubtract, false);
+	state.af.flag(RegisterAF::Flags::HalfCarry, false);
+
+	return cycles;
+}
+
+size_t Instruction::do_srl(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+{
+	UNUSED(src_elem);
+
+	assert(Operand::UNUSED == src);
+
+	dst_elem.shift_right(false, false, state.af.flag(RegisterAF::Flags::Carry));
 
 	state.af.flag(RegisterAF::Flags::Carry, dst_elem.is_carry());
 	state.af.flag(RegisterAF::Flags::AddSubtract, false);

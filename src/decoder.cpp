@@ -26,7 +26,7 @@ void init_map_inst()
 	map_inst.emplace(0x0c, Instruction{InstType::INC,  "inc c",      1,  4, Operand::C, Operand::ONE});
 	map_inst.emplace(0x0d, Instruction{InstType::DEC,  "dec c",      1,  4, Operand::C, Operand::ONE});
 	map_inst.emplace(0x0e, Instruction{InstType::LD,   "ld c,*",     2,  7, Operand::C, Operand::N});
-	map_inst.emplace(0x0f, Instruction{InstType::RRCA, "rrca",       1,  4, Operand::A});
+	map_inst.emplace(0x0f, Instruction{InstType::RRC,  "rrca",       1,  4, Operand::A});
 
 	map_inst.emplace(0x10, Instruction{InstType::DJNZ, "djnz *",     2, 13, 8, Conditional::NZ, Operand::PC, Operand::N});
 	map_inst.emplace(0x11, Instruction{InstType::LD,   "ld de,**",   3, 10, Operand::DE, Operand::NN});
@@ -43,7 +43,7 @@ void init_map_inst()
 	map_inst.emplace(0x1c, Instruction{InstType::INC,  "inc e",      1,  4, Operand::E, Operand::ONE});
 	map_inst.emplace(0x1d, Instruction{InstType::DEC,  "dec e",      1,  4, Operand::E, Operand::ONE});
 	map_inst.emplace(0x1e, Instruction{InstType::LD,   "ld e,*",     2,  7, Operand::E, Operand::N});
-	map_inst.emplace(0x1f, Instruction{InstType::RRA,  "rra",        1,  4, Operand::A});
+	map_inst.emplace(0x1f, Instruction{InstType::RR,   "rra",        1,  4, Operand::A});
 
 	map_inst.emplace(0x20, Instruction{InstType::JR,   "jr nz,*",    2, 12, 7, Conditional::NZ, Operand::PC, Operand::N});
 	map_inst.emplace(0x21, Instruction{InstType::LD,   "ld hl,**",   3, 10, Operand::HL, Operand::NN});
@@ -285,6 +285,70 @@ void init_map_inst()
 
 
 
+	map_inst.emplace(0xcb00, Instruction{InstType::RLC,  "rlc b",    2,  8, Operand::B});
+	map_inst.emplace(0xcb01, Instruction{InstType::RLC,  "rlc c",    2,  8, Operand::C});
+	map_inst.emplace(0xcb02, Instruction{InstType::RLC,  "rlc d",    2,  8, Operand::D});
+	map_inst.emplace(0xcb03, Instruction{InstType::RLC,  "rlc e",    2,  8, Operand::E});
+	map_inst.emplace(0xcb04, Instruction{InstType::RLC,  "rlc h",    2,  8, Operand::H});
+	map_inst.emplace(0xcb05, Instruction{InstType::RLC,  "rlc l",    2,  8, Operand::L});
+	map_inst.emplace(0xcb06, Instruction{InstType::RLC,  "rlc (hl)", 2, 15, Operand::indHL});
+	map_inst.emplace(0xcb07, Instruction{InstType::RLC,  "rlc a",    2,  8, Operand::A});
+	map_inst.emplace(0xcb08, Instruction{InstType::RRC,  "rrc b",    2,  8, Operand::B});
+	map_inst.emplace(0xcb09, Instruction{InstType::RRC,  "rrc c",    2,  8, Operand::C});
+	map_inst.emplace(0xcb0a, Instruction{InstType::RRC,  "rrc d",    2,  8, Operand::D});
+	map_inst.emplace(0xcb0b, Instruction{InstType::RRC,  "rrc e",    2,  8, Operand::E});
+	map_inst.emplace(0xcb0c, Instruction{InstType::RRC,  "rrc h",    2,  8, Operand::H});
+	map_inst.emplace(0xcb0d, Instruction{InstType::RRC,  "rrc l",    2,  8, Operand::L});
+	map_inst.emplace(0xcb0e, Instruction{InstType::RRC,  "rrc (hl)", 2, 15, Operand::indHL});
+	map_inst.emplace(0xcb0f, Instruction{InstType::RRC,  "rrc a",    2,  8, Operand::A});
+	map_inst.emplace(0xcb10, Instruction{InstType::RL,   "rl b",     2,  8, Operand::B});
+	map_inst.emplace(0xcb11, Instruction{InstType::RL,   "rl c",     2,  8, Operand::C});
+	map_inst.emplace(0xcb12, Instruction{InstType::RL,   "rl d",     2,  8, Operand::D});
+	map_inst.emplace(0xcb13, Instruction{InstType::RL,   "rl e",     2,  8, Operand::E});
+	map_inst.emplace(0xcb14, Instruction{InstType::RL,   "rl h",     2,  8, Operand::H});
+	map_inst.emplace(0xcb15, Instruction{InstType::RL,   "rl l",     2,  8, Operand::L});
+	map_inst.emplace(0xcb16, Instruction{InstType::RL,   "rl (hl)",  2, 15, Operand::indHL});
+	map_inst.emplace(0xcb17, Instruction{InstType::RL,   "rl a",     2,  8, Operand::A});
+	map_inst.emplace(0xcb18, Instruction{InstType::RR,   "rr b",     2,  8, Operand::B});
+	map_inst.emplace(0xcb19, Instruction{InstType::RR,   "rr c",     2,  8, Operand::C});
+	map_inst.emplace(0xcb1a, Instruction{InstType::RR,   "rr d",     2,  8, Operand::D});
+	map_inst.emplace(0xcb1b, Instruction{InstType::RR,   "rr e",     2,  8, Operand::E});
+	map_inst.emplace(0xcb1c, Instruction{InstType::RR,   "rr h",     2,  8, Operand::H});
+	map_inst.emplace(0xcb1d, Instruction{InstType::RR,   "rr l",     2,  8, Operand::L});
+	map_inst.emplace(0xcb1e, Instruction{InstType::RR,   "rr (hl)",  2, 15, Operand::indHL});
+	map_inst.emplace(0xcb1f, Instruction{InstType::RR,   "rr a",     2,  8, Operand::A});
+	map_inst.emplace(0xcb20, Instruction{InstType::SLA,  "sla b",     2,  8, Operand::B});
+	map_inst.emplace(0xcb21, Instruction{InstType::SLA,  "sla c",     2,  8, Operand::C});
+	map_inst.emplace(0xcb22, Instruction{InstType::SLA,  "sla d",     2,  8, Operand::D});
+	map_inst.emplace(0xcb23, Instruction{InstType::SLA,  "sla e",     2,  8, Operand::E});
+	map_inst.emplace(0xcb24, Instruction{InstType::SLA,  "sla h",     2,  8, Operand::H});
+	map_inst.emplace(0xcb25, Instruction{InstType::SLA,  "sla l",     2,  8, Operand::L});
+	map_inst.emplace(0xcb26, Instruction{InstType::SLA,  "sla (hl)",  2, 15, Operand::indHL});
+	map_inst.emplace(0xcb27, Instruction{InstType::SLA,  "sla a",     2,  8, Operand::A});
+	map_inst.emplace(0xcb28, Instruction{InstType::SRA,  "sra b",     2,  8, Operand::B});
+	map_inst.emplace(0xcb29, Instruction{InstType::SRA,  "sra c",     2,  8, Operand::C});
+	map_inst.emplace(0xcb2a, Instruction{InstType::SRA,  "sra d",     2,  8, Operand::D});
+	map_inst.emplace(0xcb2b, Instruction{InstType::SRA,  "sra e",     2,  8, Operand::E});
+	map_inst.emplace(0xcb2c, Instruction{InstType::SRA,  "sra h",     2,  8, Operand::H});
+	map_inst.emplace(0xcb2d, Instruction{InstType::SRA,  "sra l",     2,  8, Operand::L});
+	map_inst.emplace(0xcb2e, Instruction{InstType::SRA,  "sra (hl)",  2, 15, Operand::indHL});
+	map_inst.emplace(0xcb2f, Instruction{InstType::SRA,  "sra a",     2,  8, Operand::A});
+	map_inst.emplace(0xcb30, Instruction{InstType::SLL,  "sll b",     2,  8, Operand::B});
+	map_inst.emplace(0xcb31, Instruction{InstType::SLL,  "sll c",     2,  8, Operand::C});
+	map_inst.emplace(0xcb32, Instruction{InstType::SLL,  "sll d",     2,  8, Operand::D});
+	map_inst.emplace(0xcb33, Instruction{InstType::SLL,  "sll e",     2,  8, Operand::E});
+	map_inst.emplace(0xcb34, Instruction{InstType::SLL,  "sll h",     2,  8, Operand::H});
+	map_inst.emplace(0xcb35, Instruction{InstType::SLL,  "sll l",     2,  8, Operand::L});
+	map_inst.emplace(0xcb36, Instruction{InstType::SLL,  "sll (hl)",  2, 15, Operand::indHL});
+	map_inst.emplace(0xcb37, Instruction{InstType::SLL,  "sll a",     2,  8, Operand::A});
+	map_inst.emplace(0xcb38, Instruction{InstType::SRL,  "srl b",     2,  8, Operand::B});
+	map_inst.emplace(0xcb39, Instruction{InstType::SRL,  "srl c",     2,  8, Operand::C});
+	map_inst.emplace(0xcb3a, Instruction{InstType::SRL,  "srl d",     2,  8, Operand::D});
+	map_inst.emplace(0xcb3b, Instruction{InstType::SRL,  "srl e",     2,  8, Operand::E});
+	map_inst.emplace(0xcb3c, Instruction{InstType::SRL,  "srl h",     2,  8, Operand::H});
+	map_inst.emplace(0xcb3d, Instruction{InstType::SRL,  "srl l",     2,  8, Operand::L});
+	map_inst.emplace(0xcb3e, Instruction{InstType::SRL,  "srl (hl)",  2, 15, Operand::indHL});
+	map_inst.emplace(0xcb3f, Instruction{InstType::SRL,  "srl a",     2,  8, Operand::A});
 	map_inst.emplace(0xcb40, Instruction{InstType::BIT,  "bit 0,b",    2,  8, Operand::B, Operand::ZERO});
 	map_inst.emplace(0xcb41, Instruction{InstType::BIT,  "bit 0,c",    2,  8, Operand::C, Operand::ZERO});
 	map_inst.emplace(0xcb42, Instruction{InstType::BIT,  "bit 0,d",    2,  8, Operand::D, Operand::ZERO});
