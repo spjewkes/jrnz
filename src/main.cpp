@@ -6,8 +6,7 @@
 #include "bus.hpp"
 #include "system.hpp"
 #include "debugger.hpp"
-
-static uint16_t break_pc = 0xffff;
+#include "options.hpp"
 
 /**
  * @brief Main entry-point into application.
@@ -16,26 +15,25 @@ int main(int argc, char **argv)
 {
 	std::cout << "Running jrnz..." << std::endl;
 
-	if (argc < 2)
-	{
-		std::cerr << "Usage: " << argv[0] << " <binary image> [<break pc>]" << std::endl;
-		return EXIT_FAILURE;
-	}
+	Options options(argc, argv);
 
-	std::string rom_file(argv[1]);
-	Bus mem(65536, rom_file);
+	Bus mem(65536);
 	Z80 state(mem);
 	ULA ula(state, mem);
-
-	// Set up debugging class
 	Debugger debug(state, mem);
-	if (argc >= 3)
-	{
-		break_pc = strtoul(argv[2], NULL, 0);
-		debug.set_break(true, break_pc);
-	}
 
 	System sys(state, ula, mem);
+
+	// Use options to set up system
+	if (options.rom_on)
+	{
+		mem.load_rom(options.rom_file);
+	}
+	
+	if (options.break_on)
+	{
+		debug.set_break(true, options.break_addr);
+	}
 
 	bool running = true;
 

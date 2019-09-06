@@ -21,7 +21,10 @@
 class Bus
 {
 public:
-	Bus(size_t size, std::string &rom_file) : mem(size)
+	Bus(size_t size) : mem(size) {}
+	virtual ~Bus() {}
+
+	void load_rom(std::string &rom_file)
 		{
 			if(std::ifstream rom{rom_file, std::ios::binary | std::ios::ate})
 			{
