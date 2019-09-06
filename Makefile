@@ -11,6 +11,17 @@ DEPS=$(patsubst %,$(SRC_DIR)/%,$(_DEPS))
 _OBJ=main.o instructions.o storage_element.o register.o z80.o system.o debugger.o decoder.o ula.o
 OBJ=$(patsubst %,$(OBJ_DIR)/%,$(_OBJ))
 
+OS := $(shell uname)
+
+ifeq ($(OS),Darwin)
+# Mac OS
+	CPPFLAGS+=-F/Library/Frameworks
+	LIBS+=-framework SDL2
+else
+# Assume Linux for now
+	LIBS+=-lSDL2
+endif
+
 default: debug
 
 debug: CPPFLAGS += -g
@@ -26,7 +37,7 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(DEPS)
 	$(CPP) $(CPPFLAGS) -c -o $@ $<
 
 $(EXE): $(OBJ)
-	$(CPP) $(CPPFLAGS) $^ -o $@
+	$(CPP) $(CPPFLAGS) $(LIBS) $^ -o $@
 
 setup_build:
 	@mkdir -p $(OBJ_DIR)
