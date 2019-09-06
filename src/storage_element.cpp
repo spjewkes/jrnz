@@ -80,11 +80,15 @@ StorageElement StorageElement::create_element(Z80 &state, Operand operand)
 		return StorageElement(lo, hi);
 	}
 	case Operand::PC:       return state.pc.element();
-	case Operand::PORT:
+	case Operand::PORTC:
+	{
+		return StorageElement(state.bc.lo(), state.bc.hi());
+	}
+	case Operand::PORTN:
 	{
 		uint8_t byte = state.bus.read_data(state.curr_operand_pc);
 		state.curr_operand_pc += 1;
-		return state.ports.element(byte);
+		return StorageElement(byte, state.af.hi());
 	}
 	case Operand::I:        return state.ir.element_hi();
 	case Operand::R:        return state.ir.element_lo();
@@ -149,6 +153,16 @@ StorageElement &StorageElement::operator=(const StorageElement &rhs)
 		flag_carry = rhs.flag_carry;
 		flag_half_carry = rhs.flag_half_carry;
 		flag_overflow = rhs.flag_overflow;
+	}
+	return *this;
+}
+
+StorageElement &StorageElement::operator=(const uint8_t rhs)
+{
+	assert(count == 1);
+	if (!readonly)
+	{
+		ptr[0] = rhs;
 	}
 	return *this;
 }

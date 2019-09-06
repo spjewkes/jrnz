@@ -7,7 +7,6 @@
 
 #include <cstdint>
 #include "bus.hpp"
-#include "ports.hpp"
 #include "register.hpp"
 #include "instructions.hpp"
 
@@ -39,7 +38,6 @@ public:
 	uint32_t cycles_left = { 0 };
 
 	Bus &bus;
-	Ports ports;
 
 	Register16 ir;
 

@@ -26,6 +26,7 @@ public:
 	static StorageElement create_element(Z80 &state, Operand operand);
 
 	StorageElement &operator=(const StorageElement &rhs);
+	StorageElement &operator=(const uint8_t rhs);
 	StorageElement operator+(const StorageElement &rhs);
 	StorageElement operator-(const StorageElement &rhs);
 	StorageElement &operator^=(const StorageElement &rhs);
@@ -68,7 +69,7 @@ private:
 
 	/**
 	 * Updates carry/overflow flags based on particular operations.
-	 */
+p	 */
 	bool significant_bit(bool ishalf=false) const;
 	void update_carry(const StorageElement &op1, const StorageElement &op2, bool is_half=false);
 	void update_borrow(const StorageElement &op1, const StorageElement &op2, bool is_half=false);

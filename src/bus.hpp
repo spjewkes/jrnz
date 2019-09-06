@@ -21,7 +21,7 @@
 class Bus
 {
 public:
-	Bus(size_t size) : mem(size) {}
+	Bus(size_t size) : mem(size), ports(256) {}
 	virtual ~Bus() {}
 
 	void load_rom(std::string &rom_file)
@@ -44,6 +44,16 @@ public:
 	uint8_t &operator[](uint16_t addr)
 		{
 			return mem[addr];
+		}
+
+	uint8_t read_port(uint16_t addr) const
+		{
+			return ports[addr & 0xff];
+		}
+
+	void write_port(uint16_t addr, uint8_t v)
+		{
+			ports[addr & 0xff] = v;
 		}
 
 	uint8_t read_data(uint16_t addr) const { return mem[addr]; }
@@ -116,6 +126,7 @@ public:
 private:
 	std::vector<uint8_t> mem;
 	uint16_t ram_start;
+	std::vector<uint8_t> ports;
 };
 
 #endif // __BUS_HPP__

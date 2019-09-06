@@ -209,22 +209,34 @@ size_t Instruction::do_im(Z80 &state, StorageElement &dst_elem, StorageElement &
 
 size_t Instruction::do_in(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
-	UNUSED(state);
+	// This is effectively a load instruction with a port being the source but the addres is
+	// a read-only value of the 16-bit port address (the lo-byte is the port number and the
+	// hi-byte will be either A or B)
+	assert(Operand::PORTC == src || Operand::PORTN == src);
+	assert(src_elem.is_16bit());
+	uint32_t port = 0;
+	src_elem.get_value(port);
 
-	// This is effectively a load instruction with a port being the source
-	assert(Operand::PORT == src);
-	dst_elem = src_elem;
+	dst_elem = state.bus.read_port(port);
 
 	return cycles;
 }
 
 size_t Instruction::do_out(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
-	UNUSED(state);
+	// This is effectively a load instruction with a port being the destination but the addres is
+	// a read-only value of the 16-bit port address (the lo-byte is the port number and the
+	// hi-byte will be either A or B)
+	assert(Operand::PORTC == dst || Operand::PORTN == dst);
+	assert(dst_elem.is_16bit());
+	uint32_t port = 0;
+	dst_elem.get_value(port);
 
-	// This is effectively a load instruction with a port being the destination
-	assert(Operand::PORT == dst);
-	dst_elem = src_elem;
+	assert(src_elem.is_8bit());
+	uint32_t src  = 0;
+	src_elem.get_value(src);
+
+	state.bus.write_port(port, src);
 
 	return cycles;
 }
