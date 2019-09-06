@@ -101,7 +101,7 @@ bool Debugger::clock()
 	else
 	{
 		// Only dump current instruction we're not clocking the current instruction
-		if (!_z80.cycles_left)
+		if (debug_out && !_z80.cycles_left)
 		{
 			std::cout << dump_instr_at_addr(_z80.pc.get()).str() << std::endl;
 		}

@@ -30,6 +30,7 @@ int main(int argc, char **argv)
 		mem.load_rom(options.rom_file);
 	}
 	
+	debug.set_dout(options.debug_mode);
 	if (options.break_on)
 	{
 		debug.set_break(true, options.break_addr);

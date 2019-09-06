@@ -19,6 +19,7 @@ public:
 	Debugger(Z80 &_z80, Bus &_bus) : _z80(_z80), _bus(_bus) {}
 	virtual ~Debugger() {}
 
+	void set_dout(bool enable) { debug_out = enable; }
 	void set_break(bool enable, uint16_t _break_pc = 0x0000);
 	bool break_ready();
 	bool is_break_enabled() const { return break_enabled; }
@@ -33,6 +34,7 @@ public:
 	Z80 &_z80;
 	Bus &_bus;
 
+	bool debug_out = { false };
 	size_t break_step = { 0ull };
 	bool break_enabled = { false };
 	bool break_at_pc = { false };
