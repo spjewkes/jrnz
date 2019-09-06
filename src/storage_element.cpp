@@ -237,17 +237,16 @@ void StorageElement::shift_right(bool rotate, bool carry_inst, bool carry)
 
 	uint32_t val = to_u32();
 	uint32_t shifted_bit = (val & 0x1) << 7;
+	flag_carry = (shifted_bit != 0);
 
 	val >>= 1;
 	if (rotate && carry_inst)
 	{
 		val |= shifted_bit;
-		flag_carry = (shifted_bit != 0);
 	}
 	else if (rotate && !carry_inst)
 	{
 		val |= (carry ? 0x80 : 0x00);
-		flag_carry = (shifted_bit != 0);
 	}
 
 	from_u32(val & 0xff);
@@ -259,17 +258,16 @@ void StorageElement::shift_left(bool rotate, bool carry_inst, bool carry)
 
 	uint32_t val = to_u32();
 	uint32_t shifted_bit = (val & 0x80) >> 7;
+	flag_carry = (shifted_bit != 0);
 
 	val <<= 1;
 	if (rotate && carry_inst)
 	{
 		val |= shifted_bit;
-		flag_carry = (shifted_bit != 0);
 	}
 	else if (rotate && !carry_inst)
 	{
 		val |= (carry ? 0x1 : 0x0);
-		flag_carry = (shifted_bit != 0);
 	}
 	
 	from_u32(val & 0xff);
