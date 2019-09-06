@@ -68,7 +68,7 @@ bool Debugger::clock()
 				std::cin >> str_offset >> str_size;
 				size_t offset = strtoul(str_offset.c_str(), NULL, 0);
 				size_t size = strtoul(str_size.c_str(), NULL, 0);
-				std::cout << _bus.dump_mem_at(offset, size) << std::endl;
+				std::cout << dump_mem_at_addr(offset, size).str() << std::endl;
 				break;
 			}
 			case 'n':
@@ -123,7 +123,7 @@ std::stringstream Debugger::dump_instr_at_addr(uint16_t addr)
 	const Instruction &inst = decode_opcode(opcode);
 	if (inst.inst != InstType::INV)
 	{
-		str << std::left << std::setw(20) << _bus.dump_mem_at(addr, inst.size);
+		str << std::left << std::setw(20) << dump_mem_at_addr(addr, inst.size).str();
 		str << std::setw(20) << inst.name;
 
 		if (has_rom_label(addr))
@@ -133,7 +133,33 @@ std::stringstream Debugger::dump_instr_at_addr(uint16_t addr)
 	}
 	else
 	{
-		str << _bus.dump_mem_at(addr, 4) << " UNKNOWN INSTRUCTION: 0x" << std::hex << opcode << std::dec;
+		str << dump_mem_at_addr(addr, 4).str() << " UNKNOWN INSTRUCTION: 0x" << std::hex << opcode << std::dec;
+	}
+
+	return str;
+}
+
+std::stringstream Debugger::dump_mem_at_addr(uint16_t addr, size_t size, size_t per_line)
+{
+	std::stringstream str;
+
+	uint16_t curr_addr = addr;
+
+	for (size_t pos = 0; pos < size; pos++)
+	{
+		if ((pos % per_line) == 0)
+		{
+			str << std::hex << "0x" << std::setw(4) << std::setfill('0') << curr_addr << ":";
+		}
+
+		str << std::hex << " " << std::setw(2) << std::setfill('0') << static_cast<unsigned int>(_bus.read_data(curr_addr));
+
+		if ((pos % per_line) == (per_line - 1))
+		{
+			str << std::endl;
+		}
+
+		curr_addr++;
 	}
 
 	return str;
@@ -156,6 +182,6 @@ void Debugger::dump_sp()
 {
 	assert(_z80.sp.get() <= _z80.top_of_stack);
 	std::cout << "Dumping stack at SP: " << _z80.sp << std::endl;
-	std::cout << _bus.dump_mem_at(_z80.sp.get(), _z80.top_of_stack - _z80.sp.get()) << std::endl;
+	std::cout << dump_mem_at_addr(_z80.sp.get(), _z80.top_of_stack - _z80.sp.get()).str() << std::endl;
 	std::cout << "==== TOP OF THE STACK ====" << std::endl;
 }

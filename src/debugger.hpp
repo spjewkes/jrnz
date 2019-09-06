@@ -27,6 +27,8 @@ public:
 	bool clock();
 
 	std::stringstream dump_instr_at_addr(uint16_t addr);
+	std::stringstream dump_mem_at_addr(uint16_t addr, size_t size, size_t per_line = 16);
+
 	void dump();
 	void dump_sp();
 

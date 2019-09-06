@@ -70,35 +70,6 @@ public:
 
 	StorageElement read_element_from_mem(uint16_t addr, size_t count) { return StorageElement(&mem[addr], count, (addr < ram_start)); }
 
-	std::string dump_mem_at(uint16_t addr, size_t size, bool add_eol=false) const
-		{
-			std::ostringstream output;
-			const auto end = addr + size;
-			const auto per_line = 16;
-			auto line_count = 0;
-			for(auto pos = addr; pos < end; pos++)
-			{
-				if(0 == line_count)
-				{
-					output << std::hex << "0x" << std::setw(4) << std::setfill('0') << pos << ":";
-				}
-
-				output << std::hex << " " << std::setw(2) << std::setfill('0') << static_cast<unsigned int>(mem[pos]);
-				line_count++;
-
-				if(per_line == line_count)
-				{
-					line_count = 0;
-					output << std::endl;
-				}
-			}
-			if(add_eol && line_count != 0)
-			{
-				output << std::endl;
-			}
-			return output.str();
-		}
-
 	uint32_t read_opcode_from_mem(uint16_t addr, uint16_t* operand_offset = nullptr)
 		{
 			uint16_t offset = 1;
