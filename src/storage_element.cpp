@@ -9,6 +9,8 @@
 
 StorageElement::StorageElement(uint8_t *_ptr, size_t _count, bool _readonly) : ptr(_ptr), count(_count), readonly(_readonly)
 {
+	// A count of zero indicates an unused storage element
+	assert(_count == 0 || _count == 1 || _count == 2);
 	if (readonly)
 	{
 		read_only.resize(count);

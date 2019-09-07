@@ -69,14 +69,14 @@ private:
 
 	/**
 	 * Updates carry/overflow flags based on particular operations.
-p	 */
+	 */
 	bool significant_bit(bool ishalf=false) const;
 	void update_carry(const StorageElement &op1, const StorageElement &op2, bool is_half=false);
 	void update_borrow(const StorageElement &op1, const StorageElement &op2, bool is_half=false);
 	void update_overflow(const StorageElement &op1, const StorageElement &op2);
 
-	uint8_t *ptr;
-	size_t count;
+	uint8_t *ptr = { nullptr };
+	size_t count = { 0 };
 
 	bool flag_carry = false;
 	bool flag_half_carry = false;
