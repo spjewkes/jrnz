@@ -9,9 +9,8 @@
 #include "debugger.hpp"
 #include "options.hpp"
 
-// Define this to enable a window to test keyboard and display - this will need some further
-// refinement before being set always
-// #define HAVE_DISPLAY 1
+SDL_Window *window = nullptr;
+SDL_Renderer *renderer = nullptr;
 
 /**
  * @brief Main entry-point into application.
@@ -27,13 +26,14 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
 
-	SDL_Window *window = SDL_CreateWindow("JRNZ", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-										  640, 480, SDL_WINDOW_MAXIMIZED);
+	window = SDL_CreateWindow("JRNZ", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+							  640, 480, SDL_WINDOW_MAXIMIZED);
 	if (!window)
 	{
 		std::cerr << "Could not create window: " << SDL_GetError() <<	std::endl;
 		return EXIT_FAILURE;
     }
+	renderer = SDL_CreateRenderer(window, -1, 0);
 #else
     if (SDL_Init(SDL_INIT_EVENTS) != 0)
 	{

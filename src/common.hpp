@@ -8,6 +8,11 @@
 #include <cassert>
 #include <iostream>
 
+//! TODO THIS IS TEMPORARY
+// Define this to enable a window to test keyboard and display - this will need some further
+// refinement before being set always
+#define HAVE_DISPLAY 1
+
 /**
  * @brief Define the high and low bytes in a short word
  */
