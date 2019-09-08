@@ -5,10 +5,10 @@ EXE=run_jrnz
 OBJ_DIR=obj
 SRC_DIR=src
 
-_DEPS=z80.hpp bus.hpp register.hpp instructions.hpp storage_element.hpp common.hpp system.hpp debugger.hpp decoder.hpp ula.hpp options.hpp
+_DEPS=z80.hpp bus.hpp register.hpp instructions.hpp storage_element.hpp common.hpp system.hpp debugger.hpp decoder.hpp ula.hpp options.hpp keyboard.hpp
 DEPS=$(patsubst %,$(SRC_DIR)/%,$(_DEPS))
 
-_OBJ=main.o instructions.o storage_element.o register.o z80.o system.o debugger.o decoder.o ula.o options.o
+_OBJ=main.o instructions.o storage_element.o register.o z80.o system.o debugger.o decoder.o ula.o options.o keyboard.o
 OBJ=$(patsubst %,$(OBJ_DIR)/%,$(_OBJ))
 
 OS := $(shell uname)

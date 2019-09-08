@@ -12,8 +12,10 @@
 #include <vector>
 #include <cassert>
 #include <cstdint>
+
 #include "storage_element.hpp"
 #include "common.hpp"
+#include "keyboard.hpp"
 
 /**
  * @brief Defines the memory/data bus of the device.
@@ -21,7 +23,7 @@
 class Bus
 {
 public:
-	Bus(size_t size) : mem(size), ports(256) {}
+	Bus(size_t size) : mem(size) {}
 	virtual ~Bus() {}
 
 	void load_rom(std::string &rom_file)
@@ -48,12 +50,27 @@ public:
 
 	uint8_t read_port(uint16_t addr) const
 		{
-			return ports[addr & 0xff];
+			// The only port we care about is 0xfe. More specifically for now we just check that
+			// the lowest bit is not set. The bits are set as follows:
+			// 0-4 : keyboard
+			// 5   : unused
+			// 6   : ear
+			// 7   : unused
+			//! ear is currently not handled
+
+			if (addr % 2 == 0)
+			{
+				uint8_t half_rows = (addr & 0xff00) >> 8;
+				return get_keyboard_state(half_rows);
+			}
+
+			return 0;
 		}
 
 	void write_port(uint16_t addr, uint8_t v)
 		{
-			ports[addr & 0xff] = v;
+			UNUSED(addr);
+			UNUSED(v);
 		}
 
 	uint8_t read_data(uint16_t addr) const { return mem[addr]; }
@@ -126,7 +143,6 @@ public:
 private:
 	std::vector<uint8_t> mem;
 	uint16_t ram_start;
-	std::vector<uint8_t> ports;
 };
 
 #endif // __BUS_HPP__
