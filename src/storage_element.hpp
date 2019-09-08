@@ -36,8 +36,8 @@ public:
 	bool get_bit(StorageElement &rhs);
 	void set_bit(StorageElement &rhs);
 	void reset_bit(StorageElement &rhs);
-	size_t push(Bus &bus, size_t addr);
-	size_t pop(Bus &bus, size_t addr);
+	uint16_t push(Bus &bus, uint16_t addr);
+	uint16_t pop(Bus &bus, uint16_t addr);
 	void shift_right(bool rotate, bool carry_inst, bool carry);
 	void shift_left(bool rotate, bool carry_inst, bool carry);
 

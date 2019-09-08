@@ -233,14 +233,14 @@ void StorageElement::reset_bit(StorageElement &rhs)
 	from_u32(tmp);
 }
 
-size_t StorageElement::push(Bus &bus, size_t addr)
+uint16_t StorageElement::push(Bus &bus, uint16_t addr)
 {
 	bus.write_data(addr-1, ptr[WORD_HI_BYTE_IDX]);
 	bus.write_data(addr-2, ptr[WORD_LO_BYTE_IDX]);
 	return addr-2;
 }
 
-size_t StorageElement::pop(Bus &bus, size_t addr)
+uint16_t StorageElement::pop(Bus &bus, uint16_t addr)
 {
 	ptr[WORD_LO_BYTE_IDX] = bus.read_data(addr);
 	ptr[WORD_HI_BYTE_IDX] = bus.read_data(addr+1);

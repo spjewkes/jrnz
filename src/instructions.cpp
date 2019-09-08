@@ -48,9 +48,9 @@ size_t Instruction::execute(Z80 &state)
 	case InstType::RRC:  return do_rrc(state, dst_elem, src_elem); break;
 	case InstType::RR:   return do_rr(state, dst_elem, src_elem); break;
 	case InstType::SLA:  return do_sla(state, dst_elem, src_elem); break;
-	case InstType::SLL:   return do_sll(state, dst_elem, src_elem); break;
+	case InstType::SLL:  return do_sll(state, dst_elem, src_elem); break;
 	case InstType::SRA:  return do_sra(state, dst_elem, src_elem); break;
-	case InstType::SRL:   return do_srl(state, dst_elem, src_elem); break;
+	case InstType::SRL:  return do_srl(state, dst_elem, src_elem); break;
 	case InstType::SCF:  return do_scf(state, dst_elem, src_elem); break;
 	case InstType::CCF:  return do_ccf(state, dst_elem, src_elem); break;
 	case InstType::CPL:  return do_cpl(state, dst_elem, src_elem); break;
@@ -304,7 +304,7 @@ size_t Instruction::do_call(Z80 &state, StorageElement &dst_elem, StorageElement
 
 	if (is_cond_set(cond, state))
 	{
-		size_t new_sp = dst_elem.push(state.bus, state.sp.get());
+		uint16_t new_sp = dst_elem.push(state.bus, state.sp.get());
 		state.sp.set(new_sp);
 		dst_elem = src_elem;
 	}
@@ -316,11 +316,12 @@ size_t Instruction::do_ret(Z80 &state, StorageElement &dst_elem, StorageElement 
 {
 	UNUSED(src_elem);
 
+	assert(Operand::PC == dst);
 	assert(Operand::UNUSED == src);
 
 	if (is_cond_set(cond, state))
 	{
-		size_t new_sp = dst_elem.pop(state.bus, state.sp.get());
+		uint16_t new_sp = dst_elem.pop(state.bus, state.sp.get());
 		state.sp.set(new_sp);
 	}
 
