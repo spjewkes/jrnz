@@ -28,6 +28,8 @@ void ULA::clock()
 	switch(counter)
 	{
 	case 0:
+		SDL_PumpEvents();
+
 		// Trigger interupt on Z80
 		_z80.interrupt = true;
 		next_frame_ticks = SDL_GetTicks() + 20;
