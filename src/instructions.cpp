@@ -485,6 +485,10 @@ size_t Instruction::do_rlc(Z80 &state, StorageElement &dst_elem, StorageElement 
 	state.af.flag(RegisterAF::Flags::Carry, dst_elem.is_carry());
 	state.af.flag(RegisterAF::Flags::AddSubtract, false);
 	state.af.flag(RegisterAF::Flags::HalfCarry, false);
+	state.af.flag(RegisterAF::Flags::ParityOverflow, dst_elem.is_even_parity());
+	state.af.flag(RegisterAF::Flags::HalfCarry, false);
+	state.af.flag(RegisterAF::Flags::Zero, dst_elem.is_zero());
+	state.af.flag(RegisterAF::Flags::Sign, dst_elem.is_neg());
 
 	return cycles;
 }
@@ -500,6 +504,10 @@ size_t Instruction::do_rl(Z80 &state, StorageElement &dst_elem, StorageElement &
 	state.af.flag(RegisterAF::Flags::Carry, dst_elem.is_carry());
 	state.af.flag(RegisterAF::Flags::AddSubtract, false);
 	state.af.flag(RegisterAF::Flags::HalfCarry, false);
+	state.af.flag(RegisterAF::Flags::ParityOverflow, dst_elem.is_even_parity());
+	state.af.flag(RegisterAF::Flags::HalfCarry, false);
+	state.af.flag(RegisterAF::Flags::Zero, dst_elem.is_zero());
+	state.af.flag(RegisterAF::Flags::Sign, dst_elem.is_neg());
 
 	return cycles;
 }
@@ -515,6 +523,10 @@ size_t Instruction::do_rrc(Z80 &state, StorageElement &dst_elem, StorageElement 
 	state.af.flag(RegisterAF::Flags::Carry, dst_elem.is_carry());
 	state.af.flag(RegisterAF::Flags::AddSubtract, false);
 	state.af.flag(RegisterAF::Flags::HalfCarry, false);
+	state.af.flag(RegisterAF::Flags::ParityOverflow, dst_elem.is_even_parity());
+	state.af.flag(RegisterAF::Flags::HalfCarry, false);
+	state.af.flag(RegisterAF::Flags::Zero, dst_elem.is_zero());
+	state.af.flag(RegisterAF::Flags::Sign, dst_elem.is_neg());
 
 	return cycles;
 }
@@ -530,6 +542,10 @@ size_t Instruction::do_rr(Z80 &state, StorageElement &dst_elem, StorageElement &
 	state.af.flag(RegisterAF::Flags::Carry, dst_elem.is_carry());
 	state.af.flag(RegisterAF::Flags::AddSubtract, false);
 	state.af.flag(RegisterAF::Flags::HalfCarry, false);
+	state.af.flag(RegisterAF::Flags::ParityOverflow, dst_elem.is_even_parity());
+	state.af.flag(RegisterAF::Flags::HalfCarry, false);
+	state.af.flag(RegisterAF::Flags::Zero, dst_elem.is_zero());
+	state.af.flag(RegisterAF::Flags::Sign, dst_elem.is_neg());
 
 	return cycles;
 }
@@ -545,6 +561,10 @@ size_t Instruction::do_sla(Z80 &state, StorageElement &dst_elem, StorageElement 
 	state.af.flag(RegisterAF::Flags::Carry, dst_elem.is_carry());
 	state.af.flag(RegisterAF::Flags::AddSubtract, false);
 	state.af.flag(RegisterAF::Flags::HalfCarry, false);
+	state.af.flag(RegisterAF::Flags::ParityOverflow, dst_elem.is_even_parity());
+	state.af.flag(RegisterAF::Flags::HalfCarry, false);
+	state.af.flag(RegisterAF::Flags::Zero, dst_elem.is_zero());
+	state.af.flag(RegisterAF::Flags::Sign, dst_elem.is_neg());
 
 	return cycles;
 }
@@ -560,6 +580,10 @@ size_t Instruction::do_sll(Z80 &state, StorageElement &dst_elem, StorageElement 
 	state.af.flag(RegisterAF::Flags::Carry, dst_elem.is_carry());
 	state.af.flag(RegisterAF::Flags::AddSubtract, false);
 	state.af.flag(RegisterAF::Flags::HalfCarry, false);
+	state.af.flag(RegisterAF::Flags::ParityOverflow, dst_elem.is_even_parity());
+	state.af.flag(RegisterAF::Flags::HalfCarry, false);
+	state.af.flag(RegisterAF::Flags::Zero, dst_elem.is_zero());
+	state.af.flag(RegisterAF::Flags::Sign, dst_elem.is_neg());
 
 	return cycles;
 }
@@ -575,6 +599,10 @@ size_t Instruction::do_sra(Z80 &state, StorageElement &dst_elem, StorageElement 
 	state.af.flag(RegisterAF::Flags::Carry, dst_elem.is_carry());
 	state.af.flag(RegisterAF::Flags::AddSubtract, false);
 	state.af.flag(RegisterAF::Flags::HalfCarry, false);
+	state.af.flag(RegisterAF::Flags::ParityOverflow, dst_elem.is_even_parity());
+	state.af.flag(RegisterAF::Flags::HalfCarry, false);
+	state.af.flag(RegisterAF::Flags::Zero, dst_elem.is_zero());
+	state.af.flag(RegisterAF::Flags::Sign, dst_elem.is_neg());
 
 	return cycles;
 }
@@ -590,6 +618,10 @@ size_t Instruction::do_srl(Z80 &state, StorageElement &dst_elem, StorageElement 
 	state.af.flag(RegisterAF::Flags::Carry, dst_elem.is_carry());
 	state.af.flag(RegisterAF::Flags::AddSubtract, false);
 	state.af.flag(RegisterAF::Flags::HalfCarry, false);
+	state.af.flag(RegisterAF::Flags::ParityOverflow, dst_elem.is_even_parity());
+	state.af.flag(RegisterAF::Flags::HalfCarry, false);
+	state.af.flag(RegisterAF::Flags::Zero, dst_elem.is_zero());
+	state.af.flag(RegisterAF::Flags::Sign, dst_elem.is_neg());
 
 	return cycles;
 }
