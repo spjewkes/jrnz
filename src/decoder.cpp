@@ -156,14 +156,14 @@ void init_map_inst()
 	map_inst.emplace(0x85, Instruction{InstType::ADD,  "add l",      1,  4, Operand::A, Operand::L});
 	map_inst.emplace(0x86, Instruction{InstType::ADD,  "add (hl)",   1,  7, Operand::A, Operand::indHL});
 	map_inst.emplace(0x87, Instruction{InstType::ADD,  "add a",      1,  4, Operand::A, Operand::A});
-	//! adc a,b
-	//! adc a,c
-	//! adc a,d
-	//! adc a,e
-	//! adc a,h
-	//! adc a,l
-	//! adc a,(hl)
-	//! adc a,a
+	map_inst.emplace(0x88, Instruction{InstType::ADC,  "adc a,b",    1,  4, Operand::A, Operand::B});
+	map_inst.emplace(0x89, Instruction{InstType::ADC,  "adc a,c",    1,  4, Operand::A, Operand::C});
+	map_inst.emplace(0x8a, Instruction{InstType::ADC,  "adc a,d",    1,  4, Operand::A, Operand::D});
+	map_inst.emplace(0x8b, Instruction{InstType::ADC,  "adc a,e",    1,  4, Operand::A, Operand::E});
+	map_inst.emplace(0x8c, Instruction{InstType::ADC,  "adc a,h",    1,  4, Operand::A, Operand::H});
+	map_inst.emplace(0x8d, Instruction{InstType::ADC,  "adc a,l",    1,  4, Operand::A, Operand::L});
+	map_inst.emplace(0x8e, Instruction{InstType::ADC,  "adc a,(hl)", 1,  7, Operand::A, Operand::indHL});
+	map_inst.emplace(0x8f, Instruction{InstType::ADC,  "adc a,a",    1,  4, Operand::A, Operand::A});
 
 	map_inst.emplace(0x90, Instruction{InstType::SUB,  "sub b",      1,  4, Operand::A, Operand::B});
 	map_inst.emplace(0x91, Instruction{InstType::SUB,  "sub c",      1,  4, Operand::A, Operand::C});
@@ -230,7 +230,7 @@ void init_map_inst()
 	// 0xCD (bits) instructions
 	map_inst.emplace(0xcc, Instruction{InstType::CALL, "call z,**",  3, 17, 10, Conditional::Z, Operand::PC, Operand::NN});
 	map_inst.emplace(0xcd, Instruction{InstType::CALL, "call **",    3, 17, Conditional::ALWAYS, Operand::PC, Operand::NN});
-	//! adc a,*
+	map_inst.emplace(0xce, Instruction{InstType::ADC,  "adc a,*",    2,  7, Operand::A, Operand::N});
 	map_inst.emplace(0xcf, Instruction{InstType::RST,  "rst 08h",    1, 11, Operand::PC, Operand::HEX_0008});
 
 	map_inst.emplace(0xd0, Instruction{InstType::RET,  "ret nc",     1, 11, 5, Conditional::NC, Operand::PC});

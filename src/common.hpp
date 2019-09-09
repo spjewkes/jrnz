@@ -74,6 +74,7 @@ enum class InstType
 	SUB,
 	SBC,
 	ADD,
+	ADC,
 	INC,
 	EX,
 	LDDR,

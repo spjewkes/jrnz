@@ -32,6 +32,7 @@ size_t Instruction::execute(Z80 &state)
 	case InstType::SUB:  return do_sub(state, dst_elem, src_elem); break;
 	case InstType::SBC:  return do_sbc(state, dst_elem, src_elem); break;
 	case InstType::ADD:  return do_add(state, dst_elem, src_elem); break;
+	case InstType::ADC:  return do_adc(state, dst_elem, src_elem); break;
 	case InstType::INC:  return do_inc(state, dst_elem, src_elem); break;
 	case InstType::LDDR: return do_lddr(state, dst_elem, src_elem); break;
 	case InstType::LDIR: return do_ldir(state, dst_elem, src_elem); break;
@@ -378,17 +379,24 @@ size_t Instruction::do_sbc(Z80 &state, StorageElement &dst_elem, StorageElement 
 
 size_t Instruction::do_add(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
-	return impl_add(state, dst_elem, src_elem, true /* store */, false /* is_inc */);
+	return impl_add(state, dst_elem, src_elem, true /* store */, false /* use_carry */, false /* is_inc */);
+}
+
+size_t Instruction::do_adc(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+{
+	return impl_add(state, dst_elem, src_elem, true /* store */, true /* use carry */, false /* is_inc */);
 }
 
 size_t Instruction::do_inc(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
-	return impl_add(state, dst_elem, src_elem, true /* store */, true /* is_inc */);
+	return impl_add(state, dst_elem, src_elem, true /* store */, false /* use_carry */, true /* is_inc */);
 }
 
-size_t Instruction::impl_add(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem, bool store, bool is_inc)
+size_t Instruction::impl_add(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem, bool store, bool use_carry, bool is_inc)
 {
-	StorageElement result = dst_elem + src_elem;
+	StorageElement carry(use_carry && state.af.flag(RegisterAF::Flags::Carry) ? 1 : 0);
+	StorageElement res_src = src_elem + carry;
+	StorageElement result = dst_elem + res_src;
 
 	bool update_flags = true;
 	if (is_inc && dst_elem.is_16bit())
@@ -452,6 +460,132 @@ size_t Instruction::impl_sub(Z80 &state, StorageElement &dst_elem, StorageElemen
 	return cycles;
 }
 
+size_t Instruction::do_push(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+{
+	UNUSED(dst_elem);
+
+	assert(Operand::UNUSED == dst);
+
+	size_t new_sp = src_elem.push(state.bus, state.sp.get());
+	state.sp.set(new_sp);
+
+	return cycles;
+}
+
+size_t Instruction::do_pop(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+{
+	UNUSED(src_elem);
+
+	assert(Operand::UNUSED == src);
+
+	size_t new_sp = dst_elem.pop(state.bus, state.sp.get());
+	state.sp.set(new_sp);
+
+	return cycles;
+}
+
+size_t Instruction::do_rlc(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+{
+	UNUSED(src_elem);
+	assert(Operand::UNUSED == src);
+
+	impl_shift_left(state, dst_elem, true /* set_state */, true /* rotate */, true /* carry_inst */);
+
+	return cycles;
+}
+
+size_t Instruction::do_rl(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+{
+	UNUSED(src_elem);
+	assert(Operand::UNUSED == src);
+
+	impl_shift_left(state, dst_elem, true /* set_state */, true /* rotate */, false /* carry_inst */);
+
+	return cycles;
+}
+
+size_t Instruction::do_rrc(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+{
+	UNUSED(src_elem);
+	assert(Operand::UNUSED == src);
+
+	impl_shift_right(state, dst_elem, true /* set_state */, true /* rotate */, true /* carry_inst */);
+
+	return cycles;
+}
+
+size_t Instruction::do_rr(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+{
+	UNUSED(src_elem);
+	assert(Operand::UNUSED == src);
+
+	impl_shift_right(state, dst_elem, true /* set_state */, true /* rotate */, false /* carry_inst */);
+
+	return cycles;
+}
+
+size_t Instruction::do_sla(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+{
+	UNUSED(src_elem);
+	assert(Operand::UNUSED == src);
+
+	impl_shift_left(state, dst_elem, true /* set_state */, false /* rotate */, true /* carry_inst */);
+
+	return cycles;
+}
+
+size_t Instruction::do_sll(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+{
+	UNUSED(src_elem);
+	assert(Operand::UNUSED == src);
+
+	impl_shift_left(state, dst_elem, true /* set_state */, false /* rotate */, false /* carry_inst */);
+
+	return cycles;
+}
+
+size_t Instruction::do_sra(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+{
+	UNUSED(src_elem);
+	assert(Operand::UNUSED == src);
+
+	impl_shift_right(state, dst_elem, true /* set_state */, false /* rotate */, true /* carry_inst */);
+
+	return cycles;
+}
+
+size_t Instruction::do_srl(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+{
+	UNUSED(src_elem);
+	assert(Operand::UNUSED == src);
+
+	impl_shift_right(state, dst_elem, true /* set_state */, false /* rotate */, false /* carry_inst */);
+
+	return cycles;
+}
+
+size_t Instruction::do_rlca(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+{
+	UNUSED(src_elem);
+	assert(Operand::UNUSED == src);
+	assert(Operand::A == dst);
+
+	impl_shift_left(state, dst_elem, false /* set_state */, true /* rotate */, true /* carry_inst */);
+
+	return cycles;
+}
+
+size_t Instruction::do_rla(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+{
+	UNUSED(src_elem);
+	assert(Operand::UNUSED == src);
+	assert(Operand::A == dst);
+
+	impl_shift_left(state, dst_elem, false /* set_state */, true /* rotate */, false /* carry_inst */);
+
+	return cycles;
+}
+
 size_t Instruction::impl_shift_left(Z80 &state, StorageElement &elem, bool set_state, bool rotate, bool carry_inst)
 {
 	elem.shift_left(rotate, carry_inst, state.af.flag(RegisterAF::Flags::Carry));
@@ -486,132 +620,6 @@ size_t Instruction::impl_shift_right(Z80 &state, StorageElement &elem, bool set_
 		state.af.flag(RegisterAF::Flags::Zero, elem.is_zero());
 		state.af.flag(RegisterAF::Flags::Sign, elem.is_neg());
 	}
-
-	return cycles;
-}
-
-size_t Instruction::do_push(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
-{
-	UNUSED(dst_elem);
-
-	assert(Operand::UNUSED == dst);
-
-	size_t new_sp = src_elem.push(state.bus, state.sp.get());
-	state.sp.set(new_sp);
-
-	return cycles;
-}
-
-size_t Instruction::do_pop(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
-{
-	UNUSED(src_elem);
-
-	assert(Operand::UNUSED == src);
-
-	size_t new_sp = dst_elem.pop(state.bus, state.sp.get());
-	state.sp.set(new_sp);
-
-	return cycles;
-}
-
-size_t Instruction::do_rlc(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
-{
-	UNUSED(src_elem);
-	assert(Operand::UNUSED == src);
-
-	impl_shift_left(state, dst_elem, true, true, true);
-
-	return cycles;
-}
-
-size_t Instruction::do_rl(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
-{
-	UNUSED(src_elem);
-	assert(Operand::UNUSED == src);
-
-	impl_shift_left(state, dst_elem, true, true, false);
-
-	return cycles;
-}
-
-size_t Instruction::do_rrc(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
-{
-	UNUSED(src_elem);
-	assert(Operand::UNUSED == src);
-
-	impl_shift_right(state, dst_elem, true, true, true);
-
-	return cycles;
-}
-
-size_t Instruction::do_rr(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
-{
-	UNUSED(src_elem);
-	assert(Operand::UNUSED == src);
-
-	impl_shift_right(state, dst_elem, true, true, false);
-
-	return cycles;
-}
-
-size_t Instruction::do_sla(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
-{
-	UNUSED(src_elem);
-	assert(Operand::UNUSED == src);
-
-	impl_shift_left(state, dst_elem, true, false, true);
-
-	return cycles;
-}
-
-size_t Instruction::do_sll(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
-{
-	UNUSED(src_elem);
-	assert(Operand::UNUSED == src);
-
-	impl_shift_left(state, dst_elem, true, false, false);
-
-	return cycles;
-}
-
-size_t Instruction::do_sra(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
-{
-	UNUSED(src_elem);
-	assert(Operand::UNUSED == src);
-
-	impl_shift_right(state, dst_elem, true, false, true);
-
-	return cycles;
-}
-
-size_t Instruction::do_srl(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
-{
-	UNUSED(src_elem);
-	assert(Operand::UNUSED == src);
-
-	impl_shift_right(state, dst_elem, true, false, false);
-
-	return cycles;
-}
-
-size_t Instruction::do_rlca(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
-{
-	UNUSED(src_elem);
-	assert(Operand::UNUSED == src);
-	assert(Operand::A == dst);
-
-	impl_shift_left(state, dst_elem, false, true, true);
-
-	return cycles;
-}
-
-size_t Instruction::do_rla(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
-{
-	UNUSED(src_elem);
-	assert(Operand::UNUSED == src);
-	assert(Operand::A == dst);
-
-	impl_shift_left(state, dst_elem, false, true, false);
 
 	return cycles;
 }

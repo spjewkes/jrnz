@@ -73,6 +73,7 @@ private:
 	size_t do_sub(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
 	size_t do_sbc(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
 	size_t do_add(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
+	size_t do_adc(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
 	size_t do_inc(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
 	size_t do_push(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
 	size_t do_pop(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
@@ -93,7 +94,7 @@ private:
 
 	size_t impl_ld_block(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem, bool inc);
 	size_t impl_set_bit(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem, bool set);
-	size_t impl_add(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem, bool store, bool is_inc);
+	size_t impl_add(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem, bool store, bool use_carry, bool is_inc);
 	size_t impl_sub(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem, bool store, bool use_carry, bool is_dec);
 	size_t impl_shift_left(Z80 &state, StorageElement &elem, bool set_state, bool rotate, bool carry_inst);
 	size_t impl_shift_right(Z80 &state, StorageElement &elem, bool set_state, bool rotate, bool carry_inst);
