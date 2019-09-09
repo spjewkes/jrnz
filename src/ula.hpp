@@ -26,6 +26,7 @@ private:
 	Bus &_bus;
 
 	uint64_t counter = { 0 };
+	uint32_t next_frame_ticks = { 0 };
 };
 
 #endif // __ULA_HPP__

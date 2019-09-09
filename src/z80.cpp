@@ -59,13 +59,18 @@ bool Z80::clock(bool no_cycles)
 			const auto opcode = bus.read_opcode_from_mem(curr_opcode_pc, &operand_offset);
 			assert(operand_offset != 0);
 			curr_operand_pc = curr_opcode_pc + operand_offset;
-			
+
 			const Instruction &inst = decode_opcode(opcode);
 			if (inst.inst != InstType::INV)
 			{
 				pc.set(curr_opcode_pc + inst.size);
 				cycles_left = const_cast<Instruction&>(inst).execute(*this);
 				found = true;
+			}
+			else
+			{
+				std::cerr << "UNKNOWN OPCODE: 0x" << std::hex << std::setw(8) << std::setfill('0') << opcode;
+				std::cerr << " at 0x" << curr_opcode_pc << std::endl;
 			}
 		}
 	}

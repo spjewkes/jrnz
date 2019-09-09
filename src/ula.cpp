@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_surface.h>
+#include <SDL2/SDL_timer.h>
 
 #include "common.hpp"
 #include "ula.hpp"
@@ -29,6 +30,7 @@ void ULA::clock()
 	case 0:
 		// Trigger interupt on Z80
 		_z80.interrupt = true;
+		next_frame_ticks = SDL_GetTicks() + 20;
 		break;
 
 	case 32:
@@ -72,6 +74,12 @@ void ULA::clock()
 			SDL_RenderPresent(renderer);
 		}
 #endif
+
+		uint32_t ticks = SDL_GetTicks();
+		if (ticks < next_frame_ticks)
+		{
+			SDL_Delay(next_frame_ticks - ticks);
+		}
 	}
 
 	counter++;

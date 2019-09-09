@@ -1068,8 +1068,6 @@ const Instruction& decode_opcode(uint32_t opcode)
 		return search_op->second;
 	}
 
-	std::cerr << "UNKNOWN OPCODE: 0x" << std::hex << std::setw(8) << std::setfill('0') << opcode << std::endl;
-
 	return inv_inst;
 }
 
