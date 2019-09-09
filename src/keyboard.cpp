@@ -46,7 +46,7 @@ uint8_t get_keyboard_state(uint8_t halfrows)
 	}
 	
 	// half-row 2 : q - t
-	if (!get_bit(halfrows, 1))
+	if (!get_bit(halfrows, 2))
 	{
 		if (key_state[SDL_SCANCODE_Q])      { ret_keys |= 0x01; }
 		if (key_state[SDL_SCANCODE_W])      { ret_keys |= 0x02; }
@@ -56,7 +56,7 @@ uint8_t get_keyboard_state(uint8_t halfrows)
 	}
 	
 	// half-row 3 : 1 - 5
-	if (!get_bit(halfrows, 1))
+	if (!get_bit(halfrows, 3))
 	{
 		if (key_state[SDL_SCANCODE_1])      { ret_keys |= 0x01; }
 		if (key_state[SDL_SCANCODE_2])      { ret_keys |= 0x02; }
@@ -66,7 +66,7 @@ uint8_t get_keyboard_state(uint8_t halfrows)
 	}
 	
 	// half-row 4 : 6 - 0
-	if (!get_bit(halfrows, 1))
+	if (!get_bit(halfrows, 4))
 	{
 		if (key_state[SDL_SCANCODE_0])      { ret_keys |= 0x01; }
 		if (key_state[SDL_SCANCODE_9])      { ret_keys |= 0x02; }
@@ -76,7 +76,7 @@ uint8_t get_keyboard_state(uint8_t halfrows)
 	}
 	
 	// half-row 5 : y - p
-	if (!get_bit(halfrows, 1))
+	if (!get_bit(halfrows, 5))
 	{
 		if (key_state[SDL_SCANCODE_P])      { ret_keys |= 0x01; }
 		if (key_state[SDL_SCANCODE_O])      { ret_keys |= 0x02; }
@@ -86,7 +86,7 @@ uint8_t get_keyboard_state(uint8_t halfrows)
 	}
 	
 	// half-row 6 : h - enter
-	if (!get_bit(halfrows, 1))
+	if (!get_bit(halfrows, 6))
 	{
 		if (key_state[SDL_SCANCODE_RETURN]) { ret_keys |= 0x01; }
 		if (key_state[SDL_SCANCODE_L])      { ret_keys |= 0x02; }
@@ -96,7 +96,7 @@ uint8_t get_keyboard_state(uint8_t halfrows)
 	}
 	
 	// half-row 7 : b - space
-	if (!get_bit(halfrows, 1))
+	if (!get_bit(halfrows, 7))
 	{
 		if (key_state[SDL_SCANCODE_SPACE])  { ret_keys |= 0x01; }
 		if (key_state[SDL_SCANCODE_RSHIFT]) { ret_keys |= 0x02; }
