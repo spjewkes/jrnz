@@ -244,7 +244,7 @@ void init_map_inst()
 	map_inst.emplace(0xd8, Instruction{InstType::RET,  "ret c",      1, 11, 5, Conditional::C, Operand::PC});
 	map_inst.emplace(0xd9, Instruction{InstType::EX,   "exx",        1,  4});
 	map_inst.emplace(0xda, Instruction{InstType::JP,   "jp c,**",    3, 10, Conditional::C, Operand::PC, Operand::NN});
-	//! in a,(*)
+	map_inst.emplace(0xdb, Instruction{InstType::IN,   "in a,(*)",   2, 11, Operand::A, Operand::PORTN});
 	map_inst.emplace(0xdc, Instruction{InstType::CALL, "call c,**",  3, 17, 10, Conditional::C, Operand::PC, Operand::NN});
 	// 0xDB (ix) instructions
 	map_inst.emplace(0xde, Instruction{InstType::SBC,  "sbc a,*",    2,  7, Operand::A, Operand::N});
