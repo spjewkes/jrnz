@@ -452,6 +452,44 @@ size_t Instruction::impl_sub(Z80 &state, StorageElement &dst_elem, StorageElemen
 	return cycles;
 }
 
+size_t Instruction::impl_shift_left(Z80 &state, StorageElement &elem, bool set_state, bool rotate, bool carry_inst)
+{
+	elem.shift_left(rotate, carry_inst, state.af.flag(RegisterAF::Flags::Carry));
+	
+	state.af.flag(RegisterAF::Flags::Carry, elem.is_carry());
+	state.af.flag(RegisterAF::Flags::AddSubtract, false);
+	state.af.flag(RegisterAF::Flags::HalfCarry, false);
+	state.af.flag(RegisterAF::Flags::HalfCarry, false);
+
+	if (set_state)
+	{
+		state.af.flag(RegisterAF::Flags::ParityOverflow, elem.is_even_parity());
+		state.af.flag(RegisterAF::Flags::Zero, elem.is_zero());
+		state.af.flag(RegisterAF::Flags::Sign, elem.is_neg());
+	}
+
+	return cycles;
+}
+
+size_t Instruction::impl_shift_right(Z80 &state, StorageElement &elem, bool set_state, bool rotate, bool carry_inst)
+{
+	elem.shift_right(rotate, carry_inst, state.af.flag(RegisterAF::Flags::Carry));
+
+	state.af.flag(RegisterAF::Flags::Carry, elem.is_carry());
+	state.af.flag(RegisterAF::Flags::AddSubtract, false);
+	state.af.flag(RegisterAF::Flags::HalfCarry, false);
+	state.af.flag(RegisterAF::Flags::HalfCarry, false);
+
+	if (set_state)
+	{
+		state.af.flag(RegisterAF::Flags::ParityOverflow, elem.is_even_parity());
+		state.af.flag(RegisterAF::Flags::Zero, elem.is_zero());
+		state.af.flag(RegisterAF::Flags::Sign, elem.is_neg());
+	}
+
+	return cycles;
+}
+
 size_t Instruction::do_push(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
 	UNUSED(dst_elem);
@@ -479,18 +517,9 @@ size_t Instruction::do_pop(Z80 &state, StorageElement &dst_elem, StorageElement 
 size_t Instruction::do_rlc(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
 	UNUSED(src_elem);
-
 	assert(Operand::UNUSED == src);
 
-	dst_elem.shift_left(true, true, state.af.flag(RegisterAF::Flags::Carry));
-
-	state.af.flag(RegisterAF::Flags::Carry, dst_elem.is_carry());
-	state.af.flag(RegisterAF::Flags::AddSubtract, false);
-	state.af.flag(RegisterAF::Flags::HalfCarry, false);
-	state.af.flag(RegisterAF::Flags::ParityOverflow, dst_elem.is_even_parity());
-	state.af.flag(RegisterAF::Flags::HalfCarry, false);
-	state.af.flag(RegisterAF::Flags::Zero, dst_elem.is_zero());
-	state.af.flag(RegisterAF::Flags::Sign, dst_elem.is_neg());
+	impl_shift_left(state, dst_elem, true, true, true);
 
 	return cycles;
 }
@@ -498,18 +527,9 @@ size_t Instruction::do_rlc(Z80 &state, StorageElement &dst_elem, StorageElement 
 size_t Instruction::do_rl(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
 	UNUSED(src_elem);
-
 	assert(Operand::UNUSED == src);
 
-	dst_elem.shift_left(true, false, state.af.flag(RegisterAF::Flags::Carry));
-
-	state.af.flag(RegisterAF::Flags::Carry, dst_elem.is_carry());
-	state.af.flag(RegisterAF::Flags::AddSubtract, false);
-	state.af.flag(RegisterAF::Flags::HalfCarry, false);
-	state.af.flag(RegisterAF::Flags::ParityOverflow, dst_elem.is_even_parity());
-	state.af.flag(RegisterAF::Flags::HalfCarry, false);
-	state.af.flag(RegisterAF::Flags::Zero, dst_elem.is_zero());
-	state.af.flag(RegisterAF::Flags::Sign, dst_elem.is_neg());
+	impl_shift_left(state, dst_elem, true, true, false);
 
 	return cycles;
 }
@@ -517,18 +537,9 @@ size_t Instruction::do_rl(Z80 &state, StorageElement &dst_elem, StorageElement &
 size_t Instruction::do_rrc(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
 	UNUSED(src_elem);
-
 	assert(Operand::UNUSED == src);
 
-	dst_elem.shift_right(true, true, state.af.flag(RegisterAF::Flags::Carry));
-
-	state.af.flag(RegisterAF::Flags::Carry, dst_elem.is_carry());
-	state.af.flag(RegisterAF::Flags::AddSubtract, false);
-	state.af.flag(RegisterAF::Flags::HalfCarry, false);
-	state.af.flag(RegisterAF::Flags::ParityOverflow, dst_elem.is_even_parity());
-	state.af.flag(RegisterAF::Flags::HalfCarry, false);
-	state.af.flag(RegisterAF::Flags::Zero, dst_elem.is_zero());
-	state.af.flag(RegisterAF::Flags::Sign, dst_elem.is_neg());
+	impl_shift_right(state, dst_elem, true, true, true);
 
 	return cycles;
 }
@@ -536,18 +547,9 @@ size_t Instruction::do_rrc(Z80 &state, StorageElement &dst_elem, StorageElement 
 size_t Instruction::do_rr(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
 	UNUSED(src_elem);
-
 	assert(Operand::UNUSED == src);
 
-	dst_elem.shift_right(true, false, state.af.flag(RegisterAF::Flags::Carry));
-
-	state.af.flag(RegisterAF::Flags::Carry, dst_elem.is_carry());
-	state.af.flag(RegisterAF::Flags::AddSubtract, false);
-	state.af.flag(RegisterAF::Flags::HalfCarry, false);
-	state.af.flag(RegisterAF::Flags::ParityOverflow, dst_elem.is_even_parity());
-	state.af.flag(RegisterAF::Flags::HalfCarry, false);
-	state.af.flag(RegisterAF::Flags::Zero, dst_elem.is_zero());
-	state.af.flag(RegisterAF::Flags::Sign, dst_elem.is_neg());
+	impl_shift_right(state, dst_elem, true, true, false);
 
 	return cycles;
 }
@@ -555,18 +557,9 @@ size_t Instruction::do_rr(Z80 &state, StorageElement &dst_elem, StorageElement &
 size_t Instruction::do_sla(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
 	UNUSED(src_elem);
-
 	assert(Operand::UNUSED == src);
 
-	dst_elem.shift_left(false, true, state.af.flag(RegisterAF::Flags::Carry));
-
-	state.af.flag(RegisterAF::Flags::Carry, dst_elem.is_carry());
-	state.af.flag(RegisterAF::Flags::AddSubtract, false);
-	state.af.flag(RegisterAF::Flags::HalfCarry, false);
-	state.af.flag(RegisterAF::Flags::ParityOverflow, dst_elem.is_even_parity());
-	state.af.flag(RegisterAF::Flags::HalfCarry, false);
-	state.af.flag(RegisterAF::Flags::Zero, dst_elem.is_zero());
-	state.af.flag(RegisterAF::Flags::Sign, dst_elem.is_neg());
+	impl_shift_left(state, dst_elem, true, false, true);
 
 	return cycles;
 }
@@ -574,18 +567,9 @@ size_t Instruction::do_sla(Z80 &state, StorageElement &dst_elem, StorageElement 
 size_t Instruction::do_sll(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
 	UNUSED(src_elem);
-
 	assert(Operand::UNUSED == src);
 
-	dst_elem.shift_left(false, false, state.af.flag(RegisterAF::Flags::Carry));
-
-	state.af.flag(RegisterAF::Flags::Carry, dst_elem.is_carry());
-	state.af.flag(RegisterAF::Flags::AddSubtract, false);
-	state.af.flag(RegisterAF::Flags::HalfCarry, false);
-	state.af.flag(RegisterAF::Flags::ParityOverflow, dst_elem.is_even_parity());
-	state.af.flag(RegisterAF::Flags::HalfCarry, false);
-	state.af.flag(RegisterAF::Flags::Zero, dst_elem.is_zero());
-	state.af.flag(RegisterAF::Flags::Sign, dst_elem.is_neg());
+	impl_shift_left(state, dst_elem, true, false, false);
 
 	return cycles;
 }
@@ -593,18 +577,9 @@ size_t Instruction::do_sll(Z80 &state, StorageElement &dst_elem, StorageElement 
 size_t Instruction::do_sra(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
 	UNUSED(src_elem);
-
 	assert(Operand::UNUSED == src);
 
-	dst_elem.shift_right(false, true, state.af.flag(RegisterAF::Flags::Carry));
-
-	state.af.flag(RegisterAF::Flags::Carry, dst_elem.is_carry());
-	state.af.flag(RegisterAF::Flags::AddSubtract, false);
-	state.af.flag(RegisterAF::Flags::HalfCarry, false);
-	state.af.flag(RegisterAF::Flags::ParityOverflow, dst_elem.is_even_parity());
-	state.af.flag(RegisterAF::Flags::HalfCarry, false);
-	state.af.flag(RegisterAF::Flags::Zero, dst_elem.is_zero());
-	state.af.flag(RegisterAF::Flags::Sign, dst_elem.is_neg());
+	impl_shift_right(state, dst_elem, true, false, true);
 
 	return cycles;
 }
@@ -612,18 +587,9 @@ size_t Instruction::do_sra(Z80 &state, StorageElement &dst_elem, StorageElement 
 size_t Instruction::do_srl(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
 	UNUSED(src_elem);
-
 	assert(Operand::UNUSED == src);
 
-	dst_elem.shift_right(false, false, state.af.flag(RegisterAF::Flags::Carry));
-
-	state.af.flag(RegisterAF::Flags::Carry, dst_elem.is_carry());
-	state.af.flag(RegisterAF::Flags::AddSubtract, false);
-	state.af.flag(RegisterAF::Flags::HalfCarry, false);
-	state.af.flag(RegisterAF::Flags::ParityOverflow, dst_elem.is_even_parity());
-	state.af.flag(RegisterAF::Flags::HalfCarry, false);
-	state.af.flag(RegisterAF::Flags::Zero, dst_elem.is_zero());
-	state.af.flag(RegisterAF::Flags::Sign, dst_elem.is_neg());
+	impl_shift_right(state, dst_elem, true, false, false);
 
 	return cycles;
 }
@@ -631,15 +597,10 @@ size_t Instruction::do_srl(Z80 &state, StorageElement &dst_elem, StorageElement 
 size_t Instruction::do_rlca(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
 	UNUSED(src_elem);
-
 	assert(Operand::UNUSED == src);
+	assert(Operand::A == dst);
 
-	dst_elem.shift_left(true, true, state.af.flag(RegisterAF::Flags::Carry));
-
-	state.af.flag(RegisterAF::Flags::Carry, dst_elem.is_carry());
-	state.af.flag(RegisterAF::Flags::AddSubtract, false);
-	state.af.flag(RegisterAF::Flags::HalfCarry, false);
-	state.af.flag(RegisterAF::Flags::HalfCarry, false);
+	impl_shift_left(state, dst_elem, false, true, true);
 
 	return cycles;
 }
@@ -647,15 +608,10 @@ size_t Instruction::do_rlca(Z80 &state, StorageElement &dst_elem, StorageElement
 size_t Instruction::do_rla(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
 	UNUSED(src_elem);
-
 	assert(Operand::UNUSED == src);
+	assert(Operand::A == dst);
 
-	dst_elem.shift_left(true, false, state.af.flag(RegisterAF::Flags::Carry));
-
-	state.af.flag(RegisterAF::Flags::Carry, dst_elem.is_carry());
-	state.af.flag(RegisterAF::Flags::AddSubtract, false);
-	state.af.flag(RegisterAF::Flags::HalfCarry, false);
-	state.af.flag(RegisterAF::Flags::HalfCarry, false);
+	impl_shift_left(state, dst_elem, false, true, false);
 
 	return cycles;
 }
