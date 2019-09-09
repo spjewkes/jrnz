@@ -51,6 +51,8 @@ size_t Instruction::execute(Z80 &state)
 	case InstType::SLL:  return do_sll(state, dst_elem, src_elem); break;
 	case InstType::SRA:  return do_sra(state, dst_elem, src_elem); break;
 	case InstType::SRL:  return do_srl(state, dst_elem, src_elem); break;
+	case InstType::RLCA: return do_rlca(state, dst_elem, src_elem); break;
+	case InstType::RLA:  return do_rla(state, dst_elem, src_elem); break;
 	case InstType::SCF:  return do_scf(state, dst_elem, src_elem); break;
 	case InstType::CCF:  return do_ccf(state, dst_elem, src_elem); break;
 	case InstType::CPL:  return do_cpl(state, dst_elem, src_elem); break;
@@ -622,6 +624,38 @@ size_t Instruction::do_srl(Z80 &state, StorageElement &dst_elem, StorageElement 
 	state.af.flag(RegisterAF::Flags::HalfCarry, false);
 	state.af.flag(RegisterAF::Flags::Zero, dst_elem.is_zero());
 	state.af.flag(RegisterAF::Flags::Sign, dst_elem.is_neg());
+
+	return cycles;
+}
+
+size_t Instruction::do_rlca(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+{
+	UNUSED(src_elem);
+
+	assert(Operand::UNUSED == src);
+
+	dst_elem.shift_left(true, true, state.af.flag(RegisterAF::Flags::Carry));
+
+	state.af.flag(RegisterAF::Flags::Carry, dst_elem.is_carry());
+	state.af.flag(RegisterAF::Flags::AddSubtract, false);
+	state.af.flag(RegisterAF::Flags::HalfCarry, false);
+	state.af.flag(RegisterAF::Flags::HalfCarry, false);
+
+	return cycles;
+}
+
+size_t Instruction::do_rla(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+{
+	UNUSED(src_elem);
+
+	assert(Operand::UNUSED == src);
+
+	dst_elem.shift_left(true, false, state.af.flag(RegisterAF::Flags::Carry));
+
+	state.af.flag(RegisterAF::Flags::Carry, dst_elem.is_carry());
+	state.af.flag(RegisterAF::Flags::AddSubtract, false);
+	state.af.flag(RegisterAF::Flags::HalfCarry, false);
+	state.af.flag(RegisterAF::Flags::HalfCarry, false);
 
 	return cycles;
 }

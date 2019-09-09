@@ -94,6 +94,8 @@ enum class InstType
 	SLL,
 	SRA,
 	SRL,
+	RLCA,
+	RLA,
 	SCF,
 	CCF,
 	CPL,
