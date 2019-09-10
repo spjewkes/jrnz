@@ -207,9 +207,14 @@ StorageElement &StorageElement::operator|=(const StorageElement &rhs)
 
 void StorageElement::swap(StorageElement &rhs)
 {
-	uint32_t tmp = to_u32();
-	from_u32(rhs.to_u32());
-	rhs.from_u32(tmp);
+	uint8_t tmp_lo = ptr[WORD_LO_BYTE_IDX];
+	uint8_t tmp_hi = ptr[WORD_HI_BYTE_IDX];
+
+	ptr[WORD_LO_BYTE_IDX] = rhs.ptr[WORD_LO_BYTE_IDX];
+	ptr[WORD_HI_BYTE_IDX] = rhs.ptr[WORD_HI_BYTE_IDX];
+
+	rhs.ptr[WORD_LO_BYTE_IDX] = tmp_lo;
+	rhs.ptr[WORD_HI_BYTE_IDX] = tmp_hi;
 }
 
 bool StorageElement::get_bit(StorageElement &rhs)
