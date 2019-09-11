@@ -17,7 +17,6 @@ bool Debugger::break_ready()
 	{
 		std::cout << "Enabled break at 0x" << std::hex << break_pc << std::dec << std::endl;
 		break_enabled = true;
-		break_at_pc = false;
 		return true;
 	}
 
@@ -33,9 +32,11 @@ bool Debugger::clock()
 		bool paused = true;
 		char ch;
 
+		std::cout << "DEBUG - break enabled\n";
+
 		while (paused)
 		{
-			std::cout << "Executing: " << dump_instr_at_addr(_z80.pc.get()).str() << std::endl;
+			std::cout << "Next instruction: " << dump_instr_at_addr(_z80.pc.get()).str() << std::endl;
 			std::cin >> ch;
 
 			switch (ch)
@@ -47,7 +48,6 @@ bool Debugger::clock()
 				break_enabled = false;
 				break;
 			case 'c':
-				break_at_pc = false;
 				paused = false;
 				break_enabled = false;
 				break;
