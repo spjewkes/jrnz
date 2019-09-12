@@ -137,8 +137,8 @@ void init_map_inst()
 	map_inst.emplace(0x73, Instruction{InstType::LD,   "ld (hl),e",  1,  7, Operand::indHL, Operand::E});
 	map_inst.emplace(0x74, Instruction{InstType::LD,   "ld (hl),h",  1,  7, Operand::indHL, Operand::H});
 	map_inst.emplace(0x75, Instruction{InstType::LD,   "ld (hl),l",  1,  7, Operand::indHL, Operand::L});
+	map_inst.emplace(0x76, Instruction{InstType::HALT, "halt",       1,  4});
 	map_inst.emplace(0x77, Instruction{InstType::LD,   "ld (hl),a",  1,  7, Operand::indHL, Operand::A});
-	//! halt
 	map_inst.emplace(0x78, Instruction{InstType::LD,   "ld a,b",     1,  4, Operand::A, Operand::B});
 	map_inst.emplace(0x79, Instruction{InstType::LD,   "ld a,c",     1,  4, Operand::A, Operand::C});
 	map_inst.emplace(0x7a, Instruction{InstType::LD,   "ld a,d",     1,  4, Operand::A, Operand::D});

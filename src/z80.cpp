@@ -22,10 +22,12 @@ bool Z80::clock(bool no_cycles)
 			cycles_left = inst.execute(*this);
 			pc.set(0x66);
 			int_nmi = false;
+			halted = false;
 			found = true;
 		}
 		else if (int_enabled && interrupt)
 		{
+			halted = false;
 			switch (int_mode)
 			{
 			case 0:
@@ -50,6 +52,13 @@ bool Z80::clock(bool no_cycles)
 				break;
 			}
 			}
+		}
+		else if (halted)
+		{
+			// The halt instruction will continuously execute NOPs until there is an interrupt
+			Instruction inst {InstType::NOP, "halt", 1, 4};
+			cycles_left = const_cast<Instruction&>(inst).execute(*this);
+			found = true;
 		}
 		else
 		{

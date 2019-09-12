@@ -101,6 +101,7 @@ enum class InstType
 	CCF,
 	CPL,
 	RST,
+	HALT,
 };
 
 /**

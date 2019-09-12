@@ -30,10 +30,12 @@ public:
 	Register16 hl;
 	Register16 bc;
 	Register16 de;
+
 	bool int_enabled = { false };
 	uint8_t int_mode = { 0 };
 	bool int_nmi = { false };
 	bool interrupt = { false };
+	bool halted = { false };
 
 	uint32_t cycles_left = { 0 };
 
