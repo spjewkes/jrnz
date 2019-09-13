@@ -21,11 +21,13 @@ bool Z80::clock(bool no_cycles)
 			Instruction inst {InstType::PUSH, "NMI", 1, 11, Operand::UNUSED, Operand::PC};
 			cycles_left = inst.execute(*this);
 			pc.set(0x66);
+			iff2 = iff1;
+			iff1 = false;
 			int_nmi = false;
 			halted = false;
 			found = true;
 		}
-		else if (int_enabled && interrupt)
+		else if (iff1 && interrupt)
 		{
 			halted = false;
 			switch (int_mode)
@@ -110,6 +112,7 @@ void Z80::reset()
 
 	top_of_stack = 0xffff;
 
-	int_enabled = false;
+	iff1 = false;
+	iff2 = false;
 	int_mode = 0;
 }

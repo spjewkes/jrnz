@@ -7,7 +7,7 @@
 
 void Bus::load_rom(std::string &rom_file)
 {
-	if(std::ifstream rom{rom_file, std::ios::binary | std::ios::ate})
+	if (std::ifstream rom{rom_file, std::ios::binary | std::ios::ate})
 	{
 		auto rom_size = rom.tellg();
 		ram_start = rom_size;
@@ -17,15 +17,23 @@ void Bus::load_rom(std::string &rom_file)
 	}
 	else
 	{
-		std::cerr << "No file found called " << rom_file << std::endl;
+		std::cerr << "No ROM file found called " << rom_file << std::endl;
 		std::cerr << "ROM uninitialized" << std::endl;
 	}
 }
 
 void Bus::load_snapshot(std::string &sna_file, Z80 &state)
 {
-	UNUSED(sna_file);
-	UNUSED(state);
+	if (std::ifstream sna{sna_file, std::ios::binary | std::ios::ate})
+	{
+		//! TODO
+		UNUSED(state);
+	}
+	else
+	{
+		std::cerr << "No SNA file found called " << sna_file << std::endl;
+		std::cerr << "SNA failed to load" << std::endl;
+	}
 }
 
 uint8_t Bus::read_port(uint16_t addr) const

@@ -175,7 +175,10 @@ void Debugger::dump()
 	std::cout << "HL: " << _z80.hl << std::endl;
 	std::cout << "IX: " << _z80.ix << std::endl;
 	std::cout << "IY: " << _z80.iy << std::endl;
-	std::cout << "IM: " << static_cast<uint32_t>(_z80.int_mode) << " ei: " << (_z80.int_enabled ? "on" : "off") << std::endl;
+	std::cout << "IM: " << static_cast<uint32_t>(_z80.int_mode);
+	std::cout << " IFF1: " << (_z80.iff1 ? "on" : "off");
+	std::cout << " IFF2: " << (_z80.iff2 ? "on" : "off");
+	std::cout << std::endl;
 }
 
 void Debugger::dump_sp()

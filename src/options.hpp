@@ -18,12 +18,14 @@ public:
 
     std::string rom_file = { "" };
 	bool rom_on = { false };
+	std::string sna_file = { "" };
+	bool sna_on = { false };
     bool debug_mode = { false };
 	uint16_t break_addr = { 0 };
 	bool break_on = { false };
 
 private:
-    Options() =delete;
+    Options() = delete;
 
     void print_help();
     void process();

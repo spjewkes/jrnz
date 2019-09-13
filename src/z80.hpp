@@ -31,7 +31,9 @@ public:
 	Register16 bc;
 	Register16 de;
 
-	bool int_enabled = { false };
+	bool iff1 = { false };
+	bool iff2 = { false };
+
 	uint8_t int_mode = { 0 };
 	bool int_nmi = { false };
 	bool interrupt = { false };

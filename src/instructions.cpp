@@ -186,7 +186,8 @@ size_t Instruction::do_di(Z80 &state, StorageElement &dst_elem, StorageElement &
 	assert(Operand::UNUSED == dst);
 	assert(Operand::UNUSED == src);
 
-	state.int_enabled = false;
+	state.iff1 = false;
+	state.iff2 = false;
 
 	return cycles;
 }
@@ -199,7 +200,8 @@ size_t Instruction::do_ei(Z80 &state, StorageElement &dst_elem, StorageElement &
 	assert(Operand::UNUSED == dst);
 	assert(Operand::UNUSED == src);
 
-	state.int_enabled = true;
+	state.iff1 = true;
+	state.iff2 = true;
 
 	return cycles;
 }
