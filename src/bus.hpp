@@ -18,6 +18,11 @@
 #include "keyboard.hpp"
 
 /**
+ * Forward prototypes.
+ */
+class Z80;
+
+/**
  * @brief Defines the memory/data bus of the device.
  */
 class Bus
@@ -26,53 +31,17 @@ public:
 	Bus(size_t size) : mem(size) {}
 	virtual ~Bus() {}
 
-	void load_rom(std::string &rom_file)
-		{
-			if(std::ifstream rom{rom_file, std::ios::binary | std::ios::ate})
-			{
-				auto rom_size = rom.tellg();
-				ram_start = rom_size;
-				rom.seekg(0);
-				rom.read(reinterpret_cast<char*>(&mem[0]), rom_size);
-				rom.close();
-			}
-			else
-			{
-				std::cerr << "No file found called " << rom_file << std::endl;
-				std::cerr << "ROM uninitialized" << std::endl;
-			}
-		}
+	void load_rom(std::string &rom_file);
+	void load_snapshot(std::string &sna_file, Z80 &state);
 
 	uint8_t &operator[](uint16_t addr)
 		{
 			return mem[addr];
 		}
 
-	uint8_t read_port(uint16_t addr) const
-		{
-			// The only port we care about is 0xfe. More specifically for now we just check that
-			// the lowest bit is not set. The bits are set as follows:
-			// 0-4 : keyboard
-			// 5   : unused
-			// 6   : ear
-			// 7   : unused
-			//! ear is currently not handled
-
-			if (addr % 2 == 0)
-			{
-				uint8_t half_rows = (addr & 0xff00) >> 8;
-				return get_keyboard_state(half_rows);
-			}
-
-			return 0;
-		}
-
-	void write_port(uint16_t addr, uint8_t v)
-		{
-			UNUSED(addr);
-			UNUSED(v);
-		}
-
+	uint8_t read_port(uint16_t addr) const;
+	void write_port(uint16_t addr, uint8_t v);
+	
 	uint8_t read_data(uint16_t addr) const { return mem[addr]; }
 
 	void write_data(uint16_t addr, uint8_t v)
@@ -97,43 +66,7 @@ public:
 
 	StorageElement read_element_from_mem(uint16_t addr, size_t count) { return StorageElement(&mem[addr], count, (addr < ram_start)); }
 
-	uint32_t read_opcode_from_mem(uint16_t addr, uint16_t* operand_offset = nullptr)
-		{
-			uint16_t offset = 1;
-			uint32_t opcode = mem[addr];
-
-			// Handled extended instructions
-			switch(opcode)
-			{
-			case 0xed:
-			case 0xcb:
-			case 0xdd:
-			case 0xfd:
-			{
-				opcode = (opcode << 8) | mem[addr + 1];
-				offset++;
-
-				// Handle IX and IY bit instructions, the opcode comes after
-				// the displacement byte:
-				// 0xddcb <displacement byte> <opcode>
-				// oxfdcb <displacement byte> <opcode>
-				// Make sure the operand is not in the returned opcode
-				switch(opcode)
-				{
-				case 0xddcb:
-				case 0xfdcb:
-					opcode = (opcode << 8) | mem[addr + 3];
-				}
-			}
-			}
-
-			if (operand_offset != nullptr)
-			{
-				*operand_offset = offset;
-			}
-
-			return opcode;
-		}
+	uint32_t read_opcode_from_mem(uint16_t addr, uint16_t* operand_offset = nullptr);
 
 	void clock()
 		{
