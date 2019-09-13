@@ -47,44 +47,44 @@ void Bus::load_snapshot(std::string &sna_file, Z80 &state)
 		state.ir.hi(get_next_byte(sna));
 		
 		// 0x01 - HL'
-		state.hl.hi(get_next_byte(sna));
 		state.hl.lo(get_next_byte(sna));
+		state.hl.hi(get_next_byte(sna));
 		state.hl.swap();
 
 		// 0x03 - DE'
-		state.de.hi(get_next_byte(sna));
 		state.de.lo(get_next_byte(sna));
+		state.de.hi(get_next_byte(sna));
 		state.de.swap();
 
 		// 0x05 - BC'
-		state.bc.hi(get_next_byte(sna));
 		state.bc.lo(get_next_byte(sna));
+		state.bc.hi(get_next_byte(sna));
 		state.bc.swap();
 
 		// 0x07 - AF'
-		state.af.hi(get_next_byte(sna));
 		state.af.lo(get_next_byte(sna));
+		state.af.hi(get_next_byte(sna));
 		state.af.swap();
 
 		// 0x09 - HL
-		state.hl.hi(get_next_byte(sna));
 		state.hl.lo(get_next_byte(sna));
+		state.hl.hi(get_next_byte(sna));
 
 		// 0x0b - DE
-		state.de.hi(get_next_byte(sna));
 		state.de.lo(get_next_byte(sna));
+		state.de.hi(get_next_byte(sna));
 
 		// 0x0d - BC
-		state.bc.hi(get_next_byte(sna));
 		state.bc.lo(get_next_byte(sna));
+		state.bc.hi(get_next_byte(sna));
 
 		// 0x0f - IY
-		state.iy.hi(get_next_byte(sna));
 		state.iy.lo(get_next_byte(sna));
+		state.iy.hi(get_next_byte(sna));
 
 		// 0x11 - IX
-		state.ix.hi(get_next_byte(sna));
 		state.ix.lo(get_next_byte(sna));
+		state.ix.hi(get_next_byte(sna));
 
 		// 0x13 - IFF2
 		state.iff2 = (get_next_byte(sna) & 0x4 ? true : false);
@@ -93,12 +93,12 @@ void Bus::load_snapshot(std::string &sna_file, Z80 &state)
 		state.ir.lo(get_next_byte(sna));
 
 		// 0x15 - AF
-		state.af.hi(get_next_byte(sna));
 		state.af.lo(get_next_byte(sna));
+		state.af.hi(get_next_byte(sna));
 
 		// 0x17 - SP
-		state.sp.hi(get_next_byte(sna));
 		state.sp.lo(get_next_byte(sna));
+		state.sp.hi(get_next_byte(sna));
 
 		// 0x19 - interrupt mode: 0, 1 or 2
 		state.int_mode = get_next_byte(sna);
