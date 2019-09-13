@@ -306,7 +306,7 @@ size_t Instruction::do_djnz(Z80 &state, StorageElement &dst_elem, StorageElement
 	assert(Conditional::NZ == cond);
 
 	state.bc.hi(state.bc.hi() - 1);
-	if (state.bc.hi() == 0)
+	if (state.bc.hi() != 0)
 	{
 		dst_elem = dst_elem + src_elem;
 	}
