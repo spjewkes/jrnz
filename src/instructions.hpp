@@ -67,6 +67,8 @@ private:
 	size_t do_djnz(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
 	size_t do_call(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
 	size_t do_ret(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
+	size_t do_retn(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
+	size_t do_reti(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
 	size_t do_bit(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
 	size_t do_set(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
 	size_t do_res(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
@@ -99,6 +101,7 @@ private:
 	size_t impl_sub(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem, bool store, bool use_carry, bool is_dec);
 	size_t impl_shift_left(Z80 &state, StorageElement &elem, bool set_state, bool rotate, bool carry_inst);
 	size_t impl_shift_right(Z80 &state, StorageElement &elem, bool set_state, bool rotate, bool carry_inst);
+	size_t impl_ret(Z80 &state, StorageElement &elem);
 
 	bool is_cond_set(Conditional cond, Z80 &state);
 };

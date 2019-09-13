@@ -42,6 +42,8 @@ size_t Instruction::execute(Z80 &state)
 	case InstType::RES:  return do_res(state, dst_elem, src_elem); break;
 	case InstType::CALL: return do_call(state, dst_elem, src_elem); break;
 	case InstType::RET:  return do_ret(state, dst_elem, src_elem); break;
+	case InstType::RETN: return do_retn(state, dst_elem, src_elem); break;
+	case InstType::RETI: return do_reti(state, dst_elem, src_elem); break;
 	case InstType::PUSH: return do_push(state, dst_elem, src_elem); break;
 	case InstType::POP:  return do_pop(state, dst_elem, src_elem); break;
 	case InstType::RLC:  return do_rlc(state, dst_elem, src_elem); break;
@@ -339,9 +341,37 @@ size_t Instruction::do_ret(Z80 &state, StorageElement &dst_elem, StorageElement 
 
 	if (is_cond_set(cond, state))
 	{
-		uint16_t new_sp = dst_elem.pop(state.bus, state.sp.get());
-		state.sp.set(new_sp);
+		return impl_ret(state, dst_elem);
 	}
+
+	return cycles_not_cond;
+}
+
+size_t Instruction::do_retn(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+{
+	UNUSED(src_elem);
+
+	assert(Operand::PC == dst);
+	assert(Operand::UNUSED == src);
+
+	state.iff1 = state.iff2;
+	return impl_ret(state, dst_elem);
+}
+
+size_t Instruction::do_reti(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+{
+	UNUSED(src_elem);
+
+	assert(Operand::PC == dst);
+	assert(Operand::UNUSED == src);
+
+	return impl_ret(state, dst_elem);
+}
+
+size_t Instruction::impl_ret(Z80 &state, StorageElement &elem)
+{
+	uint16_t new_sp = elem.pop(state.bus, state.sp.get());
+	state.sp.set(new_sp);
 
 	return cycles;
 }

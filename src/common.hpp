@@ -85,6 +85,8 @@ enum class InstType
 	RES,
 	CALL,
 	RET,
+	RETN,
+	RETI,
 	PUSH,
 	POP,
 	RLC,
