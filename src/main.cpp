@@ -57,7 +57,11 @@ int main(int argc, char **argv)
 	{
 		mem.load_rom(options.rom_file);
 	}
-	
+	if (options.sna_on)
+	{
+		mem.load_snapshot(options.sna_file, state);
+	}
+
 	debug.set_dout(options.debug_mode);
 	if (options.break_on)
 	{

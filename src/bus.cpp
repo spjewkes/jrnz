@@ -22,12 +22,99 @@ void Bus::load_rom(std::string &rom_file)
 	}
 }
 
+static uint8_t get_next_byte(std::ifstream &stream)
+{
+	char ch;
+	stream.get(ch);
+	return static_cast<uint8_t>(ch);
+}
+
 void Bus::load_snapshot(std::string &sna_file, Z80 &state)
 {
 	if (std::ifstream sna{sna_file, std::ios::binary | std::ios::ate})
 	{
-		//! TODO
-		UNUSED(state);
+		auto file_size = sna.tellg();
+		if (file_size != 49179)
+		{
+			std::cerr << "SNA file size is " << file_size << std::endl;
+			std::cerr << "Expected 49179 bytes.\n";
+			return;
+		}
+
+		sna.seekg(0);
+
+		// 0x00 - I
+		state.ir.hi(get_next_byte(sna));
+		
+		// 0x01 - HL'
+		state.hl.hi(get_next_byte(sna));
+		state.hl.lo(get_next_byte(sna));
+		state.hl.swap();
+
+		// 0x03 - DE'
+		state.de.hi(get_next_byte(sna));
+		state.de.lo(get_next_byte(sna));
+		state.de.swap();
+
+		// 0x05 - BC'
+		state.bc.hi(get_next_byte(sna));
+		state.bc.lo(get_next_byte(sna));
+		state.bc.swap();
+
+		// 0x07 - AF'
+		state.af.hi(get_next_byte(sna));
+		state.af.lo(get_next_byte(sna));
+		state.af.swap();
+
+		// 0x09 - HL
+		state.hl.hi(get_next_byte(sna));
+		state.hl.lo(get_next_byte(sna));
+
+		// 0x0b - DE
+		state.de.hi(get_next_byte(sna));
+		state.de.lo(get_next_byte(sna));
+
+		// 0x0d - BC
+		state.bc.hi(get_next_byte(sna));
+		state.bc.lo(get_next_byte(sna));
+
+		// 0x0f - IY
+		state.iy.hi(get_next_byte(sna));
+		state.iy.lo(get_next_byte(sna));
+
+		// 0x11 - IX
+		state.ix.hi(get_next_byte(sna));
+		state.ix.lo(get_next_byte(sna));
+
+		// 0x13 - IFF2
+		state.iff2 = (get_next_byte(sna) & 0x2 ? true : false);
+
+		// 0x14 - R
+		state.ir.lo(get_next_byte(sna));
+
+		// 0x15 - AF
+		state.af.hi(get_next_byte(sna));
+		state.af.lo(get_next_byte(sna));
+
+		// 0x17 - SP
+		state.sp.hi(get_next_byte(sna));
+		state.sp.lo(get_next_byte(sna));
+
+		// 0x19 - interrupt mode: 0, 1 or 2
+		state.int_mode = get_next_byte(sna);
+		assert(state.int_mode == 0 || state.int_mode == 1 || state.int_mode == 2);
+
+		// 0x1a - border colour
+		get_next_byte(sna);
+		//! TODO - ignore for now
+
+		// Renaming file is the 48k of RAM
+		sna.read(reinterpret_cast<char*>(&mem[16384]), 49152);
+		sna.close();
+
+		// Now execute a RETN instruction
+		Instruction inst{InstType::RETN, "retn", 2, 14, Operand::PC};
+		inst.execute(state);
 	}
 	else
 	{
