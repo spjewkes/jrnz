@@ -87,7 +87,7 @@ void Bus::load_snapshot(std::string &sna_file, Z80 &state)
 		state.ix.lo(get_next_byte(sna));
 
 		// 0x13 - IFF2
-		state.iff2 = (get_next_byte(sna) & 0x2 ? true : false);
+		state.iff2 = (get_next_byte(sna) & 0x4 ? true : false);
 
 		// 0x14 - R
 		state.ir.lo(get_next_byte(sna));
