@@ -580,7 +580,8 @@ void init_map_inst()
 	map_inst.emplace(0xed74, Instruction{InstType::SUB,  "neg",        2,  8, Operand::ZERO, Operand::A});
 	map_inst.emplace(0xed75, Instruction{InstType::RETN, "retn",       2, 14, Operand::PC});
 	map_inst.emplace(0xed76, Instruction{InstType::IM,   "im 1",       2,  8, Operand::IM, Operand::ONE});
-	map_inst.emplace(0xed78, Instruction{InstType::IN,   "in a, (c)",  2, 12, Operand::A, Operand::PORTC});
+	map_inst.emplace(0xed78, Instruction{InstType::IN,   "in a,(c)",   2, 12, Operand::A, Operand::PORTC});
+	map_inst.emplace(0xed79, Instruction{InstType::OUT,  "out (c),a",  2, 13, Operand::PORTC, Operand::A});
 	map_inst.emplace(0xed7a, Instruction{InstType::ADC,  "adc hl,sp",  2, 15, Operand::HL, Operand::SP});
 	map_inst.emplace(0xed7b, Instruction{InstType::LD,   "ld sp,(**)", 4, 20, Operand::SP, Operand::indNN});
 	map_inst.emplace(0xed7c, Instruction{InstType::SUB,  "neg",        2,  8, Operand::ZERO, Operand::A});
