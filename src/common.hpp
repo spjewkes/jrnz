@@ -102,6 +102,10 @@ enum class InstType
 	SCF,
 	CCF,
 	CPL,
+	CPI,
+	CPIR,
+	CPD,
+	CPDR,
 	RST,
 	HALT,
 };

@@ -59,6 +59,10 @@ size_t Instruction::execute(Z80 &state)
 	case InstType::SCF:  return do_scf(state, dst_elem, src_elem); break;
 	case InstType::CCF:  return do_ccf(state, dst_elem, src_elem); break;
 	case InstType::CPL:  return do_cpl(state, dst_elem, src_elem); break;
+	case InstType::CPI:  return do_cpi(state, dst_elem, src_elem); break;
+	case InstType::CPIR: return do_cpir(state, dst_elem, src_elem); break;
+	case InstType::CPD:  return do_cpd(state, dst_elem, src_elem); break;
+	case InstType::CPDR: return do_cpdr(state, dst_elem, src_elem); break;
 	case InstType::RST:  return do_rst(state, dst_elem, src_elem); break;
 	case InstType::HALT: return do_halt(state, dst_elem, src_elem); break;
 	default:
@@ -709,6 +713,80 @@ size_t Instruction::do_cpl(Z80 &state, StorageElement &dst_elem, StorageElement 
 	state.af.flag(RegisterAF::Flags::HalfCarry, true);
 
 	return cycles;
+}
+
+size_t Instruction::do_cpi(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+{
+	UNUSED(dst_elem);
+	UNUSED(src_elem);
+
+	return impl_cp_inc_dec(state, true /* do_inc */, false /* loop */);
+}
+
+size_t Instruction::do_cpir(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+{
+	UNUSED(dst_elem);
+	UNUSED(src_elem);
+
+	return impl_cp_inc_dec(state, true /* do_inc */, true /* loop */);
+}
+
+size_t Instruction::do_cpd(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+{
+	UNUSED(dst_elem);
+	UNUSED(src_elem);
+
+	return impl_cp_inc_dec(state, false /* do_inc */, false /* loop */);
+}
+
+size_t Instruction::do_cpdr(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+{
+	UNUSED(dst_elem);
+	UNUSED(src_elem);
+
+	return impl_cp_inc_dec(state, false /* do_inc */, true /* loop */);
+}
+
+size_t Instruction::impl_cp_inc_dec(Z80 &state, bool do_inc, bool loop)
+{
+	bool set_z = false;
+	if (state.af.hi() == state.bus.read_data(state.hl.get()))
+	{
+		set_z = true;
+	}
+
+	StorageElement regA = StorageElement::create_element(state, Operand::A);
+	StorageElement regHL = StorageElement::create_element(state, Operand::HL);
+	StorageElement regBC = StorageElement::create_element(state, Operand::BC);
+	StorageElement indHL = StorageElement::create_element(state, Operand::indHL);
+	StorageElement one = StorageElement::create_element(state, Operand::ONE);
+
+	// CP (HL)
+	impl_sub(state, regA, indHL, false /* store */, false /* use_carry */, false /* is_dec */);
+
+	if (do_inc)
+	{
+		// INC HL
+		impl_add(state, regHL, one, true /* store */, false /* use_carry */, true /* is_inc */);
+	}
+	else
+	{
+		impl_sub(state, regHL, one, true /* store */, false /* use_carry */, true /* is_dec */);
+	}
+	
+	// DEC BC
+	impl_sub(state, regBC, one, true /* store */, false /* use_carry */, true /* is_dec */);
+
+	// the Z flag is set if A=(HL) before HL is increased
+	state.af.flag(RegisterAF::Flags::Zero, set_z);
+
+	if ((loop) && (state.bc.get() != 0 || set_z))
+	{
+		state.pc.set(state.pc.get() - size);
+		return cycles;
+	}
+
+	return cycles_not_cond;
 }
 
 size_t Instruction::do_rst(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)

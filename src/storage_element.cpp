@@ -209,6 +209,15 @@ StorageElement &StorageElement::operator|=(const StorageElement &rhs)
 	return *this;
 }
 
+bool StorageElement::operator ==(const StorageElement &rhs) const
+{
+	if (to_u32() == rhs.to_u32())
+	{
+		return true;
+	}
+	return false;	
+}
+
 void StorageElement::swap(StorageElement &rhs)
 {
 	uint8_t tmp_lo = ptr[WORD_LO_BYTE_IDX];

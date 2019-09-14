@@ -586,8 +586,12 @@ void init_map_inst()
 	map_inst.emplace(0xed7c, Instruction{InstType::SUB,  "neg",        2,  8, Operand::ZERO, Operand::A});
 	map_inst.emplace(0xed7d, Instruction{InstType::RETN, "retn",       2, 14, Operand::PC});
 	map_inst.emplace(0xed7e, Instruction{InstType::IM,   "im 2",       2,  8, Operand::IM, Operand::TWO});
+	map_inst.emplace(0xeda1, Instruction{InstType::CPI,  "cpi",        2, 16, 16, Operand::UNUSED, Operand::UNUSED});
+	map_inst.emplace(0xeda9, Instruction{InstType::CPD,  "cpd",        2, 16, 16, Operand::UNUSED, Operand::UNUSED});
 	map_inst.emplace(0xedb0, Instruction{InstType::LDIR, "ldir",       2, 21, 16, Operand::indDE, Operand::indHL});
+	map_inst.emplace(0xedb1, Instruction{InstType::CPIR, "cpir",       2, 21, 16, Operand::UNUSED, Operand::UNUSED});
 	map_inst.emplace(0xedb8, Instruction{InstType::LDDR, "lddr",       2, 21, 16, Operand::indDE, Operand::indHL});
+	map_inst.emplace(0xedb9, Instruction{InstType::CPDR, "cpdr",       2, 21, 16, Operand::UNUSED, Operand::UNUSED});
 
 
 

@@ -92,6 +92,10 @@ private:
 	size_t do_scf(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
 	size_t do_ccf(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
 	size_t do_cpl(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
+	size_t do_cpi(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
+	size_t do_cpir(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
+	size_t do_cpd(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
+	size_t do_cpdr(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
 	size_t do_rst(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
 	size_t do_halt(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
 
@@ -101,7 +105,8 @@ private:
 	size_t impl_sub(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem, bool store, bool use_carry, bool is_dec);
 	size_t impl_shift_left(Z80 &state, StorageElement &elem, bool set_state, bool rotate, bool carry_inst);
 	size_t impl_shift_right(Z80 &state, StorageElement &elem, bool set_state, bool rotate, bool carry_inst);
-	size_t impl_ret(Z80 &state, StorageElement &elem);
+	size_t impl_cp_inc_dec(Z80 &state, bool do_inc, bool loop);
+	size_t impl_ret(Z80 &state, StorageElement &elm);
 
 	bool is_cond_set(Conditional cond, Z80 &state);
 };
