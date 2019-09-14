@@ -116,6 +116,7 @@ enum class InstType
 enum class Conditional
 {
 	ALWAYS,
+	NEVER,
 	Z,
 	NZ,
 	C,

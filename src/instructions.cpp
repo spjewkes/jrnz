@@ -780,7 +780,7 @@ size_t Instruction::impl_cp_inc_dec(Z80 &state, bool do_inc, bool loop)
 	// the Z flag is set if A=(HL) before HL is increased
 	state.af.flag(RegisterAF::Flags::Zero, set_z);
 
-	if ((loop) && (state.bc.get() != 0 || set_z))
+	if ((loop) && (state.bc.get() != 0 || state.af.hi() == state.bus.read_data(state.hl.get())))
 	{
 		state.pc.set(state.pc.get() - size);
 		return cycles;
