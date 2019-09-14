@@ -96,6 +96,10 @@ StorageElement StorageElement::create_element(Z80 &state, Operand operand)
 	case Operand::R:        return state.ir.element_lo();
 	case Operand::IX:       return state.ix.element();
 	case Operand::IY:       return state.iy.element();
+	case Operand::IXH:      return state.ix.element_hi();
+	case Operand::IXL:      return state.ix.element_lo();
+	case Operand::IYH:      return state.iy.element_hi();
+	case Operand::IYL:      return state.iy.element_lo();
 	case Operand::indBC:    return StorageElement(&state.bus[state.bc.get()],1);
 	case Operand::indDE:    return StorageElement(&state.bus[state.de.get()],1);
 	case Operand::indHL:    return StorageElement(&state.bus[state.hl.get()],1);
