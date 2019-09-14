@@ -601,6 +601,7 @@ void init_map_inst()
 	map_inst.emplace(0xdd21, Instruction{InstType::LD,   "ld ix,**",     4, 14, Operand::IX, Operand::NN});
 	map_inst.emplace(0xdd22, Instruction{InstType::LD,   "ld (**),ix",   4, 20, Operand::indNN, Operand::IX});
 	map_inst.emplace(0xdd23, Instruction{InstType::INC,  "inc ix",       2, 10, Operand::IX, Operand::ONE});
+	map_inst.emplace(0xdd26, Instruction{InstType::LD,   "ld ixh,*",     3, 11, Operand::IXH, Operand::N});
 	map_inst.emplace(0xdd29, Instruction{InstType::ADD,  "add ix,ix",    2, 15, Operand::IX, Operand::IX});
 	map_inst.emplace(0xdd2a, Instruction{InstType::LD,   "ld ix,(**)",   4, 20, Operand::IX, Operand::indNN});
 	map_inst.emplace(0xdd2d, Instruction{InstType::DEC,  "dec ix",       2, 10, Operand::IX, Operand::ONE});
