@@ -167,21 +167,42 @@ std::stringstream Debugger::dump_mem_at_addr(uint16_t addr, size_t size, size_t 
 
 void Debugger::dump()
 {
-	std::cout << "AF: " << _z80.af << std::endl;
-	std::cout << "PC: " << _z80.pc << std::endl;
+	std::cout << "PC: " << _z80.pc << "   \t";
 	std::cout << "SP: " << _z80.sp << std::endl;
-	std::cout << "BC: " << _z80.bc << std::endl;
-	std::cout << "DE: " << _z80.de << std::endl;
-	std::cout << "HL: " << _z80.hl << std::endl;
-	std::cout << "IX: " << _z80.ix << std::endl;
+
+	std::cout << "AF: " << _z80.af << "   \t";
+	_z80.af.swap();
+	std::cout << "AF\': " << _z80.af << std::endl;
+	_z80.af.swap();
+	
+	std::cout << "BC: " << _z80.bc << "   \t";
+	_z80.bc.swap();
+	std::cout << "BC\': " << _z80.bc << std::endl;
+	_z80.bc.swap();
+	
+	std::cout << "DE: " << _z80.de << "   \t";
+	_z80.de.swap();
+	std::cout << "DE\': " << _z80.de << std::endl;
+	_z80.de.swap();
+	
+	std::cout << "HL: " << _z80.hl << "   \t";
+	_z80.hl.swap();
+	std::cout << "HL\': " << _z80.hl << std::endl;
+	_z80.hl.swap();
+	
+	std::cout << "IX: " << _z80.ix << "   \t";
 	std::cout << "IY: " << _z80.iy << std::endl;
+
+	std::cout << "I: 0x" << std::hex << std::setfill('0') << std::setw(2) << static_cast<uint32_t>(_z80.ir.hi()) << " - ";
+	std::cout << "R: 0x" << std::hex << std::setfill('0') << std::setw(2) << static_cast<uint32_t>(_z80.ir.lo()) << std::endl;
 
 	std::cout << "IM: " << static_cast<uint32_t>(_z80.int_mode);
 	std::cout << " IFF1: " << (_z80.iff1 ? "on" : "off");
 	std::cout << " IFF2: " << (_z80.iff2 ? "on" : "off");
 	std::cout << std::endl;
-}
 
+	std::cout << "Flags: " << _z80.af.dump_flags().str() << std::endl;
+}
 void Debugger::dump_sp()
 {
 	assert(_z80.sp.get() <= _z80.top_of_stack);

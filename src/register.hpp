@@ -81,6 +81,8 @@ public:
 				flag(f, true);
 		}
 
+	std::stringstream dump_flags();
+
 	friend std::ostream& operator<<(std::ostream& stream, const RegisterAF& e);
 
 private:
