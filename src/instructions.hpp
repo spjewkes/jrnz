@@ -106,7 +106,7 @@ private:
 	size_t impl_shift_left(Z80 &state, StorageElement &elem, bool set_state, bool rotate, bool carry_inst);
 	size_t impl_shift_right(Z80 &state, StorageElement &elem, bool set_state, bool rotate, bool carry_inst);
 	size_t impl_cp_inc_dec(Z80 &state, bool do_inc, bool loop);
-	size_t impl_ret(Z80 &state, StorageElement &elm);
+	size_t impl_ret(Z80 &state, StorageElement &pc);
 
 	bool is_cond_set(Conditional cond, Z80 &state);
 };

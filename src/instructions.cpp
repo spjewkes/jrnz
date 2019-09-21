@@ -372,9 +372,9 @@ size_t Instruction::do_reti(Z80 &state, StorageElement &dst_elem, StorageElement
 	return impl_ret(state, dst_elem);
 }
 
-size_t Instruction::impl_ret(Z80 &state, StorageElement &elem)
+size_t Instruction::impl_ret(Z80 &state, StorageElement &pc)
 {
-	uint16_t new_sp = elem.pop(state.bus, state.sp.get());
+	uint16_t new_sp = pc.pop(state.bus, state.sp.get());
 	state.sp.set(new_sp);
 
 	return cycles;
