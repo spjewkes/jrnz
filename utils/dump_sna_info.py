@@ -9,10 +9,10 @@ def read_16bit_size(data, little_endian=True):
     else:
         return data[1] + data[0] * 256
 
-def print_16bit_reg(data, offset, reg_name):
+def print_16bit_reg(data, offset, reg_name, modify=0):
     """ Print 16-bit register to stdout """
     value = read_16bit_size(data[offset:])
-    print("{:>4}: 0x{:04x}".format(reg_name, value), end="")
+    print("{:>4}: 0x{:04x}".format(reg_name, value+modify), end="")
 
 def print_8bit_reg(data, offset, reg_name):
     """ Print 8-bit register to stdout """
@@ -57,7 +57,8 @@ print("  -  ", end="")
 print_16bit_reg(data, 0x11, "IX")
 print()
 
-print_16bit_reg(data, 0x17, "SP")
+# Add 2 bytes to the value as we'll treat the SP has popped the PC off already
+print_16bit_reg(data, 0x17, "SP", modify=2)
 print("  -  ", end="")
 # Fetch the PC from the SP. Skip over the 27 bytes of the header and
 # offset the SP address by the ROM as this isn't part of the snapshot
