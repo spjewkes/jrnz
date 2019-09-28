@@ -209,7 +209,7 @@ StorageElement &StorageElement::operator|=(const StorageElement &rhs)
 	return *this;
 }
 
-bool StorageElement::operator ==(const StorageElement &rhs) const
+bool StorageElement::operator==(const StorageElement &rhs) const
 {
 	if (to_u32() == rhs.to_u32())
 	{

@@ -41,6 +41,7 @@ public:
 	bool break_enabled = { false };
 	bool break_at_pc = { false };
 	uint16_t break_pc = { 0x0000 };
+	uint16_t break_pc_tmp = { 0x0000 };
 };
 
 #endif // __DEBUGGER_HPP__

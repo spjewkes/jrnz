@@ -13,10 +13,11 @@ void Debugger::set_break(bool enable, uint16_t _break_pc)
 
 bool Debugger::break_ready()
 {
-	if (break_at_pc && _z80.pc.get() == break_pc)
+	if (break_at_pc && (_z80.pc.get() == break_pc || (_z80.pc.get() == break_pc_tmp && 0x0000 != break_pc_tmp)))
 	{
 		std::cout << "Enabled break at 0x" << std::hex << break_pc << std::dec << std::endl;
 		break_enabled = true;
+		break_pc_tmp = 0x0000;
 		return true;
 	}
 
@@ -74,6 +75,17 @@ bool Debugger::clock()
 			case 'n':
 				paused = false;
 				break;
+			case 'u':
+			{
+				StorageElement stack_pc = StorageElement::create_element(_z80, Operand::indSP);
+				uint32_t val;
+				stack_pc.get_value(val);
+				break_pc_tmp = val;
+				break_at_pc = true;
+				paused = false;
+				break_enabled = false;
+				break;
+			}
 			case 'i':
 				_z80.int_nmi = true;
 				break;
@@ -91,6 +103,7 @@ bool Debugger::clock()
 					"\tt = dump stack\n"
 					"\td <offset> <size> = dump memory contents starting at <offset> for <size> bytes\n"
 					"\tn = next instruction\n"
+					"\tu = continue to address on sp (tries to jump out of a routine)\n"
 					"\ti = NMI\n"
 					"\tq = quit\n";
 				std::cout << help_text;
