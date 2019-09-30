@@ -265,7 +265,7 @@ uint16_t StorageElement::pop(Bus &bus, uint16_t addr)
 	return addr+2;
 }
 
-void StorageElement::rotate_right(bool rotate, bool carry_inst, bool carry)
+void StorageElement::rotate_right(bool carry_inst, bool carry)
 {
 	assert(is_8bit());
 
@@ -274,11 +274,11 @@ void StorageElement::rotate_right(bool rotate, bool carry_inst, bool carry)
 	flag_carry = (shifted_bit != 0);
 
 	val >>= 1;
-	if (rotate && carry_inst)
+	if (carry_inst)
 	{
 		val |= shifted_bit;
 	}
-	else if (rotate && !carry_inst)
+	else
 	{
 		val |= (carry ? 0x80 : 0x00);
 	}
@@ -286,7 +286,7 @@ void StorageElement::rotate_right(bool rotate, bool carry_inst, bool carry)
 	from_u32(val & 0xff);
 }
 
-void StorageElement::rotate_left(bool rotate, bool carry_inst, bool carry)
+void StorageElement::rotate_left(bool carry_inst, bool carry)
 {
 	assert(is_8bit());
 
@@ -295,11 +295,11 @@ void StorageElement::rotate_left(bool rotate, bool carry_inst, bool carry)
 	flag_carry = (shifted_bit != 0);
 
 	val <<= 1;
-	if (rotate && carry_inst)
+	if (carry_inst)
 	{
 		val |= shifted_bit;
 	}
-	else if (rotate && !carry_inst)
+	else
 	{
 		val |= (carry ? 0x1 : 0x0);
 	}

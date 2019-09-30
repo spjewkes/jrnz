@@ -547,7 +547,7 @@ size_t Instruction::do_rlc(Z80 &state, StorageElement &dst_elem, StorageElement 
 	UNUSED(src_elem);
 	assert(Operand::UNUSED == src);
 
-	impl_rotate_left(state, dst_elem, true /* set_state */, true /* rotate */, true /* carry_inst */);
+	impl_rotate_left(state, dst_elem, true /* set_state */, true /* carry_inst */);
 
 	return cycles;
 }
@@ -557,7 +557,7 @@ size_t Instruction::do_rl(Z80 &state, StorageElement &dst_elem, StorageElement &
 	UNUSED(src_elem);
 	assert(Operand::UNUSED == src);
 
-	impl_rotate_left(state, dst_elem, true /* set_state */, true /* rotate */, false /* carry_inst */);
+	impl_rotate_left(state, dst_elem, true /* set_state */, false /* carry_inst */);
 
 	return cycles;
 }
@@ -567,7 +567,7 @@ size_t Instruction::do_rrc(Z80 &state, StorageElement &dst_elem, StorageElement 
 	UNUSED(src_elem);
 	assert(Operand::UNUSED == src);
 
-	impl_rotate_right(state, dst_elem, true /* set_state */, true /* rotate */, true /* carry_inst */);
+	impl_rotate_right(state, dst_elem, true /* set_state */, true /* carry_inst */);
 
 	return cycles;
 }
@@ -577,7 +577,7 @@ size_t Instruction::do_rr(Z80 &state, StorageElement &dst_elem, StorageElement &
 	UNUSED(src_elem);
 	assert(Operand::UNUSED == src);
 
-	impl_rotate_right(state, dst_elem, true /* set_state */, true /* rotate */, false /* carry_inst */);
+	impl_rotate_right(state, dst_elem, true /* set_state */, false /* carry_inst */);
 
 	return cycles;
 }
@@ -628,7 +628,7 @@ size_t Instruction::do_rlca(Z80 &state, StorageElement &dst_elem, StorageElement
 	assert(Operand::UNUSED == src);
 	assert(Operand::A == dst);
 
-	impl_rotate_left(state, dst_elem, false /* set_state */, true /* rotate */, true /* carry_inst */);
+	impl_rotate_left(state, dst_elem, false /* set_state */, true /* carry_inst */);
 
 	return cycles;
 }
@@ -639,7 +639,7 @@ size_t Instruction::do_rla(Z80 &state, StorageElement &dst_elem, StorageElement 
 	assert(Operand::UNUSED == src);
 	assert(Operand::A == dst);
 
-	impl_rotate_left(state, dst_elem, false /* set_state */, true /* rotate */, false /* carry_inst */);
+	impl_rotate_left(state, dst_elem, false /* set_state */, false /* carry_inst */);
 
 	return cycles;
 }
@@ -650,7 +650,7 @@ size_t Instruction::do_rrca(Z80 &state, StorageElement &dst_elem, StorageElement
 	assert(Operand::UNUSED == src);
 	assert(Operand::A == dst);
 
-	impl_rotate_right(state, dst_elem, false /* set_state */, true /* rotate */, true /* carry_inst */);
+	impl_rotate_right(state, dst_elem, false /* set_state */, true /* carry_inst */);
 
 	return cycles;
 }
@@ -661,14 +661,14 @@ size_t Instruction::do_rra(Z80 &state, StorageElement &dst_elem, StorageElement 
 	assert(Operand::UNUSED == src);
 	assert(Operand::A == dst);
 
-	impl_rotate_right(state, dst_elem, false /* set_state */, true /* rotate */, false /* carry_inst */);
+	impl_rotate_right(state, dst_elem, false /* set_state */, false /* carry_inst */);
 
 	return cycles;
 }
 
-size_t Instruction::impl_rotate_left(Z80 &state, StorageElement &elem, bool set_state, bool rotate, bool carry_inst)
+size_t Instruction::impl_rotate_left(Z80 &state, StorageElement &elem, bool set_state, bool carry_inst)
 {
-	elem.rotate_left(rotate, carry_inst, state.af.flag(RegisterAF::Flags::Carry));
+	elem.rotate_left(carry_inst, state.af.flag(RegisterAF::Flags::Carry));
 	
 	state.af.flag(RegisterAF::Flags::Carry, elem.is_carry());
 	state.af.flag(RegisterAF::Flags::AddSubtract, false);
@@ -684,9 +684,9 @@ size_t Instruction::impl_rotate_left(Z80 &state, StorageElement &elem, bool set_
 	return cycles;
 }
 
-size_t Instruction::impl_rotate_right(Z80 &state, StorageElement &elem, bool set_state, bool rotate, bool carry_inst)
+size_t Instruction::impl_rotate_right(Z80 &state, StorageElement &elem, bool set_state, bool carry_inst)
 {
-	elem.rotate_right(rotate, carry_inst, state.af.flag(RegisterAF::Flags::Carry));
+	elem.rotate_right(carry_inst, state.af.flag(RegisterAF::Flags::Carry));
 
 	state.af.flag(RegisterAF::Flags::Carry, elem.is_carry());
 	state.af.flag(RegisterAF::Flags::AddSubtract, false);
