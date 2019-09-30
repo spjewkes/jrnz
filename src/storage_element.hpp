@@ -39,8 +39,10 @@ public:
 	void reset_bit(StorageElement &rhs);
 	uint16_t push(Bus &bus, uint16_t addr);
 	uint16_t pop(Bus &bus, uint16_t addr);
-	void shift_right(bool rotate, bool carry_inst, bool carry);
-	void shift_left(bool rotate, bool carry_inst, bool carry);
+	void rotate_right(bool rotate, bool carry_inst, bool carry);
+	void rotate_left(bool rotate, bool carry_inst, bool carry);
+	void shift_right(bool logical);
+	void shift_left(bool logical);
 
 	/**
 	 * Query functions.

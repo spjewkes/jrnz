@@ -105,8 +105,10 @@ private:
 	size_t impl_set_bit(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem, bool set);
 	size_t impl_add(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem, bool store, bool use_carry, bool is_inc);
 	size_t impl_sub(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem, bool store, bool use_carry, bool is_dec);
-	size_t impl_shift_left(Z80 &state, StorageElement &elem, bool set_state, bool rotate, bool carry_inst);
-	size_t impl_shift_right(Z80 &state, StorageElement &elem, bool set_state, bool rotate, bool carry_inst);
+	size_t impl_rotate_left(Z80 &state, StorageElement &elem, bool set_state, bool rotate, bool carry_inst);
+	size_t impl_rotate_right(Z80 &state, StorageElement &elem, bool set_state, bool rotate, bool carry_inst);
+	size_t impl_shift_left(Z80 &state, StorageElement &elem, bool logical);
+	size_t impl_shift_right(Z80 &state, StorageElement &elem, bool logical);
 	size_t impl_cp_inc_dec(Z80 &state, bool do_inc, bool loop);
 	size_t impl_ret(Z80 &state, StorageElement &pc);
 

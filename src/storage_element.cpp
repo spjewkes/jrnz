@@ -265,7 +265,7 @@ uint16_t StorageElement::pop(Bus &bus, uint16_t addr)
 	return addr+2;
 }
 
-void StorageElement::shift_right(bool rotate, bool carry_inst, bool carry)
+void StorageElement::rotate_right(bool rotate, bool carry_inst, bool carry)
 {
 	assert(is_8bit());
 
@@ -286,7 +286,7 @@ void StorageElement::shift_right(bool rotate, bool carry_inst, bool carry)
 	from_u32(val & 0xff);
 }
 
-void StorageElement::shift_left(bool rotate, bool carry_inst, bool carry)
+void StorageElement::rotate_left(bool rotate, bool carry_inst, bool carry)
 {
 	assert(is_8bit());
 
@@ -302,6 +302,52 @@ void StorageElement::shift_left(bool rotate, bool carry_inst, bool carry)
 	else if (rotate && !carry_inst)
 	{
 		val |= (carry ? 0x1 : 0x0);
+	}
+	
+	from_u32(val & 0xff);
+}
+
+void StorageElement::shift_right(bool logical)
+{
+	assert(is_8bit());
+
+	uint32_t val = to_u32();
+	uint32_t msb = val & 0x80;
+	uint32_t lsb = val & 0x01;
+
+	flag_carry = (lsb == 0 ? false : true);
+
+	val >>= 1;
+
+	// Logical resets the MSB
+	val &= 0x7F;
+
+	if (!logical)
+	{
+		val |= msb;
+	}
+
+	from_u32(val & 0xff);
+}
+
+void StorageElement::shift_left(bool logical)
+{
+	assert(is_8bit());
+
+	uint32_t val = to_u32();
+	uint32_t msb = val & 0x80;
+
+	flag_carry = (msb == 0 ? false : true);
+
+	val <<= 1;
+
+	if (!logical)
+	{
+		val &= 0xfe;
+	}
+	else
+	{
+		val |= 0x01;
 	}
 	
 	from_u32(val & 0xff);
