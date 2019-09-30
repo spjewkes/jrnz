@@ -265,45 +265,51 @@ uint16_t StorageElement::pop(Bus &bus, uint16_t addr)
 	return addr+2;
 }
 
-void StorageElement::rotate_right(bool carry_inst, bool carry)
+void StorageElement::rotate_right(bool rot_9bit, bool carry)
 {
 	assert(is_8bit());
 
 	uint32_t val = to_u32();
-	uint32_t shifted_bit = (val & 0x1) << 7;
-	flag_carry = (shifted_bit != 0);
+	uint32_t lsb = val & 0x01;
+
+	flag_carry = (lsb == 0 ? false : true);
 
 	val >>= 1;
-	if (carry_inst)
+	val &= 0x7f;
+
+	if (rot_9bit)
 	{
-		val |= shifted_bit;
+		val |= (carry ? 0x80 : 0x00);
 	}
 	else
 	{
-		val |= (carry ? 0x80 : 0x00);
+		val |= (lsb != 0 ? 0x80 : 0x00);
 	}
 
 	from_u32(val & 0xff);
 }
 
-void StorageElement::rotate_left(bool carry_inst, bool carry)
+void StorageElement::rotate_left(bool rot_9bit, bool carry)
 {
 	assert(is_8bit());
 
 	uint32_t val = to_u32();
-	uint32_t shifted_bit = (val & 0x80) >> 7;
-	flag_carry = (shifted_bit != 0);
+	uint32_t msb = val & 0x80;
+
+	flag_carry = (msb == 0 ? false : true);
 
 	val <<= 1;
-	if (carry_inst)
+	val &= 0xfe;
+
+	if (rot_9bit)
 	{
-		val |= shifted_bit;
+		val |= (carry ? 0x01 : 0x00);
 	}
 	else
 	{
-		val |= (carry ? 0x1 : 0x0);
+		val |= (msb != 0 ? 0x01 : 0x00);
 	}
-	
+
 	from_u32(val & 0xff);
 }
 
