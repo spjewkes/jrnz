@@ -56,6 +56,8 @@ size_t Instruction::execute(Z80 &state)
 	case InstType::SRL:  return do_srl(state, dst_elem, src_elem); break;
 	case InstType::RLCA: return do_rlca(state, dst_elem, src_elem); break;
 	case InstType::RLA:  return do_rla(state, dst_elem, src_elem); break;
+	case InstType::RRCA: return do_rrca(state, dst_elem, src_elem); break;
+	case InstType::RRA:  return do_rra(state, dst_elem, src_elem); break;
 	case InstType::SCF:  return do_scf(state, dst_elem, src_elem); break;
 	case InstType::CCF:  return do_ccf(state, dst_elem, src_elem); break;
 	case InstType::CPL:  return do_cpl(state, dst_elem, src_elem); break;
@@ -638,6 +640,28 @@ size_t Instruction::do_rla(Z80 &state, StorageElement &dst_elem, StorageElement 
 	assert(Operand::A == dst);
 
 	impl_shift_left(state, dst_elem, false /* set_state */, true /* rotate */, false /* carry_inst */);
+
+	return cycles;
+}
+
+size_t Instruction::do_rrca(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+{
+	UNUSED(src_elem);
+	assert(Operand::UNUSED == src);
+	assert(Operand::A == dst);
+
+	impl_shift_right(state, dst_elem, false /* set_state */, true /* rotate */, true /* carry_inst */);
+
+	return cycles;
+}
+
+size_t Instruction::do_rra(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+{
+	UNUSED(src_elem);
+	assert(Operand::UNUSED == src);
+	assert(Operand::A == dst);
+
+	impl_shift_right(state, dst_elem, false /* set_state */, true /* rotate */, false /* carry_inst */);
 
 	return cycles;
 }

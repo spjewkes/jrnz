@@ -99,6 +99,8 @@ enum class InstType
 	SRL,
 	RLCA,
 	RLA,
+	RRCA,
+	RRA,
 	SCF,
 	CCF,
 	CPL,
