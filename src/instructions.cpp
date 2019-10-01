@@ -814,23 +814,29 @@ size_t Instruction::impl_cp_inc_dec(Z80 &state, bool do_inc, bool loop)
 	StorageElement one = StorageElement::create_element(state, Operand::ONE);
 
 	// CP (HL)
-	impl_sub(state, regA, indHL, false /* store */, false /* use_carry */, false /* is_dec */);
+	regA = regA - indHL;
 
 	if (do_inc)
 	{
-		// INC HL
-		impl_add(state, regHL, one, true /* store */, false /* use_carry */, true /* is_inc */);
+		regHL = regHL + one;
 	}
 	else
 	{
-		impl_sub(state, regHL, one, true /* store */, false /* use_carry */, true /* is_dec */);
+		regHL = regHL - one;
 	}
 	
 	// DEC BC
-	impl_sub(state, regBC, one, true /* store */, false /* use_carry */, true /* is_dec */);
+	regBC = regBC - one;
+	uint32_t valueBC;
+	regBC.get_value(valueBC);
 
 	// the Z flag is set if A=(HL) before HL is increased
+	state.af.flag(RegisterAF::Flags::Sign, regA.is_neg());
 	state.af.flag(RegisterAF::Flags::Zero, set_z);
+	state.af.flag(RegisterAF::Flags::HalfCarry, regA.is_half());
+	state.af.flag(RegisterAF::Flags::AddSubtract, true);
+	state.af.flag(RegisterAF::Flags::ParityOverflow, (valueBC == 0 ? false : true));
+
 
 	if ((loop) && (state.bc.get() != 0 || state.af.hi() == state.bus.read_data(state.hl.get())))
 	{
