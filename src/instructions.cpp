@@ -801,12 +801,6 @@ size_t Instruction::do_cpdr(Z80 &state, StorageElement &dst_elem, StorageElement
 
 size_t Instruction::impl_cp_inc_dec(Z80 &state, bool do_inc, bool loop)
 {
-	bool set_z = false;
-	if (state.af.hi() == state.bus.read_data(state.hl.get()))
-	{
-		set_z = true;
-	}
-
 	StorageElement regA = StorageElement::create_element(state, Operand::A);
 	StorageElement regHL = StorageElement::create_element(state, Operand::HL);
 	StorageElement regBC = StorageElement::create_element(state, Operand::BC);
@@ -814,7 +808,12 @@ size_t Instruction::impl_cp_inc_dec(Z80 &state, bool do_inc, bool loop)
 	StorageElement one = StorageElement::create_element(state, Operand::ONE);
 
 	// CP (HL)
-	regA = regA - indHL;
+	StorageElement result = regA - indHL;
+	bool set_z = false;
+	if (result.is_zero())
+	{
+		set_z = true;
+	}
 
 	if (do_inc)
 	{
@@ -831,14 +830,13 @@ size_t Instruction::impl_cp_inc_dec(Z80 &state, bool do_inc, bool loop)
 	regBC.get_value(valueBC);
 
 	// the Z flag is set if A=(HL) before HL is increased
-	state.af.flag(RegisterAF::Flags::Sign, regA.is_neg());
+	state.af.flag(RegisterAF::Flags::Sign, result.is_neg());
 	state.af.flag(RegisterAF::Flags::Zero, set_z);
-	state.af.flag(RegisterAF::Flags::HalfCarry, regA.is_half());
+	state.af.flag(RegisterAF::Flags::HalfCarry, result.is_half());
 	state.af.flag(RegisterAF::Flags::AddSubtract, true);
 	state.af.flag(RegisterAF::Flags::ParityOverflow, (valueBC == 0 ? false : true));
 
-
-	if ((loop) && (state.bc.get() != 0 || state.af.hi() == state.bus.read_data(state.hl.get())))
+	if (loop && state.bc.get() != 0 && !set_z)
 	{
 		state.pc.set(state.pc.get() - size);
 		return cycles;
