@@ -144,8 +144,10 @@ uint8_t Bus::read_port(uint16_t addr) const
 
 void Bus::write_port(uint16_t addr, uint8_t v)
 {
-	UNUSED(addr);
-	UNUSED(v);
+	if (addr == 254)
+	{
+		port_254 = v;
+	}
 }
 
 uint32_t Bus::read_opcode_from_mem(uint16_t addr, uint16_t* operand_offset)

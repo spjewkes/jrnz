@@ -73,6 +73,9 @@ public:
 			// Not actively used at the moment but may be useful for debugging
 		}
 	
+	// TODO - this needs to be dealt with better at some point
+	uint8_t port_254 = {0};
+
 private:
 	std::vector<uint8_t> mem;
 	uint16_t ram_start;
