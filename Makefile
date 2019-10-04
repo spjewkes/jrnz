@@ -37,7 +37,7 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(DEPS)
 	$(CPP) $(CPPFLAGS) -c -o $@ $<
 
 $(EXE): $(OBJ)
-	$(CPP) $(CPPFLAGS) $(LIBS) $^ -o $@
+	$(CPP) $(CPPFLAGS) $^ -o $@ $(LIBS)
 
 setup_build:
 	@mkdir -p $(OBJ_DIR)
