@@ -6,6 +6,8 @@ Please note that development is very much work-in-progress. The principle is to 
 
 # Milestones
 
+* 25/05/2017 enough instructions implmented to run start of ZX Spectrum ROM (without interruption handling)
+* 04/09/2019 added interrupt handling (mode 1 only for the time being)
 * 08/09/2019 added rudimentary keyboard input and a display (albeit with no colour)
 * 03/10/2019 first game is playable. A Manic Miner snapshot can now be loaded and played. There is no colour or sound and the game crashes once it is game over.
 * 04/10/2019 colour has now been added and the Manic Miner snapshot is playable without crashes.
