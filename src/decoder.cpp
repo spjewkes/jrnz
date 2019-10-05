@@ -639,6 +639,7 @@ void init_map_inst()
 	map_inst.emplace(0xdd77, Instruction{InstType::LD,   "ld (ix+*),a",  3, 19, Operand::indIXN, Operand::A});
 	map_inst.emplace(0xdd7e, Instruction{InstType::LD,   "ld a,(ix+*)",  3, 19, Operand::A, Operand::indIXN});
 	map_inst.emplace(0xdd86, Instruction{InstType::ADD,  "add a,(ix+*)", 3, 19, Operand::A, Operand::indIXN});
+	map_inst.emplace(0xdd8e, Instruction{InstType::ADC,  "adc a,(ix+*)", 3, 19, Operand::A, Operand::indIXN});
 	map_inst.emplace(0xdd96, Instruction{InstType::SUB,  "sub (ix+*)",   3, 19, Operand::A, Operand::indIXN});
 	map_inst.emplace(0xdd9e, Instruction{InstType::SBC,  "sbc a,(ix+*)", 3, 19, Operand::A, Operand::indIXN});
 	map_inst.emplace(0xdda6, Instruction{InstType::AND,  "and (ix+*)",   3, 19, Operand::A, Operand::indIXN});
