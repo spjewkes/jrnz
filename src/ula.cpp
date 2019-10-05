@@ -79,6 +79,10 @@ void ULA::clock()
 
 #ifdef HAVE_DISPLAY		
 		{
+			// The draw routine at the moment is not very sophisticated and will not show any
+			// clever tricks with changing attributes midway through the frame. This will need
+			// and overhaul at some point in the future but is sufficient for the time being.
+
 			// Clear screen
 			set_rendercolor(renderer, _bus.port_254 & 0x7, false);
 			SDL_RenderClear(renderer);
@@ -99,19 +103,32 @@ void ULA::clock()
 					uint8_t paper_color = (color >> 3) & 0x07;
 					uint8_t ink_color = color & 0x07;
 
+					// Draw paper color as 8x8 pixel block
 					if ((new_y & 0x7) == 0 && (x & 0x7) == 0)
 					{
 						SDL_Rect rect = { x+32, new_y+32, 8, 8 };
 						set_rendercolor(renderer, (flash & invert ? ink_color : paper_color), bright);
 						SDL_RenderFillRect(renderer, &rect);
 					}
+
+					// Draw horizontal byte in ink color
 					set_rendercolor(renderer, (flash & invert ? paper_color : ink_color), bright);
-					
-					for (int p=0; p<8; p++)
+					uint8_t pixels = *data;
+					if (pixels != 0)
 					{
-						if (get_bit(*data, 7-p))
+						if (pixels == 255)
 						{
-							SDL_RenderDrawPoint(renderer, x+p+32 , new_y+32);
+							SDL_RenderDrawLine(renderer, x+32, new_y+32, x+39, new_y+32);
+						}
+						else
+						{
+							for (int p=0; p<8; p++)
+							{
+								if (get_bit(*data, 7-p))
+								{
+									SDL_RenderDrawPoint(renderer, x+p+32 , new_y+32);
+								}
+							}
 						}
 					}
 					data++;
