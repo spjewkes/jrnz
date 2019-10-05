@@ -48,6 +48,8 @@ public:
 	bool clock(bool no_cycles = false);
 
 	void reset();
+
+	void update_r_reg(const Instruction &inst, uint32_t opcode = 0x00);
 };
 
 #endif // __Z80_HPP__

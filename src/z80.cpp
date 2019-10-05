@@ -19,6 +19,7 @@ bool Z80::clock(bool no_cycles)
 		if (int_nmi)
 		{
 			Instruction inst {InstType::PUSH, "NMI", 1, 11, Operand::UNUSED, Operand::PC};
+			update_r_reg(inst);
 			cycles_left = inst.execute(*this);
 			pc.set(0x66);
 			iff2 = iff1;
@@ -41,6 +42,7 @@ bool Z80::clock(bool no_cycles)
 			case 1:
 			{
 				Instruction inst {InstType::PUSH, "INT1", 1, 13, Operand::UNUSED, Operand::PC};
+				update_r_reg(inst);
 				cycles_left = inst.execute(*this);
 				pc.set(0x38);
 				interrupt = false;
@@ -59,6 +61,7 @@ bool Z80::clock(bool no_cycles)
 		{
 			// The halt instruction will continuously execute NOPs until there is an interrupt
 			Instruction inst {InstType::NOP, "halt", 1, 4};
+			update_r_reg(inst);
 			cycles_left = const_cast<Instruction&>(inst).execute(*this);
 			found = true;
 		}
@@ -72,6 +75,7 @@ bool Z80::clock(bool no_cycles)
 			curr_operand_pc = curr_opcode_pc + operand_offset;
 
 			const Instruction &inst = decode_opcode(opcode);
+			update_r_reg(inst, opcode);
 			if (inst.inst != InstType::INV)
 			{
 				pc.set(curr_opcode_pc + inst.size);
@@ -115,4 +119,23 @@ void Z80::reset()
 	iff1 = false;
 	iff2 = false;
 	int_mode = 0;
+}
+
+void Z80::update_r_reg(const Instruction &inst, uint32_t opcode)
+{
+	uint8_t r = ir.lo();
+
+	if (((opcode & 0xcb00) == 0xcb00) ||
+		((opcode & 0xed00) == 0xed00) ||
+		(inst.inst == InstType::LD && inst.dst == Operand::R && inst.src == Operand::A) ||
+		(inst.inst == InstType::LD && inst.dst == Operand::A && inst.src == Operand::R) ||
+		(inst.inst == InstType::LDDR) ||
+		(inst.inst == InstType::LDIR))
+	{
+		r++;
+	}
+
+	r++;
+	r &= 0x7f;
+	ir.lo(r);
 }
