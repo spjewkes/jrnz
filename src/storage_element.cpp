@@ -117,13 +117,15 @@ StorageElement StorageElement::create_element(Z80 &state, Operand operand)
 	}
 	case Operand::indIXN:
 	{
-		uint8_t *ptr = &state.bus[state.ix.get()] + state.bus.read_data(state.curr_operand_pc);
+		int offset = static_cast<int8_t>(state.bus.read_data(state.curr_operand_pc));
+		uint8_t *ptr = &state.bus[state.ix.get() + offset];
 		state.curr_operand_pc += 1;
 		return StorageElement(ptr, 1);
 	}
 	case Operand::indIYN:
 	{
-		uint8_t *ptr = &state.bus[state.iy.get()] + state.bus.read_data(state.curr_operand_pc);
+		int offset = static_cast<int8_t>(state.bus.read_data(state.curr_operand_pc));
+		uint8_t *ptr = &state.bus[state.iy.get() + offset];
 		state.curr_operand_pc += 1;
 		return StorageElement(ptr, 1);
 	}
