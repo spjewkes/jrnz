@@ -105,7 +105,9 @@ void Bus::load_snapshot(std::string &sna_file, Z80 &state)
 		assert(state.int_mode == 0 || state.int_mode == 1 || state.int_mode == 2);
 
 		// 0x1a - border colour
-		get_next_byte(sna);
+		port_254 &= 0xf8;
+		port_254 |= get_next_byte(sna) & 0x07;
+
 		//! TODO - ignore for now
 
 		// Renaming file is the 48k of RAM
