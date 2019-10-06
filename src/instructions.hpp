@@ -49,7 +49,9 @@ private:
 	// All instructions have the same signature regardless of whether they make use of them or not.
     size_t do_nop(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
 	size_t do_ld(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
+	size_t do_ldd(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
 	size_t do_lddr(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
+	size_t do_ldi(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
 	size_t do_ldir(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
 	size_t do_xor(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
 	size_t do_and(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
@@ -101,7 +103,7 @@ private:
 	size_t do_rst(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
 	size_t do_halt(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
 
-	size_t impl_ld_block(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem, bool inc);
+	size_t impl_ld_block(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem, bool inc, bool repeat);
 	size_t impl_set_bit(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem, bool set);
 	size_t impl_add(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem, bool store, bool use_carry, bool is_inc);
 	size_t impl_sub(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem, bool store, bool use_carry, bool is_dec);

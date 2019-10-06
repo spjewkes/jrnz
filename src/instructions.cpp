@@ -34,7 +34,9 @@ size_t Instruction::execute(Z80 &state)
 	case InstType::ADD:  return do_add(state, dst_elem, src_elem); break;
 	case InstType::ADC:  return do_adc(state, dst_elem, src_elem); break;
 	case InstType::INC:  return do_inc(state, dst_elem, src_elem); break;
+	case InstType::LDD:  return do_ldd(state, dst_elem, src_elem); break;
 	case InstType::LDDR: return do_lddr(state, dst_elem, src_elem); break;
+	case InstType::LDI:  return do_ldi(state, dst_elem, src_elem); break;
 	case InstType::LDIR: return do_ldir(state, dst_elem, src_elem); break;
 	case InstType::IM:   return do_im(state, dst_elem, src_elem); break;
 	case InstType::BIT:  return do_bit(state, dst_elem, src_elem); break;
@@ -101,17 +103,27 @@ size_t Instruction::do_ld(Z80 &state, StorageElement &dst_elem, StorageElement &
 	return cycles;
 }
 
+size_t Instruction::do_ldd(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+{
+	return impl_ld_block(state, dst_elem, src_elem, false /* inc */, false /* repeat */);
+}
+
 size_t Instruction::do_lddr(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
-	return impl_ld_block(state, dst_elem, src_elem, false /* inc */);
+	return impl_ld_block(state, dst_elem, src_elem, false /* inc */, true /* repeat */);
+}
+
+size_t Instruction::do_ldi(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+{
+	return impl_ld_block(state, dst_elem, src_elem, true /* inc */, false /* repeat */);
 }
 
 size_t Instruction::do_ldir(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
-	return impl_ld_block(state, dst_elem, src_elem, true /* inc */);
+	return impl_ld_block(state, dst_elem, src_elem, true /* inc */, true /* repeat */);
 }
 
-size_t Instruction::impl_ld_block(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem, bool inc)
+size_t Instruction::impl_ld_block(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem, bool inc, bool repeat)
 {
 	dst_elem = src_elem;
 
@@ -124,7 +136,7 @@ size_t Instruction::impl_ld_block(Z80 &state, StorageElement &dst_elem, StorageE
 	state.af.flag(RegisterAF::Flags::ParityOverflow, false);
 	state.af.flag(RegisterAF::Flags::HalfCarry, false);
 
-	if (state.bc.get() != 0)
+	if (repeat && state.bc.get() != 0)
 	{
 		state.pc.set(state.pc.get() - size);
 	}
