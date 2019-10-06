@@ -145,7 +145,7 @@ uint8_t Bus::read_port(uint16_t addr) const
 
 void Bus::write_port(uint16_t addr, uint8_t v)
 {
-	if (addr == 254)
+	if ((addr & 0xff) == 0xfe)
 	{
 		port_254 = v;
 	}
