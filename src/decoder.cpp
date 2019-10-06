@@ -715,7 +715,7 @@ void init_map_inst()
 	map_inst.emplace(0xfdae, Instruction{InstType::XOR,  "xor (iy+*)",   3, 19, Operand::A, Operand::indIYN});
 	map_inst.emplace(0xfdb6, Instruction{InstType::OR,   "or (iy+*)",    3, 19, Operand::A, Operand::indIYN});
 	map_inst.emplace(0xfdbe, Instruction{InstType::CP,   "cp (iy+*)",    3, 19, Operand::A, Operand::indIYN});
-	map_inst.emplace(0xfde1, Instruction{InstType::POP,  "pop iy",       2, 14, Operand::IX});
+	map_inst.emplace(0xfde1, Instruction{InstType::POP,  "pop iy",       2, 14, Operand::IY});
 	map_inst.emplace(0xfde5, Instruction{InstType::PUSH, "push iy",      2, 15, Operand::UNUSED, Operand::IY});
 	map_inst.emplace(0xfde9, Instruction{InstType::JP,   "jp (iy)",      2,  8, Conditional::ALWAYS, Operand::PC, Operand::IY});
 	map_inst.emplace(0xfdf9, Instruction{InstType::LD,   "ld sp,iy",     2, 10, Operand::SP, Operand::IY});
