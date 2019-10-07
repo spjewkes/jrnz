@@ -27,14 +27,14 @@ int main(int argc, char **argv)
     }
 
 	window = SDL_CreateWindow("JRNZ", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-							  640, 512, SDL_WINDOW_MAXIMIZED);
+							  960, 768, SDL_WINDOW_MAXIMIZED);
 	if (!window)
 	{
 		std::cerr << "Could not create window: " << SDL_GetError() <<	std::endl;
 		return EXIT_FAILURE;
     }
 	renderer = SDL_CreateRenderer(window, -1, 0);
-	SDL_RenderSetScale(renderer, 2.0f, 2.0f);
+	SDL_RenderSetScale(renderer, 3.0f, 3.0f);
 #else
     if (SDL_Init(SDL_INIT_EVENTS) != 0)
 	{
