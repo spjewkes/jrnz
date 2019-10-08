@@ -19,7 +19,7 @@ public:
 	ULA(Z80 &_z80, Bus &_bus) : _z80(_z80), _bus(_bus) {}
 	virtual ~ULA() {}
 
-	void clock();
+	void clock(bool &do_exit, bool &do_break);
 
 private:
 	Z80 &_z80;

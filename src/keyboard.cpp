@@ -19,12 +19,6 @@ uint8_t get_keyboard_state(uint8_t halfrows)
 
 	uint8_t ret_keys = 0x0;
 
-	if (key_state[SDL_SCANCODE_ESCAPE])
-	{
-		std::cerr << "Quiting\n";
-		abort();
-	}
-
 	// half-row 0 : caps - v
 	if (!get_bit(halfrows, 0))
 	{

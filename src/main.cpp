@@ -50,7 +50,7 @@ int main(int argc, char **argv)
 	ULA ula(state, mem);
 	Debugger debug(state, mem);
 
-	System sys(state, ula, mem);
+	System sys(state, ula, mem, debug);
 
 	// Use options to set up system
 	if (options.rom_on)
@@ -72,8 +72,7 @@ int main(int argc, char **argv)
 
 	do
 	{
-		running = debug.clock();
-		running &= sys.clock(debug.is_break_enabled());
+		running = sys.clock();
 	} while (running);
 
 #ifdef HAVE_DISPLAY

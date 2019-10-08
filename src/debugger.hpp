@@ -20,7 +20,8 @@ public:
 	virtual ~Debugger() {}
 
 	void set_dout(bool enable) { debug_out = enable; }
-	void set_break(bool enable, uint16_t _break_pc = 0x0000);
+	void set_break(bool enable);
+	void set_break(bool enable, uint16_t _break_pc);
 	bool break_ready();
 	bool is_break_enabled() const { return break_enabled; }
 

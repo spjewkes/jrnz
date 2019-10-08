@@ -52,7 +52,7 @@ static void	set_rendercolor(SDL_Renderer* renderer, uint8_t color, bool bright)
 }
 #endif
 
-void ULA::clock()
+void ULA::clock(bool &do_exit, bool &do_break)
 {
 	UNUSED(_z80);
 	UNUSED(_bus);
@@ -60,7 +60,19 @@ void ULA::clock()
 	switch(counter)
 	{
 	case 0:
-		SDL_PumpEvents();
+		{
+			SDL_PumpEvents();
+			const uint8_t* key_state = static_cast<const uint8_t*>(SDL_GetKeyboardState(NULL));
+
+			if (key_state[SDL_SCANCODE_TAB])
+			{
+				do_break = true;
+			}
+			else if (key_state[SDL_SCANCODE_ESCAPE])
+			{
+				do_exit = true;
+			}
+		}
 
 		// Trigger interupt on Z80
 		_z80.interrupt = true;

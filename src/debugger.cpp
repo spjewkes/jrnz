@@ -5,6 +5,11 @@
 #include "debugger.hpp"
 #include "decoder.hpp"
 
+void Debugger::set_break(bool enable)
+{
+	set_break(enable, _z80.pc.get());
+}
+
 void Debugger::set_break(bool enable, uint16_t _break_pc)
 {
 	break_at_pc = enable;
