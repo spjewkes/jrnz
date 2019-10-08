@@ -14,6 +14,13 @@ bool Z80::clock(bool no_cycles)
 {
 	bool found = false;
 
+	if (no_cycles)
+	{
+		// Ignore instruction cycle count. This is typically used by the debugger to
+		// allow it to single step through the code
+		cycles_left = 0;
+	}
+
 	if (cycles_left == 0)
 	{
 		if (int_nmi)
@@ -93,13 +100,6 @@ bool Z80::clock(bool no_cycles)
 	{
 		cycles_left--;
 		found = true;
-	}
-
-	if (no_cycles)
-	{
-		// Ignore instruction cycle count. This is typically used by the debugger to
-		// allow it to single step through the code
-		cycles_left = 0;
 	}
 
 	return found;
