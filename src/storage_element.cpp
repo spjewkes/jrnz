@@ -105,15 +105,11 @@ StorageElement StorageElement::create_element(Z80 &state, Operand operand)
 	case Operand::indHL:    return StorageElement(&state.bus[state.hl.get()],1);
 	case Operand::indN:
 	{
-		size_t bytes = state.bus.read_addr_from_mem(state.curr_operand_pc);
-		state.curr_operand_pc += 1;
-		return state.bus.read_element_from_mem(bytes, 1);
+		return StorageElement(&state.bus[state.bus.read_addr_from_mem(state.curr_operand_pc)],1);
 	}
 	case Operand::indNN:
 	{
-		size_t bytes = state.bus.read_addr_from_mem(state.curr_operand_pc);
-		state.curr_operand_pc += 2;
-		return state.bus.read_element_from_mem(bytes, 2);
+		return StorageElement(&state.bus[state.bus.read_addr_from_mem(state.curr_operand_pc)],2);
 	}
 	case Operand::indIXN:
 	{
