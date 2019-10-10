@@ -478,9 +478,11 @@ size_t Instruction::impl_add(Z80 &state, StorageElement &dst_elem, StorageElemen
 
 		state.af.flag(RegisterAF::Flags::AddSubtract, false);
 		state.af.flag(RegisterAF::Flags::HalfCarry, result.is_half());
+		state.af.flag(RegisterAF::Flags::F5, result.is_half());
 		if (!reduced_flags)
 		{
 			state.af.flag(RegisterAF::Flags::ParityOverflow, result.is_overflow());
+			state.af.flag(RegisterAF::Flags::F3, result.is_overflow());
 			state.af.flag(RegisterAF::Flags::Zero, result.is_zero());
 			state.af.flag(RegisterAF::Flags::Sign, result.is_neg());
 		}

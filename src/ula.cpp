@@ -161,7 +161,7 @@ void ULA::clock(bool &do_exit, bool &do_break)
 		}
 
 		uint32_t ticks = SDL_GetTicks();
-		if (ticks < next_frame_ticks)
+		if (!fast_mode && ticks < next_frame_ticks)
 		{
 			SDL_Delay(next_frame_ticks - ticks);
 		}

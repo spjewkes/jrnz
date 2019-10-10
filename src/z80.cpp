@@ -5,7 +5,7 @@
 #include "z80.hpp"
 #include "decoder.hpp"
 
-Z80::Z80(Bus &_bus) : bus(_bus)
+Z80::Z80(Bus &_bus, bool fast_mode) : bus(_bus), fast_mode(fast_mode)
 {
 	reset();
 }
@@ -14,7 +14,7 @@ bool Z80::clock(bool no_cycles)
 {
 	bool found = false;
 
-	if (no_cycles)
+	if (fast_mode || no_cycles)
 	{
 		// Ignore instruction cycle count. This is typically used by the debugger to
 		// allow it to single step through the code

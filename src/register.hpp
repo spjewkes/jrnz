@@ -53,7 +53,9 @@ public:
 		Carry = 0,
 		AddSubtract = 1,
 		ParityOverflow = 2,
+		F3 = 3,
 		HalfCarry = 4,
+		F5 = 5,
 		Zero = 6,
 		Sign = 7
 	};

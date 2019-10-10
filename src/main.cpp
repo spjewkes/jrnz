@@ -46,8 +46,8 @@ int main(int argc, char **argv)
 	Options options(argc, argv);
 
 	Bus mem(65536);
-	Z80 state(mem);
-	ULA ula(state, mem);
+	Z80 state(mem, options.fast_mode);
+	ULA ula(state, mem, options.fast_mode);
 	Debugger debug(state, mem);
 
 	System sys(state, ula, mem, debug);

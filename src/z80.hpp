@@ -16,7 +16,7 @@
 class Z80
 {
 public:
-	Z80(Bus &_bus);
+	Z80(Bus &_bus, bool fast_mode = false);
 
 	uint16_t curr_opcode_pc = { 0 }; // Stores the PC of the opcode under execution
 	uint16_t curr_operand_pc = { 0 }; // Stores the PC of the expected first operand (if there are any) of the opcode under execution
@@ -50,6 +50,9 @@ public:
 	void reset();
 
 	void update_r_reg(const Instruction &inst, uint32_t opcode = 0x00);
+
+private:
+	bool fast_mode = { false };
 };
 
 #endif // __Z80_HPP__

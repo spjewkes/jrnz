@@ -16,7 +16,7 @@
 class ULA
 {
 public:
-	ULA(Z80 &_z80, Bus &_bus) : _z80(_z80), _bus(_bus) {}
+	ULA(Z80 &_z80, Bus &_bus, bool fast_mode = false) : _z80(_z80), _bus(_bus), fast_mode(fast_mode) {}
 	virtual ~ULA() {}
 
 	void clock(bool &do_exit, bool &do_break);
@@ -29,6 +29,7 @@ private:
 	uint32_t next_frame_ticks = { 0 };
 	uint64_t frame_counter = { 0 };
 	bool invert = { false };
+	bool fast_mode = { false };
 };
 
 #endif // __ULA_HPP__
