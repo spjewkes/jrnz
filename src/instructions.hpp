@@ -102,6 +102,7 @@ private:
 	size_t do_cpdr(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
 	size_t do_rst(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
 	size_t do_halt(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
+	size_t do_daa(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
 
 	size_t impl_ld_block(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem, bool inc, bool repeat);
 	size_t impl_set_bit(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem, bool set);

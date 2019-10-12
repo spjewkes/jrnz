@@ -69,6 +69,7 @@ size_t Instruction::execute(Z80 &state)
 	case InstType::CPDR: return do_cpdr(state, dst_elem, src_elem); break;
 	case InstType::RST:  return do_rst(state, dst_elem, src_elem); break;
 	case InstType::HALT: return do_halt(state, dst_elem, src_elem); break;
+	case InstType::DAA:  return do_daa(state, dst_elem, src_elem); break;
 	default:
 		std::cerr << "Unknown instruction type: " << static_cast<uint32_t>(inst) << std::endl;
 		assert(false);
@@ -878,6 +879,41 @@ size_t Instruction::do_halt(Z80 &state, StorageElement &dst_elem, StorageElement
 	UNUSED(src_elem);
 
 	state.halted = true;
+
+	return cycles;
+}
+
+size_t Instruction::do_daa(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+{
+	assert(Operand::A == src);
+	assert(Operand::A == dst);
+
+	uint32_t value;
+	src_elem.get_value(value);
+	uint8_t val = static_cast<uint8_t>(value & 0xf);
+
+	uint8_t lo_nibble = val & 0xf;
+	uint8_t hi_nibble = (val >> 4) & 0xf;
+
+	if (lo_nibble > 9 || state.af.flag(RegisterAF::Flags::HalfCarry))
+	{
+		val += 0x06;
+	}
+
+	bool new_carry = false;
+	if (hi_nibble > 9 || state.af.flag(RegisterAF::Flags::Carry))
+	{
+		val += 60;
+		new_carry = true;
+	}
+
+	dst_elem = StorageElement(val);
+	
+	state.af.flag(RegisterAF::Flags::Carry, new_carry);
+	state.af.flag(RegisterAF::Flags::HalfCarry, dst_elem.is_half());
+	state.af.flag(RegisterAF::Flags::ParityOverflow, dst_elem.is_even_parity());
+	state.af.flag(RegisterAF::Flags::Zero, dst_elem.is_zero());
+	state.af.flag(RegisterAF::Flags::Sign, dst_elem.is_neg());
 
 	return cycles;
 }

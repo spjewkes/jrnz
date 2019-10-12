@@ -53,6 +53,7 @@ void init_map_inst()
 	map_inst.emplace(0x24, Instruction{InstType::INC,  "inc h",      1,  4, Operand::H, Operand::ONE});
 	map_inst.emplace(0x25, Instruction{InstType::DEC,  "dec h",      1,  4, Operand::H, Operand::ONE});
 	map_inst.emplace(0x26, Instruction{InstType::LD,   "ld h,*",     2,  7, Operand::H, Operand::N});
+	map_inst.emplace(0x27, Instruction{InstType::DAA,  "daa",        1,  4, Operand::A, Operand::A});
 	//! daa
 	map_inst.emplace(0x28, Instruction{InstType::JR,   "jr z,*",     2, 12, 7, Conditional::Z, Operand::PC, Operand::N});
 	map_inst.emplace(0x29, Instruction{InstType::ADD,  "add hl,hl",  1, 11, Operand::HL, Operand::HL});

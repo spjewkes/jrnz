@@ -112,6 +112,7 @@ enum class InstType
 	CPDR,
 	RST,
 	HALT,
+	DAA,
 };
 
 /**
