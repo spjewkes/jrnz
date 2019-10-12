@@ -652,15 +652,15 @@ void init_map_inst()
 	map_inst.emplace(0xdd21, Instruction{InstType::LD,   "ld ix,**",     4, 14, Operand::IX, Operand::NN});
 	map_inst.emplace(0xdd22, Instruction{InstType::LD,   "ld (**),ix",   4, 20, Operand::indNN, Operand::IX});
 	map_inst.emplace(0xdd23, Instruction{InstType::INC,  "inc ix",       2, 10, Operand::IX, Operand::ONE});
-	//! inc ixh
-	//! dec ixh
+	map_inst.emplace(0xdd24, Instruction{InstType::INC,  "inc ixh",      2,  8, Operand::IXH, Operand::ONE});
+	map_inst.emplace(0xdd25, Instruction{InstType::DEC,  "dec ixh",      2,  8, Operand::IXH, Operand::ONE});
 	map_inst.emplace(0xdd26, Instruction{InstType::LD,   "ld ixh,*",     3, 11, Operand::IXH, Operand::N});
 	map_inst.emplace(0xdd29, Instruction{InstType::ADD,  "add ix,ix",    2, 15, Operand::IX, Operand::IX});
 	map_inst.emplace(0xdd2a, Instruction{InstType::LD,   "ld ix,(**)",   4, 20, Operand::IX, Operand::indNN});
 	map_inst.emplace(0xdd2b, Instruction{InstType::DEC,  "dec ix",       2, 10, Operand::IX, Operand::ONE});
-	//! inc ixl
-	//! dec ixl
-	//! ld ixl,*
+	map_inst.emplace(0xdd2c, Instruction{InstType::INC,  "inc ixl",      2,  8, Operand::IXL, Operand::ONE});
+	map_inst.emplace(0xdd2d, Instruction{InstType::DEC,  "dec ixl",      2,  8, Operand::IXL, Operand::ONE});
+	map_inst.emplace(0xdd2e, Instruction{InstType::LD,   "ld ixl,*",     3, 11, Operand::IXL, Operand::N});
 
 	map_inst.emplace(0xdd34, Instruction{InstType::INC,  "inc (ix+*)",   3, 23, Operand::indIXN, Operand::ONE});
 	map_inst.emplace(0xdd35, Instruction{InstType::DEC,  "dec (ix+*)",   3, 23, Operand::indIXN, Operand::ONE});
