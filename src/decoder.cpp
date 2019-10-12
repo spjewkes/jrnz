@@ -747,6 +747,12 @@ void init_map_inst()
 
 
 	//! TOO MANY TO LIST THAT ARE MISSING
+	map_inst.emplace(0xddcb06, Instruction{InstType::RLC, "rlc (ix+*)",   4, 23, Operand::indIXN});
+	map_inst.emplace(0xddcb0e, Instruction{InstType::RRC, "rrc (ix+*)",   4, 23, Operand::indIXN});
+	map_inst.emplace(0xddcb16, Instruction{InstType::RL,  "rl (ix+*)",    4, 23, Operand::indIXN});
+	map_inst.emplace(0xddcb1e, Instruction{InstType::RR,  "rr (ix+*)",    4, 23, Operand::indIXN});
+	map_inst.emplace(0xddcb26, Instruction{InstType::SLA, "sla (ix+*)",   4, 23, Operand::indIXN});
+	map_inst.emplace(0xddcb2e, Instruction{InstType::SRA, "sra (ix+*)",   4, 23, Operand::indIXN});
 	map_inst.emplace(0xddcb46, Instruction{InstType::BIT, "bit 0,(ix+*)", 4, 20, Operand::indIXN, Operand::ZERO});
 	map_inst.emplace(0xddcb4e, Instruction{InstType::BIT, "bit 1,(ix+*)", 4, 20, Operand::indIXN, Operand::ONE});
 	map_inst.emplace(0xddcb56, Instruction{InstType::BIT, "bit 2,(ix+*)", 4, 20, Operand::indIXN, Operand::TWO});
@@ -876,6 +882,12 @@ void init_map_inst()
 
 	
 	//! TOO MANY TO LIST THAT ARE MISSING
+	map_inst.emplace(0xfdcb06, Instruction{InstType::RLC, "rlc (iy+*)",   4, 23, Operand::indIYN});
+	map_inst.emplace(0xfdcb0e, Instruction{InstType::RRC, "rrc (iy+*)",   4, 23, Operand::indIYN});
+	map_inst.emplace(0xfdcb16, Instruction{InstType::RL,  "rl (iy+*)",    4, 23, Operand::indIYN});
+	map_inst.emplace(0xfdcb1e, Instruction{InstType::RR,  "rr (iy+*)",    4, 23, Operand::indIYN});
+	map_inst.emplace(0xfdcb26, Instruction{InstType::SLA, "sla (iy+*)",   4, 23, Operand::indIYN});
+	map_inst.emplace(0xfdcb2e, Instruction{InstType::SRA, "sra (iy+*)",   4, 23, Operand::indIYN});
 	map_inst.emplace(0xfdcb46, Instruction{InstType::BIT, "bit 0,(iy+*)", 4, 20, Operand::indIYN, Operand::ZERO});
 	map_inst.emplace(0xfdcb4e, Instruction{InstType::BIT, "bit 1,(iy+*)", 4, 20, Operand::indIYN, Operand::ONE});
 	map_inst.emplace(0xfdcb56, Instruction{InstType::BIT, "bit 2,(iy+*)", 4, 20, Operand::indIYN, Operand::TWO});
