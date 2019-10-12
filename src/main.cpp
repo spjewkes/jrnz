@@ -12,6 +12,20 @@
 SDL_Window *window = nullptr;
 SDL_Renderer *renderer = nullptr;
 
+void wait_keypress()
+{
+	SDL_Event event;
+
+	while(1)
+	{
+		SDL_PollEvent(&event);
+		if(event.type == SDL_QUIT)
+		{
+			return;
+		}
+	}
+}
+
 /**
  * @brief Main entry-point into application.
  */
@@ -74,6 +88,9 @@ int main(int argc, char **argv)
 	{
 		running = sys.clock();
 	} while (running);
+
+	std::cout << "Press any key.\n";
+	wait_keypress();
 
 #ifdef HAVE_DISPLAY
 	SDL_DestroyWindow(window);

@@ -667,19 +667,40 @@ void init_map_inst()
 	map_inst.emplace(0xdd36, Instruction{InstType::LD,   "ld (ix+*),*",  4, 19, Operand::indIXN, Operand::N});
 	map_inst.emplace(0xdd39, Instruction{InstType::ADD,  "add ix,sp",    2, 15, Operand::IX, Operand::SP});
 
+	map_inst.emplace(0xdd40, Instruction{InstType::LD,   "ld b,b",       2,  8, Operand::B, Operand::B});
+	map_inst.emplace(0xdd41, Instruction{InstType::LD,   "ld b,c",       2,  8, Operand::B, Operand::C});
+	map_inst.emplace(0xdd42, Instruction{InstType::LD,   "ld b,d",       2,  8, Operand::B, Operand::D});
+	map_inst.emplace(0xdd43, Instruction{InstType::LD,   "ld b,e",       2,  8, Operand::B, Operand::E});
 	map_inst.emplace(0xdd44, Instruction{InstType::LD,   "ld b,ixh",     2,  8, Operand::B, Operand::IXH});
 	map_inst.emplace(0xdd45, Instruction{InstType::LD,   "ld b,ixl",     2,  8, Operand::B, Operand::IXL});
 	map_inst.emplace(0xdd46, Instruction{InstType::LD,   "ld b,(ix+*)",  3, 19, Operand::B, Operand::indIXN});
+	map_inst.emplace(0xdd47, Instruction{InstType::LD,   "ld b,a",       2,  8, Operand::B, Operand::A});
+	map_inst.emplace(0xdd48, Instruction{InstType::LD,   "ld c,b",       2,  8, Operand::C, Operand::B});
+	map_inst.emplace(0xdd49, Instruction{InstType::LD,   "ld c,c",       2,  8, Operand::C, Operand::C});
+	map_inst.emplace(0xdd4a, Instruction{InstType::LD,   "ld c,d",       2,  8, Operand::C, Operand::D});
+	map_inst.emplace(0xdd4b, Instruction{InstType::LD,   "ld c,e",       2,  8, Operand::C, Operand::E});
+	map_inst.emplace(0xdd4c, Instruction{InstType::LD,   "ld c,h",       2,  8, Operand::C, Operand::H});
 	map_inst.emplace(0xdd4c, Instruction{InstType::LD,   "ld c,ixh",     2,  8, Operand::C, Operand::IXH});
 	map_inst.emplace(0xdd4d, Instruction{InstType::LD,   "ld c,ixl",     2,  8, Operand::C, Operand::IXL});
 	map_inst.emplace(0xdd4e, Instruction{InstType::LD,   "ld c,(ix+*)",  3, 19, Operand::C, Operand::indIXN});
+	map_inst.emplace(0xdd4f, Instruction{InstType::LD,   "ld c,a",       2,  8, Operand::C, Operand::A});
 
+	map_inst.emplace(0xdd50, Instruction{InstType::LD,   "ld d,b",       2,  8, Operand::D, Operand::B});
+	map_inst.emplace(0xdd51, Instruction{InstType::LD,   "ld d,c",       2,  8, Operand::D, Operand::C});
+	map_inst.emplace(0xdd52, Instruction{InstType::LD,   "ld d,d",       2,  8, Operand::D, Operand::D});
+	map_inst.emplace(0xdd53, Instruction{InstType::LD,   "ld d,e",       2,  8, Operand::D, Operand::E});
 	map_inst.emplace(0xdd54, Instruction{InstType::LD,   "ld d,ixh",     2,  8, Operand::D, Operand::IXH});
 	map_inst.emplace(0xdd55, Instruction{InstType::LD,   "ld d,ixl",     2,  8, Operand::D, Operand::IXL});
 	map_inst.emplace(0xdd56, Instruction{InstType::LD,   "ld d,(ix+*)",  3, 19, Operand::D, Operand::indIXN});
+	map_inst.emplace(0xdd57, Instruction{InstType::LD,   "ld d,a",       2,  8, Operand::D, Operand::A});
+	map_inst.emplace(0xdd58, Instruction{InstType::LD,   "ld e,b",       2,  8, Operand::E, Operand::B});
+	map_inst.emplace(0xdd59, Instruction{InstType::LD,   "ld e,c",       2,  8, Operand::E, Operand::C});
+	map_inst.emplace(0xdd5a, Instruction{InstType::LD,   "ld e,d",       2,  8, Operand::E, Operand::D});
+	map_inst.emplace(0xdd5b, Instruction{InstType::LD,   "ld e,e",       2,  8, Operand::E, Operand::E});
 	map_inst.emplace(0xdd5c, Instruction{InstType::LD,   "ld e,ixh",     2,  8, Operand::E, Operand::IXH});
 	map_inst.emplace(0xdd5d, Instruction{InstType::LD,   "ld e,ixl",     2,  8, Operand::E, Operand::IXL});
 	map_inst.emplace(0xdd5e, Instruction{InstType::LD,   "ld e,(ix+*)",  3, 19, Operand::E, Operand::indIXN});
+	map_inst.emplace(0xdd5f, Instruction{InstType::LD,   "ld e,a",       2,  8, Operand::E, Operand::A});
 
 	map_inst.emplace(0xdd60, Instruction{InstType::LD,   "ld ixh,b",     2,  8, Operand::IXH, Operand::B});
 	map_inst.emplace(0xdd61, Instruction{InstType::LD,   "ld ixh,c",     2,  8, Operand::IXH, Operand::C});
@@ -705,9 +726,14 @@ void init_map_inst()
 	map_inst.emplace(0xdd74, Instruction{InstType::LD,   "ld (ix+*),h",  3, 19, Operand::indIXN, Operand::H});
 	map_inst.emplace(0xdd75, Instruction{InstType::LD,   "ld (ix+*),l",  3, 19, Operand::indIXN, Operand::L});
 	map_inst.emplace(0xdd77, Instruction{InstType::LD,   "ld (ix+*),a",  3, 19, Operand::indIXN, Operand::A});
+	map_inst.emplace(0xdd78, Instruction{InstType::LD,   "ld a,b",       2,  8, Operand::A, Operand::B});
+	map_inst.emplace(0xdd79, Instruction{InstType::LD,   "ld a,c",       2,  8, Operand::A, Operand::C});
+	map_inst.emplace(0xdd7a, Instruction{InstType::LD,   "ld a,d",       2,  8, Operand::A, Operand::D});
+	map_inst.emplace(0xdd7b, Instruction{InstType::LD,   "ld a,e",       2,  8, Operand::A, Operand::E});
 	map_inst.emplace(0xdd7c, Instruction{InstType::LD,   "ld a,ixh",     2,  8, Operand::A, Operand::IXH});
 	map_inst.emplace(0xdd7d, Instruction{InstType::LD,   "ld a,ixl",     2,  8, Operand::A, Operand::IXL});
 	map_inst.emplace(0xdd7e, Instruction{InstType::LD,   "ld a,(ix+*)",  3, 19, Operand::A, Operand::indIXN});
+	map_inst.emplace(0xdd7f, Instruction{InstType::LD,   "ld a,a",       2,  8, Operand::A, Operand::A});
 
 	map_inst.emplace(0xdd84, Instruction{InstType::ADD,  "add a,ixh",    2,  8, Operand::A, Operand::IXH});
 	map_inst.emplace(0xdd85, Instruction{InstType::ADD,  "add a,ixl",    2,  8, Operand::A, Operand::IXL});
@@ -802,19 +828,39 @@ void init_map_inst()
 	map_inst.emplace(0xfd36, Instruction{InstType::LD,   "ld (iy+*),*",  4, 19, Operand::indIYN, Operand::N});
 	map_inst.emplace(0xfd39, Instruction{InstType::ADD,  "add iy,sp",    2, 15, Operand::IY, Operand::SP});
 
+	map_inst.emplace(0xfd40, Instruction{InstType::LD,   "ld b,b",       2,  8, Operand::B, Operand::B});
+	map_inst.emplace(0xfd41, Instruction{InstType::LD,   "ld b,c",       2,  8, Operand::B, Operand::C});
+	map_inst.emplace(0xfd42, Instruction{InstType::LD,   "ld b,d",       2,  8, Operand::B, Operand::D});
+	map_inst.emplace(0xfd43, Instruction{InstType::LD,   "ld b,e",       2,  8, Operand::B, Operand::E});
 	map_inst.emplace(0xfd44, Instruction{InstType::LD,   "ld b,iyh",     2,  8, Operand::B, Operand::IYH});
 	map_inst.emplace(0xfd45, Instruction{InstType::LD,   "ld b,iyl",     2,  8, Operand::B, Operand::IYL});
 	map_inst.emplace(0xfd46, Instruction{InstType::LD,   "ld b,(iy+*)",  3, 19, Operand::B, Operand::indIYN});
+	map_inst.emplace(0xfd47, Instruction{InstType::LD,   "ld b,a",       2,  8, Operand::B, Operand::A});
+	map_inst.emplace(0xfd48, Instruction{InstType::LD,   "ld c,b",       2,  8, Operand::C, Operand::B});
+	map_inst.emplace(0xfd49, Instruction{InstType::LD,   "ld c,c",       2,  8, Operand::C, Operand::C});
+	map_inst.emplace(0xfd4a, Instruction{InstType::LD,   "ld c,d",       2,  8, Operand::C, Operand::D});
+	map_inst.emplace(0xfd4b, Instruction{InstType::LD,   "ld c,e",       2,  8, Operand::C, Operand::E});
 	map_inst.emplace(0xfd4c, Instruction{InstType::LD,   "ld c,iyh",     2,  8, Operand::C, Operand::IYH});
 	map_inst.emplace(0xfd4d, Instruction{InstType::LD,   "ld c,iyl",     2,  8, Operand::C, Operand::IYL});
 	map_inst.emplace(0xfd4e, Instruction{InstType::LD,   "ld c,(iy+*)",  3, 19, Operand::C, Operand::indIYN});
+	map_inst.emplace(0xfd4f, Instruction{InstType::LD,   "ld c,a",       2,  8, Operand::C, Operand::A});
 
+	map_inst.emplace(0xfd50, Instruction{InstType::LD,   "ld d,b",       2,  8, Operand::D, Operand::B});
+	map_inst.emplace(0xfd51, Instruction{InstType::LD,   "ld d,c",       2,  8, Operand::D, Operand::C});
+	map_inst.emplace(0xfd52, Instruction{InstType::LD,   "ld d,d",       2,  8, Operand::D, Operand::D});
+	map_inst.emplace(0xfd53, Instruction{InstType::LD,   "ld d,e",       2,  8, Operand::D, Operand::E});
 	map_inst.emplace(0xfd54, Instruction{InstType::LD,   "ld d,iyh",     2,  8, Operand::D, Operand::IYH});
 	map_inst.emplace(0xfd55, Instruction{InstType::LD,   "ld d,iyl",     2,  8, Operand::D, Operand::IYL});
 	map_inst.emplace(0xfd56, Instruction{InstType::LD,   "ld d,(iy+*)",  3, 19, Operand::D, Operand::indIYN});
+	map_inst.emplace(0xfd57, Instruction{InstType::LD,   "ld d,a",       2,  8, Operand::D, Operand::A});
+	map_inst.emplace(0xfd58, Instruction{InstType::LD,   "ld e,b",       2,  8, Operand::E, Operand::B});
+	map_inst.emplace(0xfd59, Instruction{InstType::LD,   "ld e,c",       2,  8, Operand::E, Operand::C});
+	map_inst.emplace(0xfd5a, Instruction{InstType::LD,   "ld e,d",       2,  8, Operand::E, Operand::D});
+	map_inst.emplace(0xfd5b, Instruction{InstType::LD,   "ld e,e",       2,  8, Operand::E, Operand::E});
 	map_inst.emplace(0xfd5c, Instruction{InstType::LD,   "ld e,iyh",     2,  8, Operand::E, Operand::IYH});
 	map_inst.emplace(0xfd5d, Instruction{InstType::LD,   "ld e,iyl",     2,  8, Operand::E, Operand::IYL});
 	map_inst.emplace(0xfd5e, Instruction{InstType::LD,   "ld e,(iy+*)",  3, 19, Operand::E, Operand::indIYN});
+	map_inst.emplace(0xfd5f, Instruction{InstType::LD,   "ld e,a",       2,  8, Operand::E, Operand::A});
 
 	map_inst.emplace(0xfd60, Instruction{InstType::LD,   "ld iyh,b",     2,  8, Operand::IYH, Operand::B});
 	map_inst.emplace(0xfd61, Instruction{InstType::LD,   "ld iyh,c",     2,  8, Operand::IYH, Operand::C});
@@ -840,9 +886,14 @@ void init_map_inst()
 	map_inst.emplace(0xfd74, Instruction{InstType::LD,   "ld (iy+*),h",  3, 19, Operand::indIYN, Operand::H});
 	map_inst.emplace(0xfd75, Instruction{InstType::LD,   "ld (iy+*),l",  3, 19, Operand::indIYN, Operand::L});
 	map_inst.emplace(0xfd77, Instruction{InstType::LD,   "ld (iy+*),a",  3, 19, Operand::indIYN, Operand::A});
+	map_inst.emplace(0xfd78, Instruction{InstType::LD,   "ld a,b",       2,  8, Operand::A, Operand::B});
+	map_inst.emplace(0xfd79, Instruction{InstType::LD,   "ld a,c",       2,  8, Operand::A, Operand::C});
+	map_inst.emplace(0xfd7a, Instruction{InstType::LD,   "ld a,d",       2,  8, Operand::A, Operand::D});
+	map_inst.emplace(0xfd7b, Instruction{InstType::LD,   "ld a,e",       2,  8, Operand::A, Operand::E});
 	map_inst.emplace(0xfd7c, Instruction{InstType::LD,   "ld a,iyh",     2,  8, Operand::A, Operand::IYH});
 	map_inst.emplace(0xfd7d, Instruction{InstType::LD,   "ld a,iyl",     2,  8, Operand::A, Operand::IYL});
 	map_inst.emplace(0xfd7e, Instruction{InstType::LD,   "ld a,(iy+*)",  3, 19, Operand::A, Operand::indIYN});
+	map_inst.emplace(0xfd7f, Instruction{InstType::LD,   "ld a,a",       2,  8, Operand::A, Operand::A});
 
 	map_inst.emplace(0xfd84, Instruction{InstType::ADD,  "add a,iyh",    2, 8,  Operand::A, Operand::IYH});
 	map_inst.emplace(0xfd85, Instruction{InstType::ADD,  "add a,iyl",    2, 8,  Operand::A, Operand::IYL});
