@@ -16,6 +16,7 @@ void Options::print_help()
     std::cout << "\t--debug           - switched on debug output\n";
 	std::cout << "\t--break <line_no> - Enable breakpoint at the specified line number\n";
 	std::cout << "\t--fast            - Enable fast mode (ignores cycles and runs as fast as possible)\n";
+	std::cout << "\t--pause           - Pause window before closing application (useful for debugging)\n";
 	exit(EXIT_SUCCESS);
 }
 
@@ -26,6 +27,7 @@ void Options::process()
             { "help",    no_argument,       0, 'h' },
             { "debug",   no_argument,       0, 'd' },
 			{ "fast",    no_argument,       0, 'f' },
+			{ "pause",   no_argument,       0, 'p' },
             { "rom",     required_argument, 0, 'r' },
 			{ "break",   required_argument, 0, 'b' },
 			{ "sna",     required_argument, 0, 's' },
@@ -38,7 +40,7 @@ void Options::process()
     {
         int option_index = 0;
 
-        c = getopt_long(m_argc, m_argv, "hdfr:s:", long_options, &option_index);
+        c = getopt_long(m_argc, m_argv, "hdfpr:s:", long_options, &option_index);
 
         if (c == -1)
         {
@@ -62,6 +64,12 @@ void Options::process()
 		case 'f':
 		{
 			fast_mode = true;
+			break;
+		}
+
+		case 'p':
+		{
+			pause_on_quit = true;
 			break;
 		}
 

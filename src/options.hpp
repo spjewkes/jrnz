@@ -28,6 +28,7 @@ public:
 	bool break_on = { false };
 
 	bool fast_mode = { false };
+	bool pause_on_quit = { false };
 
 private:
     Options() = delete;

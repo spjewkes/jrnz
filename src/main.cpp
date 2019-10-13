@@ -89,15 +89,18 @@ int main(int argc, char **argv)
 		running = sys.clock();
 	} while (running);
 
-	std::cout << "Press any key.\n";
-	wait_keypress();
+	std::cout << "Closing jrnz.\n";
+
+	if (options.pause_on_quit)
+	{
+		std::cout << "Emulation stopped. Close window to exit.\n";
+		wait_keypress();
+	}
 
 #ifdef HAVE_DISPLAY
 	SDL_DestroyWindow(window);
 #endif
 	SDL_Quit();
 	
-	std::cout << "Closing jrnz.\n";
-
 	return EXIT_SUCCESS;
 }
