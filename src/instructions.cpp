@@ -500,7 +500,7 @@ size_t Instruction::impl_add(Z80 &state, StorageElement &dst_elem, StorageElemen
 size_t Instruction::impl_sub(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem, bool store, bool use_carry, bool is_dec)
 {
 	StorageElement carry(use_carry && state.af.flag(RegisterAF::Flags::Carry) ? 1 : 0);
-	StorageElement res_src = src_elem - carry;
+	StorageElement res_src = src_elem + carry;
 	StorageElement result = dst_elem - res_src;
 
 	bool update_flags = true;
