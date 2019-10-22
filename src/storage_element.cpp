@@ -207,6 +207,15 @@ StorageElement &StorageElement::operator|=(const StorageElement &rhs)
 	return *this;
 }
 
+bool StorageElement::operator!=(const StorageElement &rhs) const
+{
+	if (to_u32() != rhs.to_u32())
+	{
+		return true;
+	}
+	return false;	
+}
+
 bool StorageElement::operator==(const StorageElement &rhs) const
 {
 	if (to_u32() == rhs.to_u32())
@@ -500,8 +509,8 @@ void StorageElement::update_overflow(const StorageElement &op1, const StorageEle
 	bool op1_bit = op1.significant_bit();
 	bool op2_bit = op2.significant_bit();
 
-	if ((!op1_bit && !op2_bit && res_bit) ||
-		(op1_bit && op2_bit && !res_bit))
+	if ((op1_bit == op2_bit) &&
+		(op1_bit != res_bit))
 	{
 		flag_overflow = true;
 	}
