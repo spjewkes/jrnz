@@ -20,7 +20,7 @@ class StorageElement
 {
 public:
 	explicit StorageElement(uint8_t *_ptr, size_t _count, bool _readonly=false);
-	explicit StorageElement(uint8_t v);
+	explicit StorageElement(uint8_t v = 0);
 	explicit StorageElement(uint8_t lo, uint8_t hi);
 
 	static StorageElement create_element(Z80 &state, Operand operand);
@@ -28,7 +28,9 @@ public:
 	StorageElement &operator=(const StorageElement &rhs);
 	StorageElement &operator=(const uint8_t rhs);
 	StorageElement operator+(const StorageElement &rhs);
+	static StorageElement add_carry(const StorageElement &lhs, const StorageElement &rhs, bool carry);
 	StorageElement operator-(const StorageElement &rhs);
+	static StorageElement sub_carry(const StorageElement &lhs, const StorageElement &rhs, bool carry);
 	StorageElement &operator^=(const StorageElement &rhs);
 	StorageElement &operator&=(const StorageElement &rhs);
 	StorageElement &operator|=(const StorageElement &rhs);
@@ -44,6 +46,7 @@ public:
 	void rotate_left(bool rot_9bit, bool carry);
 	void shift_right(bool logical);
 	void shift_left(bool logical);
+	void invert();
 
 	/**
 	 * Query functions.

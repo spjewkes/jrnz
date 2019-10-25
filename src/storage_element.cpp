@@ -180,12 +180,30 @@ StorageElement StorageElement::operator+(const StorageElement &rhs)
 	return result;
 }
 
+StorageElement StorageElement::add_carry(const StorageElement &lhs, const StorageElement &rhs, bool carry)
+{
+	StorageElement result = StorageElement(lhs.to_s32() + rhs.to_s32() + (carry?1:0), lhs.count);
+	result.update_carry(lhs, rhs);
+	result.update_carry(lhs, rhs, true /* is_half */);
+	result.update_overflow(lhs, rhs);
+	return result;
+}
+
 StorageElement StorageElement::operator-(const StorageElement &rhs)
 {
 	StorageElement result = StorageElement(to_s32() - rhs.to_s32(), count);
 	result.update_borrow(*this, rhs);
 	result.update_borrow(*this, rhs, true /* is_half */);
 	result.update_overflow(*this, rhs);
+	return result;
+}
+
+StorageElement StorageElement::sub_carry(const StorageElement &lhs, const StorageElement &rhs, bool carry)
+{
+	StorageElement result = StorageElement(lhs.to_s32() - rhs.to_s32() - (carry?1:0), lhs.count);
+	result.update_carry(lhs, rhs);
+	result.update_carry(lhs, rhs, true /* is_half */);
+	result.update_overflow(lhs, rhs);
 	return result;
 }
 
@@ -364,6 +382,20 @@ void StorageElement::shift_left(bool logical)
 	}
 	
 	from_u32(val & 0xff);
+}
+
+void StorageElement::invert()
+{
+	uint32_t val = to_u32();
+	from_u32(~val);
+	// if (is_8bit())
+	// {
+	// 	from_u32(~val & 0xff);
+	// }
+	// else
+	// {
+	// 	from_u32(~val & 0xffff);
+	// }
 }
 
 uint32_t StorageElement::to_u32() const
