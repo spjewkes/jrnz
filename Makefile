@@ -1,6 +1,7 @@
 CPP=g++
 CPPFLAGS=-std=c++11 -Wall -Wextra -Werror -pedantic
-EXE=run_jrnz
+MAIN_EXE=run_jrnz
+TEST_EXE=run_tests
 
 OBJ_DIR=obj
 SRC_DIR=src
@@ -8,8 +9,11 @@ SRC_DIR=src
 _DEPS=z80.hpp bus.hpp register.hpp instructions.hpp storage_element.hpp common.hpp system.hpp debugger.hpp decoder.hpp ula.hpp options.hpp keyboard.hpp
 DEPS=$(patsubst %,$(SRC_DIR)/%,$(_DEPS))
 
-_OBJ=main.o instructions.o storage_element.o register.o z80.o system.o debugger.o decoder.o ula.o options.o keyboard.o bus.o
-OBJ=$(patsubst %,$(OBJ_DIR)/%,$(_OBJ))
+_MAIN_OBJ=main.o instructions.o storage_element.o register.o z80.o system.o debugger.o decoder.o ula.o options.o keyboard.o bus.o
+MAIN_OBJ=$(patsubst %,$(OBJ_DIR)/%,$(_MAIN_OBJ))
+
+_TEST_OBJ=test_main.o instructions.o storage_element.o z80.o decoder.o bus.o keyboard.o
+TEST_OBJ=$(patsubst %,$(OBJ_DIR)/%,$(_TEST_OBJ))
 
 OS := $(shell uname)
 
@@ -30,13 +34,16 @@ debug: build
 release: CPPFLAGS += -O2
 release: build
 
-build: setup_build $(EXE)
+build: setup_build $(MAIN_EXE) $(TEST_EXE)
 	@echo "Build finished"
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(DEPS)
 	$(CPP) $(CPPFLAGS) -c -o $@ $<
 
-$(EXE): $(OBJ)
+$(MAIN_EXE): $(MAIN_OBJ)
+	$(CPP) $(CPPFLAGS) $^ -o $@ $(LIBS)
+
+$(TEST_EXE): $(TEST_OBJ)
 	$(CPP) $(CPPFLAGS) $^ -o $@ $(LIBS)
 
 setup_build:

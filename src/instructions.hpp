@@ -45,7 +45,8 @@ public:
 
 	size_t execute(Z80 &state);
 
-private:
+// TODO need to fix this (needs to be public for unit tests)
+// private:
 	// All instructions have the same signature regardless of whether they make use of them or not.
     size_t do_nop(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
 	size_t do_ld(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
