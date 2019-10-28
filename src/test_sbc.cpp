@@ -100,17 +100,15 @@ static void test_carry_overflow()
 		uint8_t result = sbc_tests[i].op1;
 		StorageElement dst = StorageElement(&result, 1);
 		StorageElement src = StorageElement(sbc_tests[i].op2);
-		if (sbc_tests[i].carry_in)
-		{
-			state.af.flag(RegisterAF::Flags::Carry, true);
-		}
 
-		std::cout << "Subtracting " << src << " from " << dst << " (and carry " << static_cast<uint32_t>(sbc_tests[i].carry_in) << ") ";
+		state.af.flag(RegisterAF::Flags::Carry, (sbc_tests[i].carry_in?true:false));
 
 		Instruction instruction = Instruction(InstType::ADC, "test", 0, 0);
 		instruction.do_sbc(state, dst, src);
 
-		std::cout << "gives: " << dst << std::endl;
+		BOOST_TEST_MESSAGE("Calculating " << static_cast<uint32_t>(sbc_tests[i].op1) << " - " <<
+						   static_cast<uint32_t>(sbc_tests[i].op2) << " (carry " <<
+						   static_cast<uint32_t>(sbc_tests[i].carry_in) << ") = " << dst);
 
 		bool carry_out = (sbc_tests[i].carry_out ? true : false);
 		bool overflow = (sbc_tests[i].overflow ? true : false);

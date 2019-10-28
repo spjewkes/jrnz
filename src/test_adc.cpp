@@ -105,12 +105,12 @@ static void test_carry_overflow()
 			state.af.flag(RegisterAF::Flags::Carry, true);
 		}
 
-		std::cout << "Adding " << src << " to " << dst << " (and carry " << static_cast<uint32_t>(adc_tests[i].carry_in) << ") ";
-
 		Instruction instruction = Instruction(InstType::ADC, "test", 0, 0);
 		instruction.do_adc(state, dst, src);
 
-		std::cout << "gives: " << dst << std::endl;
+		BOOST_TEST_MESSAGE("Calculating " << static_cast<uint32_t>(adc_tests[i].op1) << " + " <<
+						   static_cast<uint32_t>(adc_tests[i].op2) << " (carry " << 
+						   static_cast<uint32_t>(adc_tests[i].carry_in) << ") = " << dst);
 
 		bool carry_out = (adc_tests[i].carry_out ? true : false);
 		bool overflow = (adc_tests[i].overflow ? true : false);
