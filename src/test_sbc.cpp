@@ -112,23 +112,12 @@ static void test_carry_overflow()
 
 		std::cout << "gives: " << dst << std::endl;
 
-		if (result != sbc_tests[i].result)
-		{
-			std::cerr << "  ERROR: result was : " << dst << " expected: " << result << std::endl;
-		}
-
 		bool carry_out = (sbc_tests[i].carry_out ? true : false);
 		bool overflow = (sbc_tests[i].overflow ? true : false);
 
-		if (state.af.flag(RegisterAF::Flags::Carry) != carry_out)
-		{
-			std::cerr << "  ERROR: carry was: " << state.af.flag(RegisterAF::Flags::Carry) << " expected: " << carry_out << std::endl;
-		}
-
-		if (state.af.flag(RegisterAF::Flags::ParityOverflow) != overflow)
-		{
-			std::cerr << "  ERROR: overflow was: " << state.af.flag(RegisterAF::Flags::ParityOverflow) << " expected: " << overflow << std::endl;
-		}
+		BOOST_CHECK_EQUAL(result, sbc_tests[i].result);
+		BOOST_CHECK_EQUAL(state.af.flag(RegisterAF::Flags::Carry), carry_out);
+		BOOST_CHECK_EQUAL(state.af.flag(RegisterAF::Flags::ParityOverflow), overflow);
 	}
 }
 
