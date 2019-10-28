@@ -6,13 +6,13 @@ TEST_EXE=run_tests
 OBJ_DIR=obj
 SRC_DIR=src
 
-_DEPS=z80.hpp bus.hpp register.hpp instructions.hpp storage_element.hpp common.hpp system.hpp debugger.hpp decoder.hpp ula.hpp options.hpp keyboard.hpp
+_DEPS=z80.hpp bus.hpp register.hpp instructions.hpp storage_element.hpp common.hpp system.hpp debugger.hpp decoder.hpp ula.hpp options.hpp keyboard.hpp test.hpp
 DEPS=$(patsubst %,$(SRC_DIR)/%,$(_DEPS))
 
 _MAIN_OBJ=main.o instructions.o storage_element.o register.o z80.o system.o debugger.o decoder.o ula.o options.o keyboard.o bus.o
 MAIN_OBJ=$(patsubst %,$(OBJ_DIR)/%,$(_MAIN_OBJ))
 
-_TEST_OBJ=test_main.o instructions.o storage_element.o z80.o decoder.o bus.o keyboard.o
+_TEST_OBJ=test_main.o instructions.o storage_element.o z80.o decoder.o bus.o keyboard.o test_adc.o test_sbc.o
 TEST_OBJ=$(patsubst %,$(OBJ_DIR)/%,$(_TEST_OBJ))
 
 OS := $(shell uname)
