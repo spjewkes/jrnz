@@ -100,10 +100,8 @@ static void test_carry_overflow()
 		uint8_t result = adc_tests[i].op1;
 		StorageElement dst = StorageElement(&result, 1);
 		StorageElement src = StorageElement(adc_tests[i].op2);
-		if (adc_tests[i].carry_in)
-		{
-			state.af.flag(RegisterAF::Flags::Carry, true);
-		}
+
+		state.af.flag(RegisterAF::Flags::Carry, (adc_tests[i].carry_in?true:false));
 
 		Instruction instruction = Instruction(InstType::ADC, "test", 0, 0);
 		instruction.do_adc(state, dst, src);
