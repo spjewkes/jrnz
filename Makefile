@@ -12,7 +12,7 @@ DEPS=$(patsubst %,$(SRC_DIR)/%,$(_DEPS))
 _MAIN_OBJ=main.o instructions.o storage_element.o register.o z80.o system.o debugger.o decoder.o ula.o options.o keyboard.o bus.o
 MAIN_OBJ=$(patsubst %,$(OBJ_DIR)/%,$(_MAIN_OBJ))
 
-_TEST_OBJ=test_main.o instructions.o storage_element.o z80.o decoder.o bus.o keyboard.o test_adc.o test_sbc.o
+_TEST_OBJ=test_main.o instructions.o storage_element.o register.o z80.o decoder.o bus.o keyboard.o test_adc.o test_sbc.o
 TEST_OBJ=$(patsubst %,$(OBJ_DIR)/%,$(_TEST_OBJ))
 
 OS := $(shell uname)

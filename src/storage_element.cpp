@@ -182,7 +182,7 @@ StorageElement StorageElement::operator+(const StorageElement &rhs)
 
 StorageElement StorageElement::add_carry(const StorageElement &lhs, const StorageElement &rhs, bool carry)
 {
-	StorageElement result = StorageElement(lhs.to_s32() + rhs.to_s32() + (carry?1:0), lhs.count);
+	StorageElement result = StorageElement(lhs.to_u32() + rhs.to_u32() + (carry?1:0), lhs.count);
 	result.update_carry(lhs, rhs);
 	result.update_carry(lhs, rhs, true /* is_half */);
 	result.update_overflow(lhs, rhs);

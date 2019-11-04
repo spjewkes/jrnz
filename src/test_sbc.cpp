@@ -142,9 +142,9 @@ static void test_carry_overflow_16bit()
 	for (size_t i=0; i<length; i++)
 	{
 		state.af.flags(0);
-		uint16_t result = sbc_tests[i].op1;
-		StorageElement dst = StorageElement(static_cast<uint8_t>(result & 0xff), static_cast<uint8_t>((result > 8) & 0xff));
-		StorageElement src = StorageElement(sbc_tests[i].op2);
+		uint8_t dst_data[2] = { static_cast<uint8_t>(sbc_tests[i].op1 & 0xff), static_cast<uint8_t>((sbc_tests[i].op1 >> 8) & 0xff) };
+		StorageElement dst = StorageElement(dst_data, 2);
+		StorageElement src = StorageElement(static_cast<uint8_t>(sbc_tests[i].op2 & 0xff), static_cast<uint8_t>((sbc_tests[i].op2 >> 8) & 0xff));
 
 		Instruction instruction = Instruction(InstType::SUB, "test", 0, 0);
 		instruction.do_sub(state, dst, src);
@@ -154,6 +154,8 @@ static void test_carry_overflow_16bit()
 
 		bool carry_out = (sbc_tests[i].carry_out ? true : false);
 		bool overflow = (sbc_tests[i].overflow ? true : false);
+		uint32_t result = 0;
+		dst.get_value(result);
 
 		BOOST_CHECK_EQUAL(result, sbc_tests[i].result);
 		BOOST_CHECK_EQUAL(state.af.flag(RegisterAF::Flags::Carry), carry_out);
