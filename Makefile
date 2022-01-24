@@ -1,5 +1,7 @@
 CPP=g++
-CPPFLAGS=-std=c++11 -Wall -Wextra -Werror -pedantic
+# Need to fix issue with StorageElement
+# CPPFLAGS=-std=c++11 -Wall -Wextra -Werror -pedantic
+CPPFLAGS=-std=c++11 -Wall -Wextra -pedantic
 MAIN_EXE=run_jrnz
 TEST_EXE=run_tests
 
@@ -19,8 +21,10 @@ OS := $(shell uname)
 
 ifeq ($(OS),Darwin)
 # Mac OS
-	CPPFLAGS+=-F/Library/Frameworks
-	LIBS+=-framework SDL2
+#	CPPFLAGS+=-F/Library/Frameworks
+#	LIBS+=-framework SDL2
+	CPPFLAGS+=-I/opt/homebrew/include/
+	LIBS+=-lSDL2 -L/opt/homebrew/lib
 else
 # Assume Linux for now
 	LIBS+=-lSDL2

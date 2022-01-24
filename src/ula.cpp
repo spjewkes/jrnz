@@ -119,12 +119,12 @@ void ULA::clock(bool &do_exit, bool &do_break)
 					if ((new_y & 0x7) == 0 && (x & 0x7) == 0)
 					{
 						SDL_Rect rect = { x+32, new_y+32, 8, 8 };
-						set_rendercolor(renderer, (flash & invert ? ink_color : paper_color), bright);
+						set_rendercolor(renderer, ((flash & invert) ? ink_color : paper_color), bright);
 						SDL_RenderFillRect(renderer, &rect);
 					}
 
 					// Draw horizontal byte in ink color
-					set_rendercolor(renderer, (flash & invert ? paper_color : ink_color), bright);
+					set_rendercolor(renderer, ((flash & invert) ? paper_color : ink_color), bright);
 					uint8_t pixels = *data;
 					if (pixels != 0)
 					{

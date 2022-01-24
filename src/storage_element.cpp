@@ -231,7 +231,7 @@ bool StorageElement::operator!=(const StorageElement &rhs) const
 	{
 		return true;
 	}
-	return false;	
+	return false;
 }
 
 bool StorageElement::operator==(const StorageElement &rhs) const
@@ -240,7 +240,7 @@ bool StorageElement::operator==(const StorageElement &rhs) const
 	{
 		return true;
 	}
-	return false;	
+	return false;
 }
 
 void StorageElement::swap(StorageElement &rhs)
@@ -380,7 +380,7 @@ void StorageElement::shift_left(bool logical)
 	{
 		val |= 0x01;
 	}
-	
+
 	from_u32(val & 0xff);
 }
 
@@ -401,7 +401,7 @@ void StorageElement::invert()
 uint32_t StorageElement::to_u32() const
 {
 	uint32_t v = 0;
-	
+
 	switch (count)
 	{
 	case 1:

@@ -25,6 +25,8 @@ public:
 
 	static StorageElement create_element(Z80 &state, Operand operand);
 
+	// Compiler warns about overriding the default copy constructor here. This needs resolving as
+	// removing it will break the emulator
 	StorageElement &operator=(const StorageElement &rhs);
 	StorageElement &operator=(const uint8_t rhs);
 	StorageElement operator+(const StorageElement &rhs);
