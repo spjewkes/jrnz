@@ -779,6 +779,7 @@ void init_map_inst()
 	map_inst.emplace(0xddcb1e, Instruction{InstType::RR,  "rr (ix+*)",    4, 23, Operand::indIXN});
 	map_inst.emplace(0xddcb26, Instruction{InstType::SLA, "sla (ix+*)",   4, 23, Operand::indIXN});
 	map_inst.emplace(0xddcb2e, Instruction{InstType::SRA, "sra (ix+*)",   4, 23, Operand::indIXN});
+	map_inst.emplace(0xddcb3e, Instruction{InstType::SRL, "srl (ix+*)",   4, 23, Operand::indIXN});
 	map_inst.emplace(0xddcb46, Instruction{InstType::BIT, "bit 0,(ix+*)", 4, 20, Operand::indIXN, Operand::ZERO});
 	map_inst.emplace(0xddcb4e, Instruction{InstType::BIT, "bit 1,(ix+*)", 4, 20, Operand::indIXN, Operand::ONE});
 	map_inst.emplace(0xddcb56, Instruction{InstType::BIT, "bit 2,(ix+*)", 4, 20, Operand::indIXN, Operand::TWO});
