@@ -58,8 +58,13 @@ bool Z80::clock(bool no_cycles)
 			}
 			case 2:
 			{
-				//! TODO - we don't currently support mode 2
-				assert(false);
+				Instruction inst {InstType::PUSH, "INT2", 1, 13, Operand::UNUSED, Operand::PC};
+				cycles_left = inst.execute(*this);
+				uint16_t read_addr = ir.get() & 0xff00;
+				uint16_t jump_addr = bus.read_addr_from_mem(read_addr);
+				pc.set(jump_addr);
+				interrupt = false;
+				found = true;
 				break;
 			}
 			}
