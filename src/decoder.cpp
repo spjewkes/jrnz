@@ -608,6 +608,7 @@ void init_map_inst()
 	map_inst.emplace(0xed6c, Instruction{InstType::SUB,  "neg",        2,  8, Operand::ZERO, Operand::A});
 	map_inst.emplace(0xed6d, Instruction{InstType::RETN, "retn",       2, 14, Operand::PC});
 	//! im 0/1
+	map_inst.emplace(0xed6f, Instruction{InstType::RLD,  "rld",        2, 18});
 	//! rld
 
 	map_inst.emplace(0xed70, Instruction{InstType::IN,   "in (c)",     2, 12, Operand::ZERO, Operand::PORTC});

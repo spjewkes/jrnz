@@ -62,7 +62,7 @@ public:
 	bool is_8bit() const { return count == 1; }
 	bool is_16bit() const { return count == 2; }
 	void get_value(uint32_t &val) const { val = to_u32(); }
-
+  
 	friend std::ostream& operator<<(std::ostream& stream, const StorageElement& e);
 
 private:

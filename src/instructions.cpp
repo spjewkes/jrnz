@@ -60,6 +60,7 @@ size_t Instruction::execute(Z80 &state)
 	case InstType::RLA:  return do_rla(state, dst_elem, src_elem); break;
 	case InstType::RRCA: return do_rrca(state, dst_elem, src_elem); break;
 	case InstType::RRA:  return do_rra(state, dst_elem, src_elem); break;
+	case InstType::RLD:  return do_rld(state, dst_elem, src_elem); break;
 	case InstType::SCF:  return do_scf(state, dst_elem, src_elem); break;
 	case InstType::CCF:  return do_ccf(state, dst_elem, src_elem); break;
 	case InstType::CPL:  return do_cpl(state, dst_elem, src_elem); break;
@@ -724,6 +725,41 @@ size_t Instruction::do_rra(Z80 &state, StorageElement &dst_elem, StorageElement 
 	return cycles;
 }
 
+size_t Instruction::do_rld(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
+{
+	UNUSED(dst_elem);
+	UNUSED(src_elem);
+
+	assert(Operand::UNUSED == dst);
+	assert(Operand::UNUSED == src);
+
+	StorageElement regA = StorageElement::create_element(state, Operand::A);
+	StorageElement indHL = StorageElement::create_element(state, Operand::indHL);
+
+	uint32_t regA_value;
+	regA.get_value(regA_value);
+	uint8_t regA_lo_nibble = regA_value & 0xf;
+
+	uint32_t indHL_value;
+	indHL.get_value(indHL_value);
+	uint8_t indHL_hi_nibble = (indHL_value >> 4) & 0xf;
+
+	StorageElement regA_new((regA_value & 0xf0) | indHL_hi_nibble);
+	StorageElement indHL_new(((indHL_value << 4) & 0xf0) | regA_lo_nibble);
+
+	regA = regA_new;
+	indHL = indHL_new;
+
+	state.af.flag(RegisterAF::Flags::AddSubtract, false);
+	state.af.flag(RegisterAF::Flags::HalfCarry, false);
+
+	state.af.flag(RegisterAF::Flags::ParityOverflow, regA.is_even_parity());
+	state.af.flag(RegisterAF::Flags::Zero, regA.is_zero());
+	state.af.flag(RegisterAF::Flags::Sign, regA.is_neg());
+
+	return cycles;
+}
+
 size_t Instruction::impl_rotate_left(Z80 &state, StorageElement &elem, bool set_state, bool rot_9bit)
 {
 	elem.rotate_left(rot_9bit, state.af.flag(RegisterAF::Flags::Carry));
@@ -905,12 +941,11 @@ size_t Instruction::impl_cp_inc_dec(Z80 &state, bool do_inc, bool loop)
 
 size_t Instruction::do_rst(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem)
 {
-	UNUSED(dst_elem);
-
 	assert(Operand::PC == dst);
 
 	size_t new_sp = dst_elem.push(state.bus, state.sp.get());
 	state.sp.set(new_sp);
+	
 	dst_elem = src_elem;
 
 	return cycles;

@@ -134,6 +134,7 @@ StorageElement StorageElement::create_element(Z80 &state, Operand operand)
 	case Operand::FIVE:     return StorageElement(0x05);
 	case Operand::SIX:      return StorageElement(0x06);
 	case Operand::SEVEN:    return StorageElement(0x07);
+	case Operand::HEX_0000: return StorageElement(0x00, static_cast<uint8_t>(0x00));
 	case Operand::HEX_0008: return StorageElement(0x08, static_cast<uint8_t>(0x00));
 	case Operand::HEX_0010: return StorageElement(0x10, static_cast<uint8_t>(0x00));
 	case Operand::HEX_0018: return StorageElement(0x18, static_cast<uint8_t>(0x00));
@@ -412,6 +413,7 @@ uint32_t StorageElement::to_u32() const
 		v |= static_cast<uint32_t>(ptr[WORD_HI_BYTE_IDX] & 0xff) << 8;
 		break;
 	default:
+		std::cerr << "to_u32() unexpected byte count (" << count << ")\n";
 		assert(false); // Should not get here
 	}
 

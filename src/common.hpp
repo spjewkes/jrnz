@@ -103,6 +103,8 @@ enum class InstType
 	RLA,
 	RRCA,
 	RRA,
+	RRD,
+	RLD,
 	SCF,
 	CCF,
 	CPL,
