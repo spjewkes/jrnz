@@ -2,8 +2,7 @@
  * @brief Header file handling instruction code.
  */
 
-#ifndef __INSTRUCTIONS_HPP__
-#define __INSTRUCTIONS_HPP__
+#pragma once
 
 #include <cstdint>
 #include <string>
@@ -138,5 +137,3 @@ public:
 
     bool is_cond_set(Conditional cond, Z80 &state);
 };
-
-#endif  // __INSTRUCTIONS_HPP__

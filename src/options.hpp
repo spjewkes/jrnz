@@ -2,8 +2,7 @@
  * @brief Header file handling program options.
  */
 
-#ifndef __OPTIONS_HPP__
-#define __OPTIONS_HPP__
+#pragma once
 
 #include <cstdint>
 #include <string>
@@ -39,5 +38,3 @@ private:
     int m_argc;
     char **m_argv;
 };
-
-#endif  // __OPTIONS_HPP__

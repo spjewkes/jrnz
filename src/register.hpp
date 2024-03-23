@@ -2,8 +2,7 @@
  * @brief Header defining a register.
  */
 
-#ifndef __REGISTER_HPP__
-#define __REGISTER_HPP__
+#pragma once
 
 #include <bitset>
 
@@ -93,5 +92,3 @@ private:
 };
 
 std::ostream& operator<<(std::ostream& stream, const RegisterAF& e);
-
-#endif  // __REGISTER_HPP__

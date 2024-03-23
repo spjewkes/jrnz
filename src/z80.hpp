@@ -2,8 +2,7 @@
  * @brief Header defining the core of the z80 implementation.
  */
 
-#ifndef __Z80_HPP__
-#define __Z80_HPP__
+#pragma once
 
 #include <cstdint>
 
@@ -55,5 +54,3 @@ public:
 private:
     bool fast_mode = {false};
 };
-
-#endif  // __Z80_HPP__

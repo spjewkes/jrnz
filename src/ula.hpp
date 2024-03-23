@@ -2,8 +2,7 @@
  * @brief Header defining the ULA implementation.
  */
 
-#ifndef __ULA_HPP__
-#define __ULA_HPP__
+#pragma once
 
 #include <cstdint>
 
@@ -30,5 +29,3 @@ private:
     bool invert = {false};
     bool fast_mode = {false};
 };
-
-#endif  // __ULA_HPP__

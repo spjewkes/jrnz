@@ -2,8 +2,7 @@
  * @brief Header containing common definitions.
  */
 
-#ifndef __COMMON_HPP__
-#define __COMMON_HPP__
+#pragma once
 
 #include <cassert>
 #include <iostream>
@@ -175,5 +174,3 @@ enum class Operand {
     IM,
     UNUSED
 };
-
-#endif  // __COMMON_HPP__

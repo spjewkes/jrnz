@@ -2,8 +2,7 @@
  * @brief Class that manage entire system.
  */
 
-#ifndef __SYSTEM_HPP__
-#define __SYSTEM_HPP__
+#pragma once
 
 #include <cstdlib>
 
@@ -37,5 +36,3 @@ private:
     bool do_exit = {false};
     bool do_break = {false};
 };
-
-#endif  // __SYSTEM_HPP__

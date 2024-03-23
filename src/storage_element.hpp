@@ -3,8 +3,7 @@
  * generically.
  */
 
-#ifndef __STORAGE_ELEMENT_HPP__
-#define __STORAGE_ELEMENT_HPP__
+#pragma once
 
 #include <bitset>
 #include <cstdint>
@@ -100,5 +99,3 @@ private:
 };
 
 std::ostream &operator<<(std::ostream &stream, const StorageElement &e);
-
-#endif  // __STORAGE_ELEMENT_HPP__

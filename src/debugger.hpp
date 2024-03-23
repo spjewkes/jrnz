@@ -2,8 +2,7 @@
  * @brief Class that handles the debugger.
  */
 
-#ifndef __DEBUGGER_HPP__
-#define __DEBUGGER_HPP__
+#pragma once
 
 #include <cstdlib>
 
@@ -43,5 +42,3 @@ public:
     uint16_t break_pc = {0x0000};
     uint16_t break_pc_tmp = {0x0000};
 };
-
-#endif  // __DEBUGGER_HPP__

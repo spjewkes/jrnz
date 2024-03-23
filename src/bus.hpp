@@ -2,8 +2,7 @@
  * @brief Class managing memory/data bus of the system.
  */
 
-#ifndef __BUS_HPP__
-#define __BUS_HPP__
+#pragma once
 
 #include <cassert>
 #include <cstdint>
@@ -73,5 +72,3 @@ private:
     std::vector<uint8_t> mem;
     uint16_t ram_start;
 };
-
-#endif  // __BUS_HPP__
