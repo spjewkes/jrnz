@@ -9,4 +9,4 @@
 
 uint8_t get_keyboard_state(uint8_t halfrows);
 
-#endif // __KEYBOARD_HPP__
+#endif  // __KEYBOARD_HPP__

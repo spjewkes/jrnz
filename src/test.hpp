@@ -7,4 +7,4 @@
 using namespace boost::unit_test;
 #pragma GCC diagnostic pop
 
-#endif // __TEST_HPP__
+#endif  // __TEST_HPP__
