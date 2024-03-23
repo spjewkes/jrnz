@@ -22,7 +22,8 @@ public:
 	explicit StorageElement(uint8_t *_ptr, size_t _count, bool _readonly=false);
 	explicit StorageElement(uint8_t v = 0);
 	explicit StorageElement(uint8_t lo, uint8_t hi);
-
+    StorageElement(const StorageElement&) = default;
+    
 	static StorageElement create_element(Z80 &state, Operand operand);
 
 	// Compiler warns about overriding the default copy constructor here. This needs resolving as
