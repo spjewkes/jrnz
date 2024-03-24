@@ -1,8 +1,9 @@
+#include <catch2/catch_test_macros.hpp>
+
 #include "bus.hpp"
-#include "test.hpp"
 #include "z80.hpp"
 
-static void test_carry_overflow() {
+TEST_CASE("Carry Overflow Sub", "[sbc]") {
     Bus mem(65536);
     Z80 state(mem, true);
 
@@ -48,20 +49,20 @@ static void test_carry_overflow() {
         Instruction instruction = Instruction(InstType::SBC, "test", 0, 0);
         instruction.do_sbc(state, dst, src);
 
-        BOOST_TEST_MESSAGE("Calculating " << static_cast<uint32_t>(sbc_tests[i].op1) << " - "
-                                          << static_cast<uint32_t>(sbc_tests[i].op2) << " (carry "
-                                          << static_cast<uint32_t>(sbc_tests[i].carry_in) << ") = " << dst);
+        INFO("Calculating " << static_cast<uint32_t>(sbc_tests[i].op1) << " - "
+                            << static_cast<uint32_t>(sbc_tests[i].op2) << " (carry "
+                            << static_cast<uint32_t>(sbc_tests[i].carry_in) << ") = " << dst);
 
         bool carry_out = (sbc_tests[i].carry_out ? true : false);
         bool overflow = (sbc_tests[i].overflow ? true : false);
 
-        BOOST_CHECK_EQUAL(result, sbc_tests[i].result);
-        BOOST_CHECK_EQUAL(state.af.flag(RegisterAF::Flags::Carry), carry_out);
-        BOOST_CHECK_EQUAL(state.af.flag(RegisterAF::Flags::ParityOverflow), overflow);
+        REQUIRE(result == sbc_tests[i].result);
+        REQUIRE(state.af.flag(RegisterAF::Flags::Carry) == carry_out);
+        REQUIRE(state.af.flag(RegisterAF::Flags::ParityOverflow) == overflow);
     }
 }
 
-static void test_carry_overflow_16bit() {
+TEST_CASE("Carry Overflow Sub 16bit", "[sbc]") {
     Bus mem(65536);
     Z80 state(mem, true);
 
@@ -89,25 +90,16 @@ static void test_carry_overflow_16bit() {
         Instruction instruction = Instruction(InstType::SUB, "test", 0, 0);
         instruction.do_sub(state, dst, src);
 
-        BOOST_TEST_MESSAGE("Calculating " << static_cast<uint32_t>(sbc_tests[i].op1) << " - "
-                                          << static_cast<uint32_t>(sbc_tests[i].op2) << " = " << dst);
+        INFO("Calculating " << static_cast<uint32_t>(sbc_tests[i].op1) << " - "
+                            << static_cast<uint32_t>(sbc_tests[i].op2) << " = " << dst);
 
         bool carry_out = (sbc_tests[i].carry_out ? true : false);
         bool overflow = (sbc_tests[i].overflow ? true : false);
         uint32_t result = 0;
         dst.get_value(result);
 
-        BOOST_CHECK_EQUAL(result, sbc_tests[i].result);
-        BOOST_CHECK_EQUAL(state.af.flag(RegisterAF::Flags::Carry), carry_out);
-        BOOST_CHECK_EQUAL(state.af.flag(RegisterAF::Flags::ParityOverflow), overflow);
+        REQUIRE(result == sbc_tests[i].result);
+        REQUIRE(state.af.flag(RegisterAF::Flags::Carry) == carry_out);
+        REQUIRE(state.af.flag(RegisterAF::Flags::ParityOverflow) == overflow);
     }
-}
-
-test_suite* create_test_suite_sbc() {
-    test_suite* ts = BOOST_TEST_SUITE("test_suite_sbc");
-
-    ts->add(BOOST_TEST_CASE(&test_carry_overflow));
-    ts->add(BOOST_TEST_CASE(&test_carry_overflow_16bit));
-
-    return ts;
 }

@@ -1,8 +1,9 @@
+#include <catch2/catch_test_macros.hpp>
+
 #include "bus.hpp"
-#include "test.hpp"
 #include "z80.hpp"
 
-static void test_carry_overflow() {
+TEST_CASE("Carry Overflow Add", "[adc]") {
     Bus mem(65536);
     Z80 state(mem, true);
 
@@ -48,23 +49,15 @@ static void test_carry_overflow() {
         Instruction instruction = Instruction(InstType::ADC, "test", 0, 0);
         instruction.do_adc(state, dst, src);
 
-        BOOST_TEST_MESSAGE("Calculating " << static_cast<uint32_t>(adc_tests[i].op1) << " + "
-                                          << static_cast<uint32_t>(adc_tests[i].op2) << " (carry "
-                                          << static_cast<uint32_t>(adc_tests[i].carry_in) << ") = " << dst);
+        INFO("Calculating " << static_cast<uint32_t>(adc_tests[i].op1) << " + "
+                            << static_cast<uint32_t>(adc_tests[i].op2) << " (carry "
+                            << static_cast<uint32_t>(adc_tests[i].carry_in) << ") = " << dst);
 
         bool carry_out = (adc_tests[i].carry_out ? true : false);
         bool overflow = (adc_tests[i].overflow ? true : false);
 
-        BOOST_CHECK_EQUAL(result, adc_tests[i].result);
-        BOOST_CHECK_EQUAL(state.af.flag(RegisterAF::Flags::Carry), carry_out);
-        BOOST_CHECK_EQUAL(state.af.flag(RegisterAF::Flags::ParityOverflow), overflow);
+        REQUIRE(result == adc_tests[i].result);
+        REQUIRE(state.af.flag(RegisterAF::Flags::Carry) == carry_out);
+        REQUIRE(state.af.flag(RegisterAF::Flags::ParityOverflow) == overflow);
     }
-}
-
-test_suite* create_test_suite_adc() {
-    test_suite* ts = BOOST_TEST_SUITE("test_suite_adc");
-
-    ts->add(BOOST_TEST_CASE(&test_carry_overflow));
-
-    return ts;
 }
