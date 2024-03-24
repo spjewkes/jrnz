@@ -201,7 +201,7 @@ StorageElement StorageElement::operator+(const StorageElement &rhs) {
     StorageElement result = StorageElement(to_s32() + rhs.to_s32(), count);
     result.update_carry(*this, rhs);
     result.update_carry(*this, rhs, true /* is_half */);
-    result.update_overflow(*this, rhs);
+    result.update_overflow(*this, rhs, false /* is_sub */);
     return result;
 }
 
@@ -209,7 +209,7 @@ StorageElement StorageElement::add_carry(const StorageElement &lhs, const Storag
     StorageElement result = StorageElement(lhs.to_u32() + rhs.to_u32() + (carry ? 1 : 0), lhs.count);
     result.update_carry(lhs, rhs);
     result.update_carry(lhs, rhs, true /* is_half */);
-    result.update_overflow(lhs, rhs);
+    result.update_overflow(lhs, rhs, false /* is_sub */);
     return result;
 }
 
@@ -217,7 +217,7 @@ StorageElement StorageElement::operator-(const StorageElement &rhs) {
     StorageElement result = StorageElement(to_s32() - rhs.to_s32(), count);
     result.update_borrow(*this, rhs);
     result.update_borrow(*this, rhs, true /* is_half */);
-    result.update_overflow(*this, rhs);
+    result.update_overflow(*this, rhs, true /* is_sub */);
     return result;
 }
 
@@ -225,7 +225,7 @@ StorageElement StorageElement::sub_carry(const StorageElement &lhs, const Storag
     StorageElement result = StorageElement(lhs.to_s32() - rhs.to_s32() - (carry ? 1 : 0), lhs.count);
     result.update_carry(lhs, rhs);
     result.update_carry(lhs, rhs, true /* is_half */);
-    result.update_overflow(lhs, rhs);
+    result.update_overflow(lhs, rhs, true /* is_sub */);
     return result;
 }
 
@@ -505,19 +505,16 @@ void StorageElement::update_borrow(const StorageElement &op1, const StorageEleme
     }
 }
 
-void StorageElement::update_overflow(const StorageElement &op1, const StorageElement &op2) {
+void StorageElement::update_overflow(const StorageElement &op1, const StorageElement &op2, bool is_sub) {
     bool res_bit = significant_bit();
     bool op1_bit = op1.significant_bit();
     bool op2_bit = op2.significant_bit();
 
-    flag_overflow = (op1_bit ^ res_bit) & !(op1_bit ^ op2_bit);
+    if (is_sub) {
+        op2_bit = !op2_bit;
+    }
 
-    // TODO check above change
-    // if ((op1_bit == op2_bit) && (op1_bit != res_bit)) {
-    //     flag_overflow = true;
-    // } else {
-    //     flag_overflow = false;
-    // }
+    flag_overflow = (op1_bit ^ res_bit) & !(op1_bit ^ op2_bit);
 }
 
 std::ostream &operator<<(std::ostream &stream, const StorageElement &e) {

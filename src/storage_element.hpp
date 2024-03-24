@@ -84,7 +84,7 @@ private:
     bool significant_bit(bool ishalf = false) const;
     void update_carry(const StorageElement &op1, const StorageElement &op2, bool is_half = false);
     void update_borrow(const StorageElement &op1, const StorageElement &op2, bool is_half = false);
-    void update_overflow(const StorageElement &op1, const StorageElement &op2);
+    void update_overflow(const StorageElement &op1, const StorageElement &op2, bool is_sub = false);
 
     uint8_t *ptr = {nullptr};
     size_t count = {0};
