@@ -2,4 +2,4 @@
 mkdir -p __build
 cd __build
 cmake ..
-cmake --build .
+time -p cmake --build . --parallel 16
