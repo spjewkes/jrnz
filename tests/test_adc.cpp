@@ -51,7 +51,9 @@ TEST_CASE("Carry Overflow Add", "[adc]") {
 
         INFO("Calculating " << static_cast<uint32_t>(adc_tests[i].op1) << " + "
                             << static_cast<uint32_t>(adc_tests[i].op2) << " (carry "
-                            << static_cast<uint32_t>(adc_tests[i].carry_in) << ") = " << dst);
+                            << static_cast<uint32_t>(adc_tests[i].carry_in) << ") = " << dst << "(carry "
+                            << state.af.flag(RegisterAF::Flags::Carry) << " - "
+                            << "overflow " << state.af.flag(RegisterAF::Flags::ParityOverflow) << ")");
 
         bool carry_out = (adc_tests[i].carry_out ? true : false);
         bool overflow = (adc_tests[i].overflow ? true : false);

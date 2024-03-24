@@ -51,7 +51,9 @@ TEST_CASE("Carry Overflow Sub", "[sbc]") {
 
         INFO("Calculating " << static_cast<uint32_t>(sbc_tests[i].op1) << " - "
                             << static_cast<uint32_t>(sbc_tests[i].op2) << " (carry "
-                            << static_cast<uint32_t>(sbc_tests[i].carry_in) << ") = " << dst);
+                            << static_cast<uint32_t>(sbc_tests[i].carry_in) << ") = " << dst << "(carry "
+                            << state.af.flag(RegisterAF::Flags::Carry) << " - "
+                            << "overflow " << state.af.flag(RegisterAF::Flags::ParityOverflow) << ")");
 
         bool carry_out = (sbc_tests[i].carry_out ? true : false);
         bool overflow = (sbc_tests[i].overflow ? true : false);
