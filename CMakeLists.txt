@@ -5,7 +5,7 @@ set(CMAKE_CXX_FLAGS "-O2 -pedantic-errors -Wextra -Wall")
 
 project(JRNZ)
 
-include_directories(src/)
+include_directories(src/ include/)
 
 # SDL needed for frontend
 find_package(SDL2 REQUIRED)
