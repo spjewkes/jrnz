@@ -49,11 +49,15 @@ TEST_CASE("Carry Overflow Add", "[adc]") {
         Instruction instruction = Instruction(InstType::ADC, "test", 0, 0);
         instruction.do_adc(state, dst, src);
 
-        INFO("Calculating " << static_cast<uint32_t>(adc_tests[i].op1) << " + "
-                            << static_cast<uint32_t>(adc_tests[i].op2) << " (carry "
-                            << static_cast<uint32_t>(adc_tests[i].carry_in) << ") = " << dst << "(carry "
-                            << state.af.flag(RegisterAF::Flags::Carry) << " - "
-                            << "overflow " << state.af.flag(RegisterAF::Flags::ParityOverflow) << ")");
+        INFO("Calculating [" << i << "]: " << static_cast<uint32_t>(adc_tests[i].op1) << " + "
+                             << static_cast<uint32_t>(adc_tests[i].op2) << " + "
+                             << static_cast<uint32_t>(adc_tests[i].carry_in) << " = "
+                             << static_cast<uint32_t>(adc_tests[i].result)
+                             << " (overflow: " << static_cast<uint32_t>(adc_tests[i].overflow) << ", "
+                             << "carry out: " << static_cast<uint32_t>(adc_tests[i].carry_out) << ")");
+        INFO("Result [" << i << "]: " << dst << " (overflow: " << state.af.flag(RegisterAF::Flags::ParityOverflow)
+                        << ", "
+                        << "carry out: " << state.af.flag(RegisterAF::Flags::Carry) << ")");
 
         bool carry_out = (adc_tests[i].carry_out ? true : false);
         bool overflow = (adc_tests[i].overflow ? true : false);

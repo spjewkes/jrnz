@@ -510,11 +510,11 @@ void StorageElement::update_overflow(const StorageElement &op1, const StorageEle
     bool op1_bit = op1.significant_bit();
     bool op2_bit = op2.significant_bit();
 
-    if (is_sub) {
+    if (!is_sub) {
         op2_bit = !op2_bit;
     }
 
-    flag_overflow = (op1_bit ^ res_bit) & !(op1_bit ^ op2_bit);
+    flag_overflow = (op1_bit ^ res_bit) & (op1_bit ^ op2_bit);
 }
 
 std::ostream &operator<<(std::ostream &stream, const StorageElement &e) {

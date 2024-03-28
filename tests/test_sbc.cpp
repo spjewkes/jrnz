@@ -49,11 +49,15 @@ TEST_CASE("Carry Overflow Sub", "[sbc]") {
         Instruction instruction = Instruction(InstType::SBC, "test", 0, 0);
         instruction.do_sbc(state, dst, src);
 
-        INFO("Calculating " << static_cast<uint32_t>(sbc_tests[i].op1) << " - "
-                            << static_cast<uint32_t>(sbc_tests[i].op2) << " (carry "
-                            << static_cast<uint32_t>(sbc_tests[i].carry_in) << ") = " << dst << "(carry "
-                            << state.af.flag(RegisterAF::Flags::Carry) << " - "
-                            << "overflow " << state.af.flag(RegisterAF::Flags::ParityOverflow) << ")");
+        INFO("Calculating [" << i << "]: " << static_cast<uint32_t>(sbc_tests[i].op1) << " - "
+                             << static_cast<uint32_t>(sbc_tests[i].op2) << " - "
+                             << static_cast<uint32_t>(sbc_tests[i].carry_in) << " = "
+                             << static_cast<uint32_t>(sbc_tests[i].result)
+                             << " (overflow: " << static_cast<uint32_t>(sbc_tests[i].overflow) << ", "
+                             << "carry out: " << static_cast<uint32_t>(sbc_tests[i].carry_out) << ")");
+        INFO("Result [" << i << "]: " << dst << " (overflow: " << state.af.flag(RegisterAF::Flags::ParityOverflow)
+                        << ", "
+                        << "carry out: " << state.af.flag(RegisterAF::Flags::Carry) << ")");
 
         bool carry_out = (sbc_tests[i].carry_out ? true : false);
         bool overflow = (sbc_tests[i].overflow ? true : false);
@@ -92,8 +96,14 @@ TEST_CASE("Carry Overflow Sub 16bit", "[sbc]") {
         Instruction instruction = Instruction(InstType::SUB, "test", 0, 0);
         instruction.do_sub(state, dst, src);
 
-        INFO("Calculating " << static_cast<uint32_t>(sbc_tests[i].op1) << " - "
-                            << static_cast<uint32_t>(sbc_tests[i].op2) << " = " << dst);
+        INFO("Calculating [" << i << "]: " << static_cast<uint32_t>(sbc_tests[i].op1) << " - "
+                             << static_cast<uint32_t>(sbc_tests[i].op2) << " = "
+                             << static_cast<uint32_t>(sbc_tests[i].result)
+                             << " (overflow: " << static_cast<uint32_t>(sbc_tests[i].overflow) << ", "
+                             << "carry out: " << static_cast<uint32_t>(sbc_tests[i].carry_out) << ")");
+        INFO("Result [" << i << "]: " << dst << " (overflow: " << state.af.flag(RegisterAF::Flags::ParityOverflow)
+                        << ", "
+                        << "carry out: " << state.af.flag(RegisterAF::Flags::Carry) << ")");
 
         bool carry_out = (sbc_tests[i].carry_out ? true : false);
         bool overflow = (sbc_tests[i].overflow ? true : false);
