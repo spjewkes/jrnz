@@ -16,8 +16,14 @@ find_package(Catch2 3 REQUIRED)
 
 add_library(jrnz_lib src/instructions.cpp src/storage_element.cpp src/register.cpp src/z80.cpp src/system.cpp src/debugger.cpp src/decoder.cpp src/ula.cpp src/options.cpp src/keyboard.cpp src/bus.cpp)
 
+# Build emulator
 add_executable(run_jrnz src/main.cpp)
 target_link_libraries(run_jrnz ${SDL2_LIBRARIES} jrnz_lib)
 
+# Build unit tests
+include(CTest)
+
 add_executable(run_tests tests/test_adc.cpp tests/test_sbc.cpp)
 target_link_libraries(run_tests ${SDL2_LIBRARIES} Catch2::Catch2WithMain jrnz_lib)
+
+add_test(NAME run_tests COMMAND run_tests)

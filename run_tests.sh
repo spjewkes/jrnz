@@ -1,1 +1,2 @@
-__build/run_tests
+cd __build/
+ctest --progress --output-on-failure
