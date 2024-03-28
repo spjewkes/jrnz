@@ -505,9 +505,7 @@ size_t Instruction::do_sub(Z80 &state, StorageElement &dst_elem, StorageElement 
 }
 
 size_t Instruction::do_sbc(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem) {
-    return impl_sub(state, dst_elem, src_elem, true, true, false);
-    // TODO try getting this to work properly
-    // return impl_sbc(state, dst_elem, src_elem);
+    return impl_sbc(state, dst_elem, src_elem);
 }
 
 size_t Instruction::do_add(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem) {
