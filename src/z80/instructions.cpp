@@ -1023,7 +1023,7 @@ size_t Instruction::do_neg(Z80 &state, StorageElement &dst_elem, StorageElement 
         new_overflow = true;
     }
     bool new_carry = false;
-    if (value == 0x00) {
+    if (value != 0x00) {
         new_carry = true;
     }
 
@@ -1036,9 +1036,9 @@ size_t Instruction::do_neg(Z80 &state, StorageElement &dst_elem, StorageElement 
     state.af.flag(RegisterAF::Flags::Zero, dst_elem.is_zero());
     state.af.flag(RegisterAF::Flags::Sign, dst_elem.is_neg());
 
-    // TOTO
-    // return impl_sub(state, dst_elem, src_elem, true /* store */, false /* use_carry */, false /* is_dec */);
+    return cycles;
 }
+
 bool Instruction::is_cond_set(Conditional cond, Z80 &state) {
     switch (cond) {
         case Conditional::ALWAYS:
