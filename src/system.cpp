@@ -9,6 +9,7 @@
 bool System::clock() {
     if (do_break) {
         _debugger.set_break(true);
+        do_break = false;
     }
 
     if (_debugger.clock()) {

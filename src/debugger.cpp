@@ -21,6 +21,12 @@ bool Debugger::break_ready() {
         return true;
     }
 
+    if (break_at_breakpoint && _z80.pc.get() == break_breakpoint) {
+        std::cout << "Enabled break at 0x" << std::hex << break_breakpoint << std::dec << std::endl;
+        break_enabled = true;
+        return true;
+    }
+
     return false;
 }
 
@@ -39,14 +45,16 @@ bool Debugger::clock() {
 
             switch (ch) {
                 case 'b':
-                    break_at_pc = true;
-                    std::cin >> std::hex >> break_pc;
-                    paused = false;
-                    break_enabled = false;
+                    break_at_breakpoint = true;
+                    std::cin >> std::hex >> break_breakpoint;
+                    break;
+                case 'x':
+                    break_at_breakpoint = false;
                     break;
                 case 'c':
                     paused = false;
                     break_enabled = false;
+                    break_at_pc = false;
                     break;
                 case 's':
                     std::cin >> break_step;
@@ -91,6 +99,8 @@ bool Debugger::clock() {
                     std::string help_text =
                         "In debug mode.\n"
                         "Help:\n"
+                        "\tb <addr> = set breakpoint at <addr>\n"
+                        "\tx = clear breakpoint\n"
                         "\tc = continue\n"
                         "\ts <n> = step <n> times\n"
                         "\tr = dump registers\n"

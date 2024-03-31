@@ -37,8 +37,12 @@ public:
 
     bool debug_out = {false};
     size_t break_step = {0ull};
+
+    // TODO: really need to tidy this up
     bool break_enabled = {false};
     bool break_at_pc = {false};
+    bool break_at_breakpoint = {false};
     uint16_t break_pc = {0x0000};
     uint16_t break_pc_tmp = {0x0000};
+    uint16_t break_breakpoint = {0x0000};
 };
