@@ -24,7 +24,7 @@ target_link_libraries(run_jrnz ${SDL2_LIBRARIES} jrnz_lib z80_lib)
 # Build unit tests
 include(CTest)
 
-add_executable(run_tests tests/test_adc.cpp tests/test_sbc.cpp)
+add_executable(run_tests tests/test_adc.cpp tests/test_sbc.cpp tests/test_neg.cpp)
 target_link_libraries(run_tests ${SDL2_LIBRARIES} Catch2::Catch2WithMain z80_lib jrnz_lib)
 
 add_test(NAME run_tests COMMAND run_tests)
