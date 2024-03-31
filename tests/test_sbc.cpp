@@ -118,6 +118,7 @@ TEST_CASE("Carry Overflow Sub 16bit", "[sbc]") {
         {65535, 32769, 32766, 0, 0},
         {65535, 65535, 0, 0, 0},
         {16383, 65535, 16384, 1, 0},
+        {65535, 65535, 0, 0, 0},
     };
 
     size_t length = sizeof(sbc_tests) / sizeof(sbc_tests[0]);
