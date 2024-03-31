@@ -110,6 +110,7 @@ enum class InstType {
     RST,
     HALT,
     DAA,
+    NEG,
 };
 
 /**

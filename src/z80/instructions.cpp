@@ -185,6 +185,9 @@ size_t Instruction::execute(Z80 &state) {
         case InstType::DAA:
             return do_daa(state, dst_elem, src_elem);
             break;
+        case InstType::NEG:
+            return do_neg(state, dst_elem, src_elem);
+            break;
         default:
             std::cerr << "Unknown instruction type: " << static_cast<uint32_t>(inst) << std::endl;
             assert(false);
@@ -1008,6 +1011,34 @@ size_t Instruction::do_daa(Z80 &state, StorageElement &dst_elem, StorageElement 
     return cycles;
 }
 
+size_t Instruction::do_neg(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem) {
+    assert(Operand::A == src);
+    assert(Operand::A == dst);
+
+    uint32_t value;
+    src_elem.get_value(value);
+
+    bool new_overflow = false;
+    if (value == 0x80) {
+        new_overflow = true;
+    }
+    bool new_carry = false;
+    if (value == 0x00) {
+        new_carry = true;
+    }
+
+    dst_elem = StorageElement(0 - value);
+
+    state.af.flag(RegisterAF::Flags::AddSubtract, true);
+    state.af.flag(RegisterAF::Flags::Carry, new_carry);
+    state.af.flag(RegisterAF::Flags::HalfCarry, dst_elem.is_half());
+    state.af.flag(RegisterAF::Flags::ParityOverflow, new_overflow);
+    state.af.flag(RegisterAF::Flags::Zero, dst_elem.is_zero());
+    state.af.flag(RegisterAF::Flags::Sign, dst_elem.is_neg());
+
+    // TOTO
+    // return impl_sub(state, dst_elem, src_elem, true /* store */, false /* use_carry */, false /* is_dec */);
+}
 bool Instruction::is_cond_set(Conditional cond, Z80 &state) {
     switch (cond) {
         case Conditional::ALWAYS:

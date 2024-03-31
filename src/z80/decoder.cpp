@@ -569,7 +569,7 @@ void init_map_inst() {
     map_inst.emplace(0xed41, Instruction{InstType::OUT, "out (c),b", 2, 12, Operand::PORTC, Operand::B});
     map_inst.emplace(0xed42, Instruction{InstType::SBC, "sbc hl,bc", 2, 15, Operand::HL, Operand::BC});
     map_inst.emplace(0xed43, Instruction{InstType::LD, "ld (**),bc", 4, 20, Operand::indNN, Operand::BC});
-    map_inst.emplace(0xed44, Instruction{InstType::SUB, "neg", 2, 8, Operand::ZERO, Operand::A});
+    map_inst.emplace(0xed44, Instruction{InstType::NEG, "neg", 2, 8, Operand::A, Operand::A});
     map_inst.emplace(0xed45, Instruction{InstType::RETN, "retn", 2, 14, Operand::PC});
     map_inst.emplace(0xed46, Instruction{InstType::IM, "im 0", 2, 8, Operand::IM, Operand::ZERO});
     map_inst.emplace(0xed47, Instruction{InstType::LD, "ld i,a", 2, 9, Operand::I, Operand::A});
@@ -577,7 +577,7 @@ void init_map_inst() {
     map_inst.emplace(0xed49, Instruction{InstType::OUT, "out (c),c", 2, 12, Operand::PORTC, Operand::C});
     map_inst.emplace(0xed4a, Instruction{InstType::ADC, "adc hl,bc", 2, 15, Operand::HL, Operand::BC});
     map_inst.emplace(0xed4b, Instruction{InstType::LD, "ld bc,(**)", 4, 20, Operand::BC, Operand::indNN});
-    map_inst.emplace(0xed4c, Instruction{InstType::SUB, "neg", 2, 8, Operand::ZERO, Operand::A});
+    map_inst.emplace(0xed4c, Instruction{InstType::NEG, "neg", 2, 8, Operand::A, Operand::A});
     map_inst.emplace(0xed4d, Instruction{InstType::RETI, "reti", 2, 14, Operand::PC});
     //! im 0/1
     map_inst.emplace(0xed4f, Instruction{InstType::LD, "ld r,a", 2, 9, Operand::R, Operand::A});
@@ -586,7 +586,7 @@ void init_map_inst() {
     map_inst.emplace(0xed51, Instruction{InstType::OUT, "out (c),d", 2, 12, Operand::PORTC, Operand::D});
     map_inst.emplace(0xed52, Instruction{InstType::SBC, "sbc hl,de", 2, 15, Operand::HL, Operand::DE});
     map_inst.emplace(0xed53, Instruction{InstType::LD, "ld (**),de", 4, 20, Operand::indNN, Operand::DE});
-    map_inst.emplace(0xed54, Instruction{InstType::SUB, "neg", 2, 8, Operand::ZERO, Operand::A});
+    map_inst.emplace(0xed54, Instruction{InstType::NEG, "neg", 2, 8, Operand::A, Operand::A});
     map_inst.emplace(0xed55, Instruction{InstType::RETN, "retn", 2, 14, Operand::PC});
     map_inst.emplace(0xed56, Instruction{InstType::IM, "im 1", 2, 8, Operand::IM, Operand::ONE});
     map_inst.emplace(0xed57, Instruction{InstType::LD, "ld a,i", 2, 9, Operand::A, Operand::I});
@@ -594,7 +594,7 @@ void init_map_inst() {
     map_inst.emplace(0xed59, Instruction{InstType::OUT, "out (c),e", 2, 12, Operand::PORTC, Operand::E});
     map_inst.emplace(0xed5a, Instruction{InstType::ADC, "adc hl,de", 2, 15, Operand::HL, Operand::DE});
     map_inst.emplace(0xed5b, Instruction{InstType::LD, "ld de,(**)", 4, 20, Operand::DE, Operand::indNN});
-    map_inst.emplace(0xed5c, Instruction{InstType::SUB, "neg", 2, 8, Operand::ZERO, Operand::A});
+    map_inst.emplace(0xed5c, Instruction{InstType::NEG, "neg", 2, 8, Operand::A, Operand::A});
     map_inst.emplace(0xed5d, Instruction{InstType::RETN, "retn", 2, 14, Operand::PC});
     map_inst.emplace(0xed5e, Instruction{InstType::IM, "im 2", 2, 8, Operand::IM, Operand::TWO});
     map_inst.emplace(0xed5f, Instruction{InstType::LD, "ld a,r", 2, 9, Operand::A, Operand::R});
@@ -603,14 +603,14 @@ void init_map_inst() {
     map_inst.emplace(0xed61, Instruction{InstType::OUT, "out (c),h", 2, 12, Operand::PORTC, Operand::H});
     map_inst.emplace(0xed62, Instruction{InstType::SBC, "sbc hl,hl", 2, 15, Operand::HL, Operand::HL});
     //! ld (**),hl
-    map_inst.emplace(0xed64, Instruction{InstType::SUB, "neg", 2, 8, Operand::ZERO, Operand::A});
+    map_inst.emplace(0xed64, Instruction{InstType::NEG, "neg", 2, 8, Operand::A, Operand::A});
     map_inst.emplace(0xed65, Instruction{InstType::RETN, "retn", 2, 14, Operand::PC});
     map_inst.emplace(0xed66, Instruction{InstType::IM, "im 0", 2, 8, Operand::IM, Operand::ZERO});
     //! rrd
     map_inst.emplace(0xed68, Instruction{InstType::IN, "in l,(c)", 2, 12, Operand::L, Operand::PORTC});
     map_inst.emplace(0xed69, Instruction{InstType::OUT, "out (c),l", 2, 12, Operand::PORTC, Operand::L});
     map_inst.emplace(0xed6a, Instruction{InstType::ADC, "adc hl,hl", 2, 15, Operand::HL, Operand::HL});
-    map_inst.emplace(0xed6c, Instruction{InstType::SUB, "neg", 2, 8, Operand::ZERO, Operand::A});
+    map_inst.emplace(0xed6c, Instruction{InstType::NEG, "neg", 2, 8, Operand::A, Operand::A});
     map_inst.emplace(0xed6d, Instruction{InstType::RETN, "retn", 2, 14, Operand::PC});
     //! im 0/1
     map_inst.emplace(0xed6f, Instruction{InstType::RLD, "rld", 2, 18});
@@ -620,14 +620,14 @@ void init_map_inst() {
     map_inst.emplace(0xed71, Instruction{InstType::OUT, "out (c),0", 2, 12, Operand::PORTC, Operand::ZERO});
     map_inst.emplace(0xed72, Instruction{InstType::SBC, "sbc hl,sp", 2, 15, Operand::HL, Operand::SP});
     map_inst.emplace(0xed73, Instruction{InstType::LD, "ld (**),sp", 4, 20, Operand::indNN, Operand::SP});
-    map_inst.emplace(0xed74, Instruction{InstType::SUB, "neg", 2, 8, Operand::ZERO, Operand::A});
+    map_inst.emplace(0xed74, Instruction{InstType::NEG, "neg", 2, 8, Operand::A, Operand::A});
     map_inst.emplace(0xed75, Instruction{InstType::RETN, "retn", 2, 14, Operand::PC});
     map_inst.emplace(0xed76, Instruction{InstType::IM, "im 1", 2, 8, Operand::IM, Operand::ONE});
     map_inst.emplace(0xed78, Instruction{InstType::IN, "in a,(c)", 2, 12, Operand::A, Operand::PORTC});
     map_inst.emplace(0xed79, Instruction{InstType::OUT, "out (c),a", 2, 13, Operand::PORTC, Operand::A});
     map_inst.emplace(0xed7a, Instruction{InstType::ADC, "adc hl,sp", 2, 15, Operand::HL, Operand::SP});
     map_inst.emplace(0xed7b, Instruction{InstType::LD, "ld sp,(**)", 4, 20, Operand::SP, Operand::indNN});
-    map_inst.emplace(0xed7c, Instruction{InstType::SUB, "neg", 2, 8, Operand::ZERO, Operand::A});
+    map_inst.emplace(0xed7c, Instruction{InstType::NEG, "neg", 2, 8, Operand::A, Operand::A});
     map_inst.emplace(0xed7d, Instruction{InstType::RETN, "retn", 2, 14, Operand::PC});
     map_inst.emplace(0xed7e, Instruction{InstType::IM, "im 2", 2, 8, Operand::IM, Operand::TWO});
 
