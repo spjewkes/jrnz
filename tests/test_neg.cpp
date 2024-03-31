@@ -24,7 +24,7 @@ TEST_CASE("Negative", "[neg]") {
         StorageElement dst = StorageElement(&result, 1);
         StorageElement src = StorageElement(neg_tests[i].op2);
 
-        Instruction instruction = Instruction(InstType::SUB, "test", 0, 0);
+        Instruction instruction = Instruction(InstType::SUB, "test", 2, 8, Operand::ZERO, Operand::A);
         instruction.do_sub(state, dst, src);
 
         INFO("Calculating [" << i << "]: NEG " << static_cast<uint32_t>(neg_tests[i].op1) << " = "
