@@ -597,7 +597,6 @@ size_t Instruction::impl_sub(Z80 &state, StorageElement &dst_elem, StorageElemen
         state.af.flag(RegisterAF::Flags::AddSubtract, true);
         state.af.flag(RegisterAF::Flags::HalfCarry, result.is_half());
         state.af.flag(RegisterAF::Flags::ParityOverflow, result.is_overflow());
-        ;
         state.af.flag(RegisterAF::Flags::Zero, result.is_zero());
         state.af.flag(RegisterAF::Flags::Sign, result.is_neg());
     }
@@ -610,9 +609,7 @@ size_t Instruction::impl_sub(Z80 &state, StorageElement &dst_elem, StorageElemen
 }
 
 size_t Instruction::impl_sbc(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem) {
-    state.af.flag(RegisterAF::Flags::Carry, !state.af.flag(RegisterAF::Flags::Carry));
-    src_elem.invert();
-    StorageElement result = StorageElement::add_carry(dst_elem, src_elem, state.af.flag(RegisterAF::Flags::Carry));
+    StorageElement result = StorageElement::sub_carry(dst_elem, src_elem, state.af.flag(RegisterAF::Flags::Carry));
 
     state.af.flag(RegisterAF::Flags::Carry, result.is_carry());
     state.af.flag(RegisterAF::Flags::AddSubtract, true);
@@ -622,9 +619,6 @@ size_t Instruction::impl_sbc(Z80 &state, StorageElement &dst_elem, StorageElemen
     state.af.flag(RegisterAF::Flags::F3, result.is_overflow());
     state.af.flag(RegisterAF::Flags::Zero, result.is_zero());
     state.af.flag(RegisterAF::Flags::Sign, result.is_neg());
-
-    src_elem.invert();
-    state.af.flag(RegisterAF::Flags::Carry, !state.af.flag(RegisterAF::Flags::Carry));
 
     dst_elem = result;
 
