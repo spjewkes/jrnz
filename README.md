@@ -12,3 +12,4 @@ Please note that development is very much work-in-progress. The principle is to 
 * 03/10/2019 - first game is playable. A Manic Miner snapshot can now be loaded and played. There is no colour or sound and the game crashes once it is game over.
 * 04/10/2019 - colour has now been added and the Manic Miner snapshot is playable without crashes.
 * 20/10/2019 - bug fixed to allow simple basic "10 print "message"; 20 goto 10" to run
+* 31/03/2024 - fixed bug with NEG instruction so that Jet Set Willy is no longer broken when you enter the second room
