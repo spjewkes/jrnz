@@ -29,9 +29,8 @@ void Bus::load_snapshot(std::string &sna_file, Z80 &state) {
     if (std::ifstream sna{sna_file, std::ios::binary | std::ios::ate}) {
         auto file_size = sna.tellg();
         if (file_size != 49179) {
-            std::cerr << "SNA file size is " << file_size << std::endl;
-            std::cerr << "Expected 49179 bytes.\n";
-            return;
+            std::cerr << "WARNING: SNA file size is " << file_size << std::endl;
+            std::cerr << "WARNING: Expected 49179 bytes.\n";
         }
 
         sna.seekg(0);
@@ -111,6 +110,9 @@ void Bus::load_snapshot(std::string &sna_file, Z80 &state) {
         Instruction inst{InstType::RETN, "retn", 2, 14, Operand::PC};
         state.update_r_reg(inst);
         inst.execute(state);
+
+        std::cout << "Setting PC to: " << state.pc << "\n";
+
     } else {
         std::cerr << "No SNA file found called " << sna_file << std::endl;
         std::cerr << "SNA failed to load" << std::endl;
