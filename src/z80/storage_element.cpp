@@ -223,8 +223,8 @@ StorageElement StorageElement::operator-(const StorageElement &rhs) {
 
 StorageElement StorageElement::sub_carry(const StorageElement &lhs, const StorageElement &rhs, bool carry) {
     StorageElement result = StorageElement(lhs.to_s32() - rhs.to_s32() - (carry ? 1 : 0), lhs.count);
-    result.update_carry(lhs, rhs);
-    result.update_carry(lhs, rhs, true /* is_half */);
+    result.update_borrow(lhs, rhs);
+    result.update_borrow(lhs, rhs, true /* is_half */);
     result.update_overflow(lhs, rhs, true /* is_sub */);
     return result;
 }
@@ -473,6 +473,8 @@ void StorageElement::update_carry(const StorageElement &op1, const StorageElemen
     bool op2_bit = op2.significant_bit(is_half);
     bool v = false;
 
+    // If either lhs or rhs has the top bit set and the result does NOT have its top bit
+    // set, then clearly there has been a carry
     if (((op1_bit && !op2_bit) || (!op1_bit && op2_bit)) && (!res_bit)) {
         v = true;
     }
@@ -490,18 +492,25 @@ void StorageElement::update_carry(const StorageElement &op1, const StorageElemen
 }
 
 void StorageElement::update_borrow(const StorageElement &op1, const StorageElement &op2, bool is_half) {
+    bool res_bit = significant_bit(is_half);
+    bool op1_bit = op1.significant_bit(is_half);
+    bool op2_bit = op2.significant_bit(is_half);
+    bool v = false;
+
+    // If the result's top bit is set but either both LHS/RHS have their top bit set or they don't
+    if (((!op1_bit && !op2_bit) || (op1_bit && op2_bit)) && (res_bit)) {
+        v = true;
+    }
+
+    // RHS's top bit is set but not the LHS's then borrow has occurred
+    if (!op1_bit && op2_bit) {
+        v = true;
+    }
+
     if (is_half) {
-        if (op1.to_u32_half() < op2.to_u32_half()) {
-            flag_half_carry = true;
-        } else {
-            flag_half_carry = false;
-        }
+        flag_half_carry = v;
     } else {
-        if (op1.to_u32() < op2.to_u32()) {
-            flag_carry = true;
-        } else {
-            flag_carry = false;
-        }
+        flag_carry = v;
     }
 }
 
@@ -513,7 +522,6 @@ void StorageElement::update_overflow(const StorageElement &op1, const StorageEle
     if (!is_sub) {
         op2_bit = !op2_bit;
     }
-
     flag_overflow = (op1_bit ^ res_bit) & (op1_bit ^ op2_bit);
 }
 
