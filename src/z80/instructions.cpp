@@ -243,8 +243,13 @@ size_t Instruction::impl_ld_block(Z80 &state, StorageElement &dst_elem, StorageE
     state.hl.set(state.hl.get() + adjust);
     state.bc.set(state.bc.get() - 1);
 
+    bool pv_new = false;
+    if (state.bc.get() != 0) {
+        pv_new = true;
+    }
+
     state.af.flag(RegisterAF::Flags::AddSubtract, false);
-    state.af.flag(RegisterAF::Flags::ParityOverflow, false);
+    state.af.flag(RegisterAF::Flags::ParityOverflow, pv_new);
     state.af.flag(RegisterAF::Flags::HalfCarry, false);
 
     if (repeat && state.bc.get() != 0) {
