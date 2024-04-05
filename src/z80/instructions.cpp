@@ -982,36 +982,22 @@ size_t Instruction::do_daa(Z80 &state, StorageElement &dst_elem, StorageElement 
     uint32_t value;
     src_elem.get_value(value);
     uint8_t val = static_cast<uint8_t>(value & 0xff);
-    bool new_carry = false;
+    bool new_carry = state.af.flag(RegisterAF::Flags::Carry);
 
-    if (!state.af.flag(RegisterAF::Flags::AddSubtract)) {
-        uint8_t lo_nibble = val & 0xf;
-        uint8_t hi_nibble = (val >> 4) & 0xf;
-
-        if (lo_nibble > 9 || state.af.flag(RegisterAF::Flags::HalfCarry)) {
-            val += 0x06;
-        }
-
-        if (hi_nibble > 9 || state.af.flag(RegisterAF::Flags::Carry)) {
-            val += 0x60;
-            new_carry = true;
-        }
-    } else {
-        if (!state.af.flag(RegisterAF::Flags::Carry) && state.af.flag(RegisterAF::Flags::HalfCarry)) {
-            // 2's complement of 0x06
-            val += 0xFA;
-        } else if (state.af.flag(RegisterAF::Flags::Carry) && !state.af.flag(RegisterAF::Flags::HalfCarry)) {
-            // 2's complement of 0x60
-            val += 0xA0;
-            new_carry = true;
-        } else if (state.af.flag(RegisterAF::Flags::Carry) && state.af.flag(RegisterAF::Flags::HalfCarry)) {
-            // 2's complement of 0x66
-            val += 0x9A;
-            new_carry = true;
-        }
+    uint8_t sum = 0;
+    if (state.af.flag(RegisterAF::Flags::HalfCarry) || (val & 0xf) > 9) {
+        sum = 0x6;
+    }
+    if (state.af.flag(RegisterAF::Flags::Carry) || (val > 0x99)) {
+        sum |= 0x60;
+        new_carry = true;
     }
 
-    dst_elem = StorageElement(val & 0xff);
+    if (state.af.flag(RegisterAF::Flags::AddSubtract)) {
+        dst_elem = src_elem - StorageElement(sum);
+    } else {
+        dst_elem = src_elem + StorageElement(sum);
+    }
 
     state.af.flag(RegisterAF::Flags::Carry, new_carry);
     state.af.flag(RegisterAF::Flags::HalfCarry, dst_elem.is_half());
