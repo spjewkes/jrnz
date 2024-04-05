@@ -866,9 +866,11 @@ size_t Instruction::do_ccf(Z80 &state, StorageElement &dst_elem, StorageElement 
     UNUSED(dst_elem);
     UNUSED(src_elem);
 
+    bool old_carry = state.af.flag(RegisterAF::Flags::Carry);
+
     state.af.inv_flag(RegisterAF::Flags::Carry);
     state.af.flag(RegisterAF::Flags::AddSubtract, false);
-    state.af.inv_flag(RegisterAF::Flags::HalfCarry);
+    state.af.flag(RegisterAF::Flags::HalfCarry, old_carry);
 
     return cycles;
 }
@@ -984,12 +986,12 @@ size_t Instruction::do_daa(Z80 &state, StorageElement &dst_elem, StorageElement 
 
     if (!state.af.flag(RegisterAF::Flags::AddSubtract)) {
         uint8_t lo_nibble = val & 0xf;
+        uint8_t hi_nibble = (val >> 4) & 0xf;
 
         if (lo_nibble > 9 || state.af.flag(RegisterAF::Flags::HalfCarry)) {
             val += 0x06;
         }
 
-        uint8_t hi_nibble = (val >> 4) & 0xf;
         if (hi_nibble > 9 || state.af.flag(RegisterAF::Flags::Carry)) {
             val += 0x60;
             new_carry = true;
