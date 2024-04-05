@@ -155,6 +155,9 @@ size_t Instruction::execute(Z80 &state) {
         case InstType::RLD:
             return do_rld(state, dst_elem, src_elem);
             break;
+        case InstType::RRD:
+            return do_rrd(state, dst_elem, src_elem);
+            break;
         case InstType::SCF:
             return do_scf(state, dst_elem, src_elem);
             break;
@@ -784,6 +787,40 @@ size_t Instruction::do_rld(Z80 &state, StorageElement &dst_elem, StorageElement 
 
     StorageElement regA_new((regA_value & 0xf0) | indHL_hi_nibble);
     StorageElement indHL_new(((indHL_value << 4) & 0xf0) | regA_lo_nibble);
+
+    regA = regA_new;
+    indHL = indHL_new;
+
+    state.af.flag(RegisterAF::Flags::AddSubtract, false);
+    state.af.flag(RegisterAF::Flags::HalfCarry, false);
+
+    state.af.flag(RegisterAF::Flags::ParityOverflow, regA.is_even_parity());
+    state.af.flag(RegisterAF::Flags::Zero, regA.is_zero());
+    state.af.flag(RegisterAF::Flags::Sign, regA.is_neg());
+
+    return cycles;
+}
+
+size_t Instruction::do_rrd(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem) {
+    UNUSED(dst_elem);
+    UNUSED(src_elem);
+
+    assert(Operand::UNUSED == dst);
+    assert(Operand::UNUSED == src);
+
+    StorageElement regA = StorageElement::create_element(state, Operand::A);
+    StorageElement indHL = StorageElement::create_element(state, Operand::indHL);
+
+    uint32_t regA_value;
+    regA.get_value(regA_value);
+    uint8_t regA_lo_nibble = regA_value & 0xf;
+
+    uint32_t indHL_value;
+    indHL.get_value(indHL_value);
+    uint8_t indHL_lo_nibble = indHL_value & 0xf;
+
+    StorageElement regA_new((regA_value & 0xf0) | indHL_lo_nibble);
+    StorageElement indHL_new(((indHL_value >> 4) & 0xf) | ((regA_lo_nibble << 4) | 0xf0));
 
     regA = regA_new;
     indHL = indHL_new;

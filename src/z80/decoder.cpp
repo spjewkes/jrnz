@@ -606,7 +606,7 @@ void init_map_inst() {
     map_inst.emplace(0xed64, Instruction{InstType::NEG, "neg", 2, 8, Operand::A, Operand::A});
     map_inst.emplace(0xed65, Instruction{InstType::RETN, "retn", 2, 14, Operand::PC});
     map_inst.emplace(0xed66, Instruction{InstType::IM, "im 0", 2, 8, Operand::IM, Operand::ZERO});
-    //! rrd
+    map_inst.emplace(0xed67, Instruction{InstType::RRD, "rrd", 2, 18});
     map_inst.emplace(0xed68, Instruction{InstType::IN, "in l,(c)", 2, 12, Operand::L, Operand::PORTC});
     map_inst.emplace(0xed69, Instruction{InstType::OUT, "out (c),l", 2, 12, Operand::PORTC, Operand::L});
     map_inst.emplace(0xed6a, Instruction{InstType::ADC, "adc hl,hl", 2, 15, Operand::HL, Operand::HL});
@@ -614,7 +614,6 @@ void init_map_inst() {
     map_inst.emplace(0xed6d, Instruction{InstType::RETN, "retn", 2, 14, Operand::PC});
     //! im 0/1
     map_inst.emplace(0xed6f, Instruction{InstType::RLD, "rld", 2, 18});
-    //! rld
 
     map_inst.emplace(0xed70, Instruction{InstType::IN, "in (c)", 2, 12, Operand::ZERO, Operand::PORTC});
     map_inst.emplace(0xed71, Instruction{InstType::OUT, "out (c),0", 2, 12, Operand::PORTC, Operand::ZERO});
@@ -781,6 +780,7 @@ void init_map_inst() {
     map_inst.emplace(0xddcb1e, Instruction{InstType::RR, "rr (ix+*)", 4, 23, Operand::indIXN});
     map_inst.emplace(0xddcb26, Instruction{InstType::SLA, "sla (ix+*)", 4, 23, Operand::indIXN});
     map_inst.emplace(0xddcb2e, Instruction{InstType::SRA, "sra (ix+*)", 4, 23, Operand::indIXN});
+    map_inst.emplace(0xddcb36, Instruction{InstType::SLL, "sll (ix+*)", 4, 23, Operand::indIXN});
     map_inst.emplace(0xddcb3e, Instruction{InstType::SRL, "srl (ix+*)", 4, 23, Operand::indIXN});
     map_inst.emplace(0xddcb46, Instruction{InstType::BIT, "bit 0,(ix+*)", 4, 20, Operand::indIXN, Operand::ZERO});
     map_inst.emplace(0xddcb4e, Instruction{InstType::BIT, "bit 1,(ix+*)", 4, 20, Operand::indIXN, Operand::ONE});
@@ -938,6 +938,8 @@ void init_map_inst() {
     map_inst.emplace(0xfdcb1e, Instruction{InstType::RR, "rr (iy+*)", 4, 23, Operand::indIYN});
     map_inst.emplace(0xfdcb26, Instruction{InstType::SLA, "sla (iy+*)", 4, 23, Operand::indIYN});
     map_inst.emplace(0xfdcb2e, Instruction{InstType::SRA, "sra (iy+*)", 4, 23, Operand::indIYN});
+    map_inst.emplace(0xfdcb36, Instruction{InstType::SLL, "sll (iy+*)", 4, 23, Operand::indIYN});
+    map_inst.emplace(0xfdcb3e, Instruction{InstType::SRL, "srl (iy+*)", 4, 23, Operand::indIYN});
     map_inst.emplace(0xfdcb46, Instruction{InstType::BIT, "bit 0,(iy+*)", 4, 20, Operand::indIYN, Operand::ZERO});
     map_inst.emplace(0xfdcb4e, Instruction{InstType::BIT, "bit 1,(iy+*)", 4, 20, Operand::indIYN, Operand::ONE});
     map_inst.emplace(0xfdcb56, Instruction{InstType::BIT, "bit 2,(iy+*)", 4, 20, Operand::indIYN, Operand::TWO});
