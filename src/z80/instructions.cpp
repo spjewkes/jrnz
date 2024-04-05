@@ -1029,7 +1029,7 @@ size_t Instruction::do_neg(Z80 &state, StorageElement &dst_elem, StorageElement 
         new_carry = true;
     }
 
-    dst_elem = StorageElement(0 - value);
+    dst_elem = StorageElement(0) - StorageElement(value);
 
     state.af.flag(RegisterAF::Flags::AddSubtract, true);
     state.af.flag(RegisterAF::Flags::Carry, new_carry);
