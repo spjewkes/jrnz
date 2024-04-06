@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.7)
 
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_FLAGS "-O2 -pedantic-errors -Wextra -Wall")
+# Code relies on casting char to int extends the sign. This is probably the most portable way of doing this and probably should be investigated further
+set(CMAKE_CXX_FLAGS "-O2 -pedantic-errors -Wextra -Wall -fsigned-char")
 
 project(JRNZ)
 
