@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
-    window = SDL_CreateWindow("JRNZ", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 960, 768, SDL_WINDOW_MAXIMIZED);
+    window = SDL_CreateWindow("JRNZ", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 960, 768, 0);
     if (!window) {
         std::cerr << "Could not create window: " << SDL_GetError() << std::endl;
         return EXIT_FAILURE;
