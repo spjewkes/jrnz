@@ -820,7 +820,7 @@ size_t Instruction::do_rrd(Z80 &state, StorageElement &dst_elem, StorageElement 
     uint8_t indHL_lo_nibble = indHL_value & 0xf;
 
     StorageElement regA_new((regA_value & 0xf0) | indHL_lo_nibble);
-    StorageElement indHL_new(((indHL_value >> 4) & 0xf) | ((regA_lo_nibble << 4) | 0xf0));
+    StorageElement indHL_new(((indHL_value >> 4) & 0xf) | ((regA_lo_nibble << 4) & 0xf0));
 
     regA = regA_new;
     indHL = indHL_new;
