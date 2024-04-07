@@ -34,6 +34,7 @@ print(" - ", end="")
 print_8bit_reg(data, 0x1, "F")
 print()
 
+pc = read_16bit_size(data[6:])
 print_16bit_reg(data, 0x02, "BC")
 print()
 print_16bit_reg(data, 0x04, "HL")
@@ -52,11 +53,6 @@ print()
 byte_12 = data[12]
 print_8bit_reg(data, 0x0C, "Byte 12")
 print()
-
-version = 0
-if byte_12 == 0xff:
-    version = 1
-    print("Version 1 detected")
 
 print("   R reg bit 7: {}".format(byte_12 & 0x1))
 print("  Border color: {}".format((byte_12 >> 1) & 0x7))
@@ -102,7 +98,10 @@ print("        Video sync: {}".format((byte_29 >> 4) & 0x3))
 print("      Joystick sel: {}".format((byte_29 >> 6) & 0x3))
 print()
 
-if version == 1:
+version = 0
+if byte_12 == 0xff or pc:
+    version = 1
+    print("Version 1 detected")
     quit()
 
 # Read Header 2
