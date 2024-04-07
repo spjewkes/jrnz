@@ -13,7 +13,22 @@ find_package(SDL2 REQUIRED)
 include_directories(${SDL2_INCLUDE_DIRS})
 
 # Catch2 needed for unit testing
-find_package(Catch2 3 REQUIRED)
+option(USE_VENDORED_CATCH2 "Download Catch2 from GitHub" ON)
+if (USE_VENDORED_CATCH2)
+   message(STATUS "Using vendored Catch2")
+   Include(FetchContent)
+
+   FetchContent_Declare(
+     Catch2
+     GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+     GIT_TAG        v3.4.0 # or a later release
+     )
+
+     FetchContent_MakeAvailable(Catch2)
+else()
+	message(STATUS "Using Catch2 library")
+	find_package(Catch2 3 REQUIRED)
+endif()
 
 add_library(z80_lib src/z80/instructions.cpp src/z80/storage_element.cpp src/z80/register.cpp src/z80/decoder.cpp src/z80/z80.cpp)
 add_library(jrnz_lib src/system.cpp src/debugger.cpp src/ula.cpp src/options.cpp src/keyboard.cpp src/bus.cpp)
