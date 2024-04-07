@@ -53,6 +53,7 @@ byte_12 = data[12]
 print_8bit_reg(data, 0x0C, "Byte 12")
 print()
 
+version = 0
 if byte_12 == 0xff:
     version = 1
     print("Version 1 detected")
@@ -83,15 +84,15 @@ print()
 print_16bit_reg(data, 0x19, "IX")
 print()
 
-print_8bit_reg(data, 0x1C, "Int f/f")
+print_8bit_reg(data, 0x1B, "Int f/f")
 print(" (Interrupt flipflop, 0=DI, otherwise EI)")
 
-print_8bit_reg(data, 0x1D, "IFF2")
+print_8bit_reg(data, 0x1C, "IFF2")
 print()
 
 print()
 byte_29 = data[29]
-print_8bit_reg(data, 0x1E, "Byte 29")
+print_8bit_reg(data, 0x1D, "Byte 29")
 print()
 
 print("    Interrupt mode: {}".format(byte_29 & 0x2))
@@ -100,3 +101,14 @@ print("Double int enabled: {}".format((byte_29 >> 3) & 0x1))
 print("        Video sync: {}".format((byte_29 >> 4) & 0x3))
 print("      Joystick sel: {}".format((byte_29 >> 6) & 0x3))
 print()
+
+if version == 1:
+    quit()
+
+# Read Header 2
+size_header_2 = read_16bit_size(data[30:], little_endian=False)
+print("Header 2 - size: {}".format(size_header_2))
+print_16bit_reg(data, 0x1E, "Byte 30")
+print()
+
+# TODO need to understand this further. My test file is not reported version 1 but it looks like there is data after the first header and not the 2nd header
