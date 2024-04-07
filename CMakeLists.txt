@@ -45,7 +45,7 @@ include(CTest)
 
 add_executable(run_tests tests/test_adc.cpp tests/test_sbc.cpp
                          tests/test_neg.cpp)
-target_link_libraries(run_tests ${SDL2_LIBRARIES} Catch2::Catch2WithMain
+target_link_libraries(run_tests z80_lib jrnz_lib ${SDL2_LIBRARIES} Catch2::Catch2WithMain
                       z80_lib jrnz_lib)
 
 add_test(NAME run_tests COMMAND run_tests)
