@@ -31,6 +31,7 @@ public:
 
     void load_rom(std::string &rom_file);
     void load_snapshot(std::string &sna_file, Z80 &state);
+    void load_z80(std::string &z80_file, Z80 &state);
 
     uint8_t &operator[](uint16_t addr) { return mem[addr]; }
 

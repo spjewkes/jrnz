@@ -21,6 +21,9 @@ public:
     std::string sna_file = {""};
     bool sna_on = {false};
 
+    std::string z80_file = {""};
+    bool z80_on = {false};
+
     bool debug_mode = {false};
 
     uint16_t break_addr = {0};

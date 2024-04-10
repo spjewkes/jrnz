@@ -14,6 +14,7 @@ void Options::print_help() {
     std::cout << "\t--rom <filename>  - Loads the specified ROM file (at address 0)\n";
     std::cout << "\t--sna <filename>  - Loads the specified SNA file into memory "
                  "(at address 16384)\n";
+    std::cout << "\t--z80 <filename>  - Loads the specified Z80 file into memory";
     std::cout << "\t--debug           - switched on debug output\n";
     std::cout << "\t--break <line_no> - Enable breakpoint at the specified line "
                  "number\n";
@@ -25,10 +26,10 @@ void Options::print_help() {
 }
 
 void Options::process() {
-    static struct option long_options[] = {{"help", no_argument, 0, 'h'},      {"debug", no_argument, 0, 'd'},
-                                           {"fast", no_argument, 0, 'f'},      {"pause", no_argument, 0, 'p'},
-                                           {"rom", required_argument, 0, 'r'}, {"break", required_argument, 0, 'b'},
-                                           {"sna", required_argument, 0, 's'}, {0, 0, 0, 0}};
+    static struct option long_options[] = {
+        {"help", no_argument, 0, 'h'},      {"debug", no_argument, 0, 'd'},     {"fast", no_argument, 0, 'f'},
+        {"pause", no_argument, 0, 'p'},     {"rom", required_argument, 0, 'r'}, {"break", required_argument, 0, 'b'},
+        {"sna", required_argument, 0, 's'}, {"z80", required_argument, 0, 'z'}, {0, 0, 0, 0}};
 
     int c;
 
@@ -71,6 +72,12 @@ void Options::process() {
             case 's': {
                 sna_file = optarg;
                 sna_on = true;
+                break;
+            }
+
+            case 'z': {
+                z80_file = optarg;
+                z80_on = true;
                 break;
             }
 

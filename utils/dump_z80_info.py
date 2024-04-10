@@ -91,7 +91,7 @@ byte_29 = data[29]
 print_8bit_reg(data, 0x1D, "Byte 29")
 print()
 
-print("    Interrupt mode: {}".format(byte_29 & 0x2))
+print("    Interrupt mode: {}".format(byte_29 & 0x3))
 print("   Issue 2 enabled: {}".format((byte_29 >> 2) & 0x1))
 print("Double int enabled: {}".format((byte_29 >> 3) & 0x1))
 print("        Video sync: {}".format((byte_29 >> 4) & 0x3))

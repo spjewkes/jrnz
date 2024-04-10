@@ -65,6 +65,8 @@ int main(int argc, char **argv) {
     }
     if (options.sna_on) {
         mem.load_snapshot(options.sna_file, state);
+    } else if (options.z80_on) {
+        mem.load_z80(options.z80_file, state);
     }
 
     debug.set_dout(options.debug_mode);
