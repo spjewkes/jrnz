@@ -245,28 +245,40 @@ void Bus::load_z80(std::string &z80_file, Z80 &state) {
             // If block of data is uncompressed then just write the remaining file to memory
             z80.read(reinterpret_cast<char *>(&mem[16384]), 49152);
         } else {
-            uint8_t this_byte = get_next_byte(z80);
             uint16_t mem_pos = 16384;
+            while (z80.peek() != EOF) {
+                uint8_t this_byte = get_next_byte(z80);
 
-            while (!z80.eof()) {
-                uint8_t next_byte = get_next_byte(z80);
-                if (z80.eof()) {
-                    // Write byte to memory before exiting loop
-                    mem[mem_pos++] = this_byte;
-                    break;
-                } else if (this_byte == 0xED && next_byte == 0xED) {
+                if (this_byte == 0xED && z80.peek() == 0xED) {
+                    // Found a compressed stream of data. Uncompress it.
+                    uint8_t next_byte = get_next_byte(z80);
+                    assert(next_byte == 0xED);
                     uint8_t count = get_next_byte(z80);
                     uint8_t compressed_byte = get_next_byte(z80);
                     while (count--) {
                         mem[mem_pos++] = compressed_byte;
                     }
+                } else if (this_byte == 0x00 && z80.peek() == 0xED) {
+                    // This could be the end block
+                    uint8_t byte_2 = get_next_byte(z80);
+                    uint8_t byte_3 = get_next_byte(z80);
+                    uint8_t byte_4 = get_next_byte(z80);
+                    if (byte_3 == 0xED && byte_4 == 0x00) {
+                        // Block end reached
+                        std::cout << "Z80 Block end found at: " << static_cast<uint16_t>(mem_pos - 1) << std::endl;
+                        break;
+                    } else {
+                        // Not the end of memory, so write first byte out and put back
+                        // the remaining 3 bytes
+                        mem[mem_pos++] = this_byte;
+                        z80.putback(byte_4);
+                        z80.putback(byte_3);
+                        z80.putback(byte_2);
+                    }
                 } else {
                     // Normal byte - write it to memory
                     mem[mem_pos++] = this_byte;
                 }
-
-                // Shuffle bytes
-                this_byte = next_byte;
             }
         }
 
