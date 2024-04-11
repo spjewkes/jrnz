@@ -31,11 +31,9 @@ bool Z80::clock(bool no_cycles) {
         } else if (iff1 && interrupt) {
             halted = false;
             switch (int_mode) {
-                case 0: {
-                    //! TODO - we don't currently support mode 0
-                    assert(false);
-                    break;
-                }
+                case 0:
+                /* TODO mode 0 should be made more generic than this but for the ZX Spectrum we can
+                   just make it emulate the mode 1 interrupt */
                 case 1: {
                     Instruction inst{InstType::PUSH, "INT1", 1, 13, Operand::UNUSED, Operand::PC};
                     update_r_reg(inst);
