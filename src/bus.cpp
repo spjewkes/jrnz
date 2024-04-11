@@ -210,7 +210,10 @@ void Bus::load_z80(std::string &z80_file, Z80 &state) {
 
         // 0x1B - Interrupt flipflop, 0=DI, otherwise EI
         bool interrupt_enabled = static_cast<bool>(get_next_byte(z80));
-        UNUSED(interrupt_enabled);
+        if (interrupt_enabled) {
+            state.iff1 = true;
+            state.iff2 = true;
+        }
 
         // 0x1C - IFF2
         uint8_t iff = get_next_byte(z80);
@@ -219,8 +222,7 @@ void Bus::load_z80(std::string &z80_file, Z80 &state) {
         // 0x1D - Byte 29
         uint8_t byte_29 = get_next_byte(z80);
         // Interrupt mode 0, 1, or 2
-        uint8_t interrupt_mode = byte_29 & 0x3;
-        UNUSED(interrupt_mode);
+        state.int_mode = byte_29 & 0x3;
         // Issue 2 enabled
         bool issue2_enabled = static_cast<bool>((byte_29 >> 2) & 0x1);
         UNUSED(issue2_enabled);
@@ -242,6 +244,30 @@ void Bus::load_z80(std::string &z80_file, Z80 &state) {
         if (!compression_on) {
             // If block of data is uncompressed then just write the remaining file to memory
             z80.read(reinterpret_cast<char *>(&mem[16384]), 49152);
+        } else {
+            uint8_t this_byte = get_next_byte(z80);
+            uint16_t mem_pos = 16384;
+
+            while (!z80.eof()) {
+                uint8_t next_byte = get_next_byte(z80);
+                if (z80.eof()) {
+                    // Write byte to memory before exiting loop
+                    mem[mem_pos++] = this_byte;
+                    break;
+                } else if (this_byte == 0xED && next_byte == 0xED) {
+                    uint8_t count = get_next_byte(z80);
+                    uint8_t compressed_byte = get_next_byte(z80);
+                    while (count--) {
+                        mem[mem_pos++] = compressed_byte;
+                    }
+                } else {
+                    // Normal byte - write it to memory
+                    mem[mem_pos++] = this_byte;
+                }
+
+                // Shuffle bytes
+                this_byte = next_byte;
+            }
         }
 
         z80.close();
