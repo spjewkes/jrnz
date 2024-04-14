@@ -910,6 +910,8 @@ void init_map_inst() {
     map_inst.emplace(0xfd9d, Instruction{InstType::SBC, "sbc a,iyl", 2, 8, Operand::A, Operand::IYL});
     map_inst.emplace(0xfd9e, Instruction{InstType::SBC, "sbc a,(iy+*)", 3, 19, Operand::A, Operand::indIYN});
 
+    map_inst.emplace(0xfde3, Instruction{InstType::EX, "ex (sp),iy", 2, 23, Operand::indSP, Operand::IY});
+
     map_inst.emplace(0xfda4, Instruction{InstType::AND, "and iyh", 2, 8, Operand::A, Operand::IYH});
     map_inst.emplace(0xfda5, Instruction{InstType::AND, "and iyl", 2, 8, Operand::A, Operand::IYL});
     map_inst.emplace(0xfda6, Instruction{InstType::AND, "and (iy+*)", 3, 19, Operand::A, Operand::indIYN});

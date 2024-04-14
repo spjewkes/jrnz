@@ -2,7 +2,7 @@
 
 This project aims to emulate a Z80 chip with the specific aim of running the ZX Spectrum 48k ROM. Therefore it will be heavily tailored towards the architecture of that machine.
 
-Please note that development is very much work-in-progress. The principle is to develop this in a fairly organic way as part of its aim is to be simply a hobby project (i.e. something to tinker with in my spare time). This project is in no way a complete emulator nor would I recommend using it for any serious emulation. There are plenty of better ones out there!
+Please note that development is very much work-in-progress. The principle is to develop this in a fairly organic way as part of its aim is to be simply a hobby project (i.e. something to tinker with in my spare time). This project is in no way a complete/accurate/good emulator and I would not recommend it for any serious emulation. There are plenty of better ones out there!
 
 # Milestones
 
@@ -15,3 +15,4 @@ Please note that development is very much work-in-progress. The principle is to 
 * 31/03/2024 - fixed bug with NEG instruction so that Jet Set Willy is no longer broken when you enter the second room
 * 05/04/2024 - Z80 instruction exerciser (documented instructions only) now runs to completion without missing instructions. Although some instructions are still failing their checksums.
 * 06/04/2024 - Z80 instruction exerciser (documented instructions only) now passes all tests.
+* 10/04/2024 - Implemented support for Z80 file format (version 1 only)

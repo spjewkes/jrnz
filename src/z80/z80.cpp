@@ -17,6 +17,8 @@ bool Z80::clock(bool no_cycles) {
         cycles_left = 0;
     }
 
+    // Cycles left means that repeated clocking of the Z80 waits the number of cycles on each instruction
+    // executed. This gives the emulation roughly the right behaviour for each instruction.
     if (cycles_left == 0) {
         if (int_nmi) {
             Instruction inst{InstType::PUSH, "NMI", 1, 11, Operand::UNUSED, Operand::PC};
