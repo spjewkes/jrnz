@@ -4,6 +4,7 @@
 
 #include "z80.hpp"
 
+// TODO move this to a utility area
 static uint8_t get_next_byte(std::ifstream &stream) {
     char ch;
     stream.get(ch);
