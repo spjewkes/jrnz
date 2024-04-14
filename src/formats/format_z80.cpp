@@ -30,7 +30,13 @@ static void read_data_block(std::vector<uint8_t> &mem, std::ifstream &stream, bo
         // If block of data is uncompressed then just write the remaining file to memory
         stream.read(reinterpret_cast<char *>(&mem[mem_pos]), size);
     } else {
-        while (stream.peek() != EOF) {
+        // while (stream.peek() != EOF || size--) {
+        for (uint16_t pos = 0; pos < size; pos++) {
+            if (stream.peek() == EOF) {
+                std::cerr << "Warn: Found end of file at pos " << pos << " of block size " << size << "\n";
+                break;
+            }
+
             uint8_t this_byte = get_next_byte(stream);
 
             if (this_byte == 0xED && stream.peek() == 0xED) {
@@ -344,26 +350,26 @@ uint16_t get_addr_start_from_page(uint8_t page) {
             std::cerr << "Error: ROM is 128k mode is not supported\n";
             exit(-1);
         case 3:
-            std::cerr << "Error: page 0 in 128k mode is not supported\n";
-            exit(-1);
+            std::cerr << "Warn: page 0 in 128k mode is not supported\n";
+            return 0xc000;
         case 4:
             return 0x8000;
         case 5:
             return 0xc000;
         case 6:
-            std::cerr << "Error: page 3 in 128k mode is not supported\n";
-            exit(-1);
+            std::cerr << "Warn: page 3 in 128k mode is not supported\n";
+            return 0xc000;
         case 7:
-            std::cerr << "Error: page 4 in 128k mode is not supported\n";
-            exit(-1);
+            std::cerr << "Warn: page 4 in 128k mode is not supported\n";
+            return 0xc000;
         case 8:
             return 0x4000;
         case 9:
-            std::cerr << "Error: page 6 in 128k mode is not supported\n";
-            exit(-1);
+            std::cerr << "Warn: page 6 in 128k mode is not supported\n";
+            return 0xc000;
         case 10:
-            std::cerr << "Error: page 7 in 128k mode is not supported\n";
-            exit(-1);
+            std::cerr << "Warn: page 7 in 128k mode is not supported\n";
+            return 0xc000;
         case 11:
             std::cerr << "Error: Multiface ROM is not supported\n";
             exit(-1);
