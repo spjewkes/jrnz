@@ -22,8 +22,8 @@ static uint16_t get_next_ushort(std::ifstream &stream) {
 /**
  * @brief Read a data block from a Z80 file into memory.
  */
-static void read_data_block(std::vector<uint8_t> &mem, std::ifstream &stream, bool compressed, uint16_t addr_start,
-                            uint16_t size) {
+static void read_data_block(uint32_t version, std::vector<uint8_t> &mem, std::ifstream &stream, bool compressed,
+                            uint16_t addr_start, uint16_t size) {
     uint16_t mem_pos = addr_start;
 
     if (!compressed) {
@@ -48,8 +48,8 @@ static void read_data_block(std::vector<uint8_t> &mem, std::ifstream &stream, bo
                 while (count--) {
                     mem[mem_pos++] = compressed_byte;
                 }
-            } else if (this_byte == 0x00 && stream.peek() == 0xED) {
-                // This could be the end block
+            } else if (version == 1 && this_byte == 0x00 && stream.peek() == 0xED) {
+                // If dealing with a version 1 file then This could be the end block
                 uint8_t byte_2 = get_next_byte(stream);
                 uint8_t byte_3 = get_next_byte(stream);
                 uint8_t byte_4 = get_next_byte(stream);
@@ -350,26 +350,26 @@ uint16_t get_addr_start_from_page(uint8_t page) {
             std::cerr << "Error: ROM is 128k mode is not supported\n";
             exit(-1);
         case 3:
-            std::cerr << "Warn: page 0 in 128k mode is not supported\n";
-            return 0xc000;
+            std::cerr << "Error: page 0 in 128k mode is not supported\n";
+            exit(-1);
         case 4:
             return 0x8000;
         case 5:
             return 0xc000;
         case 6:
-            std::cerr << "Warn: page 3 in 128k mode is not supported\n";
-            return 0xc000;
+            std::cerr << "Error: page 3 in 128k mode is not supported\n";
+            exit(-1);
         case 7:
-            std::cerr << "Warn: page 4 in 128k mode is not supported\n";
-            return 0xc000;
+            std::cerr << "Error: page 4 in 128k mode is not supported\n";
+            exit(-1);
         case 8:
             return 0x4000;
         case 9:
-            std::cerr << "Warn: page 6 in 128k mode is not supported\n";
-            return 0xc000;
+            std::cerr << "Error: page 6 in 128k mode is not supported\n";
+            exit(-1);
         case 10:
-            std::cerr << "Warn: page 7 in 128k mode is not supported\n";
-            return 0xc000;
+            std::cerr << "Error: page 7 in 128k mode is not supported\n";
+            exit(-1);
         case 11:
             std::cerr << "Error: Multiface ROM is not supported\n";
             exit(-1);
@@ -394,21 +394,28 @@ void Bus::load_z80(std::string &z80_file, Z80 &state) {
             read_header_2(z80, state, version);
             std::cout << "Z80 version " << version << " format detected\n";
 
+            // int current_pos = z80.tellg();
+
             // Read blocks of data into memory
             while (z80.peek() != EOF) {
                 uint16_t size = 0;
                 bool is_compressed = false;
                 uint8_t page = 0;
 
+                std::cout << "TOTO: block pos: " << z80.tellg() << "\n";
                 read_block_header(z80, size, is_compressed, page);
+                std::cout << "TOTO: size: " << size << "\n";
 
                 uint16_t addr_start = get_addr_start_from_page(page);
-                read_data_block(mem, z80, is_compressed, addr_start, size);
+                read_data_block(version, mem, z80, is_compressed, addr_start, size);
+
+                // current_pos += 3 + size;
+                // z80.seekg(current_pos);
             }
         } else {
             std::cout << "Z80 version 1 format detected\n";
             // For version one the rest of the block is data
-            read_data_block(mem, z80, compression_on, 16384, 49152);
+            read_data_block(version, mem, z80, compression_on, 16384, 49152);
         }
 
         z80.close();
