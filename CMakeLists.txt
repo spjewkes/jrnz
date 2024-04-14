@@ -41,7 +41,8 @@ add_library(
   src/options.cpp
   src/keyboard.cpp
   src/bus.cpp
-  src/formats/sna.cpp)
+  src/formats/format_sna.cpp
+  src/formats/format_z80.cpp)
 
 # Build emulator
 add_executable(run_jrnz src/main.cpp)
