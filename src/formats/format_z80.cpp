@@ -1,5 +1,5 @@
 /**
- * Implement reading of Z80 file format.
+. * Implement reading of Z80 file format.
  */
 
 #include "bus.hpp"
@@ -188,9 +188,7 @@ void read_header_1(std::ifstream &stream, Z80 &state, Bus &bus, uint32_t &versio
 /**
  * @brief Read the first header.
  */
-void read_header_2(std::ifstream &stream, Z80 &state, Bus &bus, uint32_t &version) {
-    UNUSED(bus);
-
+void read_header_2(std::ifstream &stream, Z80 &state, uint32_t &version) {
     // 0x30 - Length of header 2
     uint16_t length = get_next_ushort(stream);
 
@@ -318,6 +316,63 @@ void read_header_2(std::ifstream &stream, Z80 &state, Bus &bus, uint32_t &versio
     }
 }
 
+/**
+ * @brief Read the first header.
+ */
+void read_block_header(std::ifstream &stream, uint16_t &length, bool &is_compressed, uint8_t &page) {
+    length = get_next_ushort(stream);
+    if (length == 0xffff) {
+        length = 16384;
+        is_compressed = false;
+    } else {
+        is_compressed = true;
+    }
+    page = get_next_byte(stream);
+}
+
+/**
+ * @brief Get start address from page number.
+ */
+uint16_t get_addr_start_from_page(uint8_t page) {
+    switch (page) {
+        case 0:
+            return 0x0000;
+        case 1:
+            std::cerr << "Error: interface 1 ROM is not supported\n";
+            exit(-1);
+        case 2:
+            std::cerr << "Error: ROM is 128k mode is not supported\n";
+            exit(-1);
+        case 3:
+            std::cerr << "Error: page 0 in 128k mode is not supported\n";
+            exit(-1);
+        case 4:
+            return 0x8000;
+        case 5:
+            return 0xc000;
+        case 6:
+            std::cerr << "Error: page 3 in 128k mode is not supported\n";
+            exit(-1);
+        case 7:
+            std::cerr << "Error: page 4 in 128k mode is not supported\n";
+            exit(-1);
+        case 8:
+            return 0x4000;
+        case 9:
+            std::cerr << "Error: page 6 in 128k mode is not supported\n";
+            exit(-1);
+        case 10:
+            std::cerr << "Error: page 7 in 128k mode is not supported\n";
+            exit(-1);
+        case 11:
+            std::cerr << "Error: Multiface ROM is not supported\n";
+            exit(-1);
+        default:
+            std::cerr << "Error: unknown page: " << page << std::endl;
+            exit(-1);
+    }
+}
+
 void Bus::load_z80(std::string &z80_file, Z80 &state) {
     if (std::ifstream z80{z80_file, std::ios::binary | std::ios::ate}) {
         uint32_t version = 0;
@@ -330,11 +385,20 @@ void Bus::load_z80(std::string &z80_file, Z80 &state) {
         read_header_1(z80, state, *this, version, compression_on);
 
         if (version != 1) {
-            read_header_2(z80, state, *this, version);
+            read_header_2(z80, state, version);
             std::cout << "Z80 version " << version << " format detected\n";
 
-            std::cerr << "Error: only Z80 version 1 files are currently supported\n";
-            exit(-1);
+            // Read blocks of data into memory
+            while (z80.peek() != EOF) {
+                uint16_t size = 0;
+                bool is_compressed = false;
+                uint8_t page = 0;
+
+                read_block_header(z80, size, is_compressed, page);
+
+                uint16_t addr_start = get_addr_start_from_page(page);
+                read_data_block(mem, z80, is_compressed, addr_start, size);
+            }
         } else {
             std::cout << "Z80 version 1 format detected\n";
             // For version one the rest of the block is data
