@@ -33,8 +33,15 @@ endif()
 
 add_library(z80_lib src/z80/instructions.cpp src/z80/storage_element.cpp
                     src/z80/register.cpp src/z80/decoder.cpp src/z80/z80.cpp)
-add_library(jrnz_lib src/system.cpp src/debugger.cpp src/ula.cpp
-                     src/options.cpp src/keyboard.cpp src/bus.cpp)
+add_library(
+  jrnz_lib
+  src/system.cpp
+  src/debugger.cpp
+  src/ula.cpp
+  src/options.cpp
+  src/keyboard.cpp
+  src/bus.cpp
+  src/formats/sna.cpp)
 
 # Build emulator
 add_executable(run_jrnz src/main.cpp)
@@ -45,7 +52,13 @@ include(CTest)
 
 add_executable(run_tests tests/test_adc.cpp tests/test_sbc.cpp
                          tests/test_neg.cpp)
-target_link_libraries(run_tests z80_lib jrnz_lib ${SDL2_LIBRARIES} Catch2::Catch2WithMain
-                      z80_lib jrnz_lib)
+target_link_libraries(
+  run_tests
+  z80_lib
+  jrnz_lib
+  ${SDL2_LIBRARIES}
+  Catch2::Catch2WithMain
+  z80_lib
+  jrnz_lib)
 
 add_test(NAME run_tests COMMAND run_tests)
