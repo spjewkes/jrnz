@@ -12,6 +12,13 @@ static uint8_t get_next_byte(std::ifstream &stream) {
     return static_cast<uint8_t>(ch);
 }
 
+static uint16_t get_next_ushort(std::ifstream &stream) {
+    uint16_t val;
+    val = get_next_byte(stream) & 0xff;
+    val |= (get_next_byte(stream) & 0xff) << 8;
+    return val;
+}
+
 /**
  * @brief Read a data block from a Z80 file into memory.
  */
@@ -178,6 +185,139 @@ void read_header_1(std::ifstream &stream, Z80 &state, Bus &bus, uint32_t &versio
     UNUSED(joystick_selected);
 }
 
+/**
+ * @brief Read the first header.
+ */
+void read_header_2(std::ifstream &stream, Z80 &state, Bus &bus, uint32_t &version) {
+    UNUSED(bus);
+
+    // 0x30 - Length of header 2
+    uint16_t length = get_next_ushort(stream);
+
+    if (length == 23) {
+        version = 2;
+    } else if (length == 54 || length == 55) {
+        version = 3;
+    } else {
+        std::cerr << "Error: unknown version of Z80 file (length " << length << ")\n";
+        exit(-1);
+    }
+
+    // 0x32 - PC
+    state.pc.lo(get_next_byte(stream));
+    state.pc.hi(get_next_byte(stream));
+
+    // 0x34 - Hardware mode
+    uint8_t hardware_mode = get_next_byte(stream);
+    if (hardware_mode != 0) {
+        std::cerr << "Error: Only 48k hardware mode is currently supported with Z80 files (mode " << std::hex
+                  << static_cast<int>(hardware_mode) << std::dec << ")\n";
+        exit(-1);
+    }
+
+    // 0x35 - OUT state
+    // Ignore this as we only support 48k for now
+    uint8_t out_state = get_next_byte(stream);
+    UNUSED(out_state);
+
+    // 0x36 - interface 1 ROM paged
+    // Ignore this as we neither support interface 1 nor Timex
+    uint8_t rom_paged = get_next_byte(stream);
+    UNUSED(rom_paged);
+
+    // 0x37 - emulation bits
+    // Our emulator ignores this for now
+    uint8_t emulation_bits = get_next_byte(stream);
+    UNUSED(emulation_bits);
+
+    // 0x38 - last OUT to soundchip
+    // Ignore this as we do not support 128k Spectrums
+    uint8_t last_out = get_next_byte(stream);
+    UNUSED(last_out);
+
+    // 0x39 - contents of the sound chip
+    // Our emulator ignores this for now
+    char sound_chip_contents[16];
+    stream.read(sound_chip_contents, 16);
+    UNUSED(sound_chip_contents);
+
+    if (version == 2) {
+        return;
+    }
+
+    // 0x55 - low T state counter
+    // Our emulator ignores this for now
+    uint16_t counter_low_t_state = get_next_ushort(stream);
+    UNUSED(counter_low_t_state);
+
+    // 0x57 - high T state counter
+    // Our emulator ignores this for now
+    uint8_t counter_hi_t_state = get_next_byte(stream);
+    UNUSED(counter_hi_t_state);
+
+    // 0x58 - flag used by QL emulator
+    // This can be ignored
+    uint8_t flag_byte_ql = get_next_byte(stream);
+    UNUSED(flag_byte_ql);
+
+    // 0x59 - MGT ROM paged
+    // Our emulator ignores this for now
+    uint8_t mgt_rom_paged = get_next_byte(stream);
+    UNUSED(mgt_rom_paged);
+
+    // 0x60 - mulitface ROM paged
+    uint8_t multiface_rom_paged = get_next_byte(stream);
+    if (multiface_rom_paged != 0) {
+        std::cerr << "Warn: Multiface ROM paged not marked as zero in Z80 file\n";
+    }
+
+    // 0x61 - 0xff if 0-8191 is ROM, 0 if RAM
+    uint8_t bank_0_is_rom = get_next_byte(stream);
+    if (bank_0_is_rom != 0xff) {
+        std::cerr << "Warn: memory location 0-8191 is not marked as ROM\n";
+    }
+
+    // 0x62 - 0xff if 8192-16383 is ROM, 0 if RAM
+    uint8_t bank_1_is_rom = get_next_byte(stream);
+    if (bank_1_is_rom != 0xff) {
+        std::cerr << "Warn: memory location 8192-16383 is not marked as ROM\n";
+    }
+
+    // 0x63 - keyboard mappings
+    // Our emulator ignores this for now
+    char mappings_keyboard[10];
+    stream.read(mappings_keyboard, 10);
+    UNUSED(mappings_keyboard);
+
+    // 0x73 - ascii words corresponding to keyboard mappings
+    // Our emulator ignores this for now
+    char mappings_ascii[10];
+    stream.read(mappings_ascii, 10);
+    UNUSED(mappings_ascii);
+
+    // 0x83 - MGT type
+    // Our emulator ignores this for now
+    uint8_t mgt_type = get_next_byte(stream);
+    UNUSED(mgt_type);
+
+    // 0x84 - Disciple inhibit button
+    // Our emulator ignores this for now
+    uint8_t disciple_inhibit_button = get_next_byte(stream);
+    UNUSED(disciple_inhibit_button);
+
+    // 0x85 - Disciple inhibit flag
+    // Our emulator ignores this for now
+    uint8_t disciple_inhibit_flag = get_next_byte(stream);
+    UNUSED(disciple_inhibit_flag);
+
+    if (length == 55) {
+        // 0x86 - last out to port 0x1ffd
+        // Our emulator ignores this for now
+        uint8_t last_out = get_next_byte(stream);
+        UNUSED(last_out);
+    }
+}
+
 void Bus::load_z80(std::string &z80_file, Z80 &state) {
     if (std::ifstream z80{z80_file, std::ios::binary | std::ios::ate}) {
         uint32_t version = 0;
@@ -190,9 +330,13 @@ void Bus::load_z80(std::string &z80_file, Z80 &state) {
         read_header_1(z80, state, *this, version, compression_on);
 
         if (version != 1) {
-            std::cerr << "Only Z80 version 1 files are currently supported\n";
+            read_header_2(z80, state, *this, version);
+            std::cout << "Z80 version " << version << " format detected\n";
+
+            std::cerr << "Error: only Z80 version 1 files are currently supported\n";
             exit(-1);
         } else {
+            std::cout << "Z80 version 1 format detected\n";
             // For version one the rest of the block is data
             read_data_block(mem, z80, compression_on, 16384, 49152);
         }
