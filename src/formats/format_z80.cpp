@@ -15,7 +15,7 @@ static uint8_t get_next_byte(std::ifstream &stream) {
 static uint16_t get_next_ushort(std::ifstream &stream) {
     uint16_t val;
     val = get_next_byte(stream) & 0xff;
-    val |= (get_next_byte(stream) & 0xff) << 8;
+    val |= (get_next_byte(stream) << 8) & 0xff00;
     return val;
 }
 
@@ -31,13 +31,15 @@ static void read_data_block(uint32_t version, std::vector<uint8_t> &mem, std::if
         stream.read(reinterpret_cast<char *>(&mem[mem_pos]), size);
     } else {
         // while (stream.peek() != EOF || size--) {
-        for (uint16_t pos = 0; pos < size; pos++) {
+        uint32_t pos = 0;
+        while (pos < size) {
             if (stream.peek() == EOF) {
-                std::cerr << "Warn: Found end of file at pos " << pos << " of block size " << size << "\n";
+                std::cerr << "Warn: Found unexpected end of file at pos " << pos << " of block size " << size << "\n";
                 break;
             }
 
             uint8_t this_byte = get_next_byte(stream);
+            pos++;
 
             if (this_byte == 0xED && stream.peek() == 0xED) {
                 // Found a compressed stream of data. Uncompress it.
@@ -45,9 +47,11 @@ static void read_data_block(uint32_t version, std::vector<uint8_t> &mem, std::if
                 assert(next_byte == 0xED);
                 uint8_t count = get_next_byte(stream);
                 uint8_t compressed_byte = get_next_byte(stream);
+                assert(count > 0);
                 while (count--) {
                     mem[mem_pos++] = compressed_byte;
                 }
+                pos += 3;
             } else if (version == 1 && this_byte == 0x00 && stream.peek() == 0xED) {
                 // If dealing with a version 1 file then This could be the end block
                 uint8_t byte_2 = get_next_byte(stream);
@@ -394,23 +398,16 @@ void Bus::load_z80(std::string &z80_file, Z80 &state) {
             read_header_2(z80, state, version);
             std::cout << "Z80 version " << version << " format detected\n";
 
-            // int current_pos = z80.tellg();
-
             // Read blocks of data into memory
             while (z80.peek() != EOF) {
                 uint16_t size = 0;
                 bool is_compressed = false;
                 uint8_t page = 0;
 
-                std::cout << "TOTO: block pos: " << z80.tellg() << "\n";
                 read_block_header(z80, size, is_compressed, page);
-                std::cout << "TOTO: size: " << size << "\n";
 
                 uint16_t addr_start = get_addr_start_from_page(page);
                 read_data_block(version, mem, z80, is_compressed, addr_start, size);
-
-                // current_pos += 3 + size;
-                // z80.seekg(current_pos);
             }
         } else {
             std::cout << "Z80 version 1 format detected\n";
