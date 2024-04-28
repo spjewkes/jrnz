@@ -6,6 +6,7 @@
 
 #include <SDL2/SDL_audio.h>
 
+#include <fstream>
 #include <vector>
 
 #include "common.hpp"
@@ -16,10 +17,10 @@
  */
 class Beeper {
 public:
-    Beeper() {
+    Beeper() : out("audio.raw", std::ios::out | std::ios::binary) {
         SDL_zero(audiospec);
-        audiospec.freq = 48000;
-        audiospec.format = AUDIO_U16;
+        audiospec.freq = 22050;
+        audiospec.format = AUDIO_F32;
         audiospec.channels = 1;
         audiospec.samples = 4096;
         audiospec.callback = nullptr;
@@ -28,7 +29,8 @@ public:
         if (device == 0) {
             std::cerr << "Failed to initialize the audio device\n";
         } else {
-            SDL_PauseAudio(0);
+            SDL_PauseAudioDevice(device, 0);
+            data.push_back(0.0f);
             std::cout << "Audio initialized\n";
         }
     }
@@ -43,34 +45,44 @@ public:
         UNUSED(clocks);
 
         if (clocks > 0) {
-            uint16_t value = 0x0fff;
-            if (!is_on) {
-                value = 0;
+            num_clocks += clocks;
+
+            if (num_clocks > 159) {
+                num_clocks = 0;
+                index++;
+                data.push_back(0.0f);
             }
 
-            // for (auto i = 0; i < 72; i++) {
-            for (auto i = 0; i < 72; i++) {
-                data.push_back(value);
+            if (is_on) {
+                data[index] += 1.0f * clocks;
+                ;
             }
+
             counter++;
         }
 
         if (counter > 800) {
-            // for (auto val : data) {
-            // 	std::cout << val << "\n";
-            // }
+            // out.write((char*)data.data(), data.size() * 4);
 
-            SDL_QueueAudio(device, data.data(), data.size());
+            // Currently silent
+            // SDL_QueueAudio(device, data.data(), data.size());
             data.clear();
+            data.push_back(0.0f);
+            index = 0;
+            num_clocks = 0;
             counter = 0;
         }
     }
 
 private:
+    uint32_t index = {0};
+    uint64_t num_clocks = {0};
     uint32_t counter = {0};
 
-    std::vector<uint16_t> data;
+    std::vector<float> data;
 
     SDL_AudioSpec audiospec;
     SDL_AudioDeviceID device;
+
+    std::ofstream out;
 };
