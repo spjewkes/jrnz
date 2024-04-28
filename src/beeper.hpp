@@ -11,6 +11,8 @@
 
 #include "common.hpp"
 
+constexpr uint16_t samples = 2048;
+
 /**
  * @brief Class describing the beeper
  * This class assumes the SDL audio is already initialized.
@@ -22,7 +24,7 @@ public:
         audiospec.freq = 22050;
         audiospec.format = AUDIO_F32;
         audiospec.channels = 1;
-        audiospec.samples = 4096;
+        audiospec.samples = samples;
         audiospec.callback = nullptr;
 
         device = SDL_OpenAudioDevice(nullptr, 0, &audiospec, nullptr, 0);
@@ -54,18 +56,19 @@ public:
             }
 
             if (is_on) {
-                data[index] += 1.0f * clocks;
-                ;
+                // data[index] += 1.0f * clocks;
+                data[index] = 1.0f;
             }
 
             counter++;
         }
 
-        if (counter > 800) {
+        // if (counter > 800) {
+        if (index >= (samples - 1)) {
             // out.write((char*)data.data(), data.size() * 4);
 
-            // Currently silent
-            // SDL_QueueAudio(device, data.data(), data.size());
+            // currently silent
+            SDL_QueueAudio(device, data.data(), data.size());
             data.clear();
             data.push_back(0.0f);
             index = 0;
