@@ -40,6 +40,7 @@ public:
     bool halted = {false};
 
     uint32_t cycles_left = {0};
+    uint64_t total_cycles = {0};
 
     Bus &bus;
 

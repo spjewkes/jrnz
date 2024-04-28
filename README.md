@@ -16,3 +16,4 @@ Please note that development is very much work-in-progress. The principle is to 
 * 05/04/2024 - Z80 instruction exerciser (documented instructions only) now runs to completion without missing instructions. Although some instructions are still failing their checksums.
 * 06/04/2024 - Z80 instruction exerciser (documented instructions only) now passes all tests.
 * 10/04/2024 - Implemented support for Z80 file format (version 1 only)
+* 15/04/2024 - Z80 file format now supports version 2 and 3 (48k mode only)

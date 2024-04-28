@@ -6,6 +6,7 @@
 
 #include <cstdlib>
 
+#include "beeper.hpp"
 #include "bus.hpp"
 #include "debugger.hpp"
 #include "ula.hpp"
@@ -16,8 +17,8 @@
  */
 class System {
 public:
-    System(Z80 &_z80, ULA &_ula, Bus &_bus, Debugger &_debugger)
-        : _z80(_z80), _ula(_ula), _bus(_bus), _debugger(_debugger) {}
+    System(Z80 &_z80, ULA &_ula, Bus &_bus, Debugger &_debugger, Beeper &_beeper)
+        : _z80(_z80), _ula(_ula), _bus(_bus), _debugger(_debugger), _beeper(_beeper) {}
     virtual ~System() {}
 
     bool clock();
@@ -32,6 +33,7 @@ private:
     ULA &_ula;
     Bus &_bus;
     Debugger &_debugger;
+    Beeper &_beeper;
 
     bool do_exit = {false};
     bool do_break = {false};

@@ -15,6 +15,7 @@ bool System::clock() {
     if (_debugger.clock()) {
         _bus.clock();
         _ula.clock(do_exit, do_break);
+        _beeper.clock(false, 0);
         return _z80.clock(_debugger.is_break_enabled()) && !do_exit;
     }
     return false;

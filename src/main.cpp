@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <iostream>
 
+#include "beeper.hpp"
 #include "bus.hpp"
 #include "debugger.hpp"
 #include "options.hpp"
@@ -31,7 +32,7 @@ int main(int argc, char **argv) {
     std::cout << "Running jrnz..." << std::endl;
 
 #ifdef HAVE_DISPLAY
-    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
         std::cerr << "Unable to initialize SDL: " << SDL_GetError() << std::endl;
         return EXIT_FAILURE;
     }
@@ -56,8 +57,9 @@ int main(int argc, char **argv) {
     Z80 state(mem, options.fast_mode);
     ULA ula(state, mem, options.fast_mode);
     Debugger debug(state, mem);
+    Beeper beeper = {};
 
-    System sys(state, ula, mem, debug);
+    System sys(state, ula, mem, debug, beeper);
 
     // Use options to set up system
     if (options.rom_on) {
