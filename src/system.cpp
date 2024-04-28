@@ -13,6 +13,11 @@ bool System::clock() {
     }
 
     if (_debugger.clock()) {
+        uint64_t cycle_count = _z80.total_cycles - last_total_cycles;
+        bool is_beeper_on = (_bus.port_254 >> 4) & 0x1;
+        _beeper.clock(is_beeper_on, cycle_count);
+        last_total_cycles = _z80.total_cycles;
+
         _bus.clock();
         _ula.clock(do_exit, do_break);
         _beeper.clock(false, 0);

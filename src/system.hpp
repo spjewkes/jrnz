@@ -37,4 +37,6 @@ private:
 
     bool do_exit = {false};
     bool do_break = {false};
+
+    uint64_t last_total_cycles = {0};
 };
