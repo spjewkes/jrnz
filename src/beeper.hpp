@@ -11,7 +11,7 @@
 
 #include "common.hpp"
 
-constexpr uint16_t samples = 2048;
+constexpr uint16_t samples = 512;
 
 /**
  * @brief Class describing the beeper
@@ -19,10 +19,10 @@ constexpr uint16_t samples = 2048;
  */
 class Beeper {
 public:
-    Beeper() : out("audio.raw", std::ios::out | std::ios::binary) {
+    Beeper() {
         SDL_zero(audiospec);
         audiospec.freq = 22050;
-        audiospec.format = AUDIO_F32;
+        audiospec.format = AUDIO_S8;
         audiospec.channels = 1;
         audiospec.samples = samples;
         audiospec.callback = nullptr;
@@ -43,21 +43,17 @@ public:
     }
 
     void clock(bool is_on, uint64_t clocks) {
-        UNUSED(is_on);
-        UNUSED(clocks);
-
         if (clocks > 0) {
             num_clocks += clocks;
 
             if (num_clocks > 159) {
                 num_clocks = 0;
                 index++;
-                data.push_back(0.0f);
+                data.push_back(0x0);
             }
 
             if (is_on) {
-                // data[index] += 1.0f * clocks;
-                data[index] = 1.0f;
+                data[index] = 0x7f;
             }
 
             counter++;
@@ -65,8 +61,6 @@ public:
 
         // if (counter > 800) {
         if (index >= (samples - 1)) {
-            // out.write((char*)data.data(), data.size() * 4);
-
             // currently silent
             SDL_QueueAudio(device, data.data(), data.size());
             data.clear();
@@ -82,10 +76,8 @@ private:
     uint64_t num_clocks = {0};
     uint32_t counter = {0};
 
-    std::vector<float> data;
+    std::vector<char> data;
 
     SDL_AudioSpec audiospec;
     SDL_AudioDeviceID device;
-
-    std::ofstream out;
 };
