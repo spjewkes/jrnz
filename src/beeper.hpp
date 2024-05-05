@@ -68,8 +68,11 @@ public:
         if (clocks > 0) {
             num_clocks += clocks;
 
-            if (is_ear_on || is_ear_on && is_mic_on) {
-                value += 3;
+            if (is_ear_on) {
+                value += 2;
+            } else if (is_ear_on && is_mic_on) {
+                // Both on should make the sound a bit louder
+                value += 4;
             }
 
             if (num_clocks > num_clocks_per_sample) {
