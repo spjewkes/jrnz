@@ -13,8 +13,9 @@
 
 #include "common.hpp"
 
-constexpr uint16_t samples = 128;
-constexpr size_t buffer_size = 65536;
+constexpr uint16_t samples = 512;
+constexpr uint32_t num_buffers = 8;
+constexpr uint32_t num_clocks_per_sample = 159;
 
 /**
  * @brief Class describing the beeper
@@ -46,27 +47,16 @@ public:
     }
 
     static void audio_callback(void *userdata, Uint8 *stream, int len) {
-        std::memset(reinterpret_cast<void *>(stream), 0x0, len);
-
         Beeper *bpr = reinterpret_cast<Beeper *>(userdata);
-        // if (bpr->read != bpr->write) {
-        if (abs(static_cast<int>(bpr->read - bpr->write)) >= samples) {
-            // some data to copy
-            if (bpr->read < bpr->write) {
-                int size = bpr->write - bpr->read;
-                if (size > len) {
-                    size = len;
-                }
-                std::memcpy(reinterpret_cast<void *>(stream), reinterpret_cast<void *>(&bpr->data[bpr->read]), size);
-                bpr->read += size;
-            } else {
-                int size = buffer_size - 1 - bpr->read;
-                if (size > len) {
-                    size = len;
-                }
-                std::memcpy(reinterpret_cast<void *>(stream), reinterpret_cast<void *>(&bpr->data[bpr->read]), size);
-                bpr->read = 0;
+        if (bpr->buffer_read_ready) {
+            if (len != samples) {
+                fprintf(stderr, "Reading just %d bytes instead of %d\n", len, samples);
             }
+            std::memcpy(reinterpret_cast<void *>(stream), reinterpret_cast<void *>(&bpr->data[bpr->buffer_read][0]),
+                        len);
+            bpr->buffer_read_ready = false;
+        } else {
+            std::memset(reinterpret_cast<void *>(stream), 0x0, len);
         }
     }
 
@@ -78,15 +68,20 @@ public:
                 value += 3;
             }
 
-            if (num_clocks > 159) {
+            if (num_clocks > num_clocks_per_sample) {
                 if (value > 0x7f) {
                     value = 0x7f;
                 }
                 SDL_LockAudioDevice(device);
-                // Don't bounds check values just yet
-                data[write++] = static_cast<char>(value);
-                if (write == buffer_size) {
-                    write = 0;
+
+                data[buffer_write][index++] = value;
+                if (index >= samples) {
+                    // Reached the end of the current data buffer
+                    // Move on to next buffer and mark previous buffer as ready to read
+                    index = 0;
+                    buffer_read = buffer_write;
+                    buffer_read_ready = true;
+                    buffer_write = (buffer_write + 1) % num_buffers;
                 }
                 SDL_UnlockAudioDevice(device);
                 value = 0;
@@ -95,11 +90,13 @@ public:
         }
     }
 
-    uint32_t read = {0};
-    uint32_t write = {0};
+    uint32_t buffer_read = {0xffffffff};
+    bool buffer_read_ready = {false};
+    uint32_t buffer_write = {0};
+    uint32_t index = {0};
     uint32_t value = {0};
 
-    std::array<char, buffer_size> data = {0};
+    std::array<std::array<char, samples>, num_buffers> data;
 
 private:
     uint64_t num_clocks = {0};
