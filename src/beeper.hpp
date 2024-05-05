@@ -14,7 +14,7 @@
 #include "common.hpp"
 
 constexpr uint16_t samples = 1024;
-constexpr uint32_t num_buffers = 16;
+constexpr uint32_t num_buffers = 32;
 constexpr uint32_t num_clocks_per_sample = 160;
 
 /**
