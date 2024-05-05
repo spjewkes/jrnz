@@ -64,11 +64,11 @@ public:
         }
     }
 
-    void clock(bool is_on, uint64_t clocks) {
+    void clock(bool is_ear_on, bool is_mic_on, uint64_t clocks) {
         if (clocks > 0) {
             num_clocks += clocks;
 
-            if (!is_on) {
+            if (is_ear_on || is_ear_on && is_mic_on) {
                 value += 3;
             }
 
