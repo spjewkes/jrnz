@@ -13,9 +13,9 @@
 
 #include "common.hpp"
 
-constexpr uint16_t samples = 512;
-constexpr uint32_t num_buffers = 8;
-constexpr uint32_t num_clocks_per_sample = 159;
+constexpr uint16_t samples = 1024;
+constexpr uint32_t num_buffers = 16;
+constexpr uint32_t num_clocks_per_sample = 160;
 
 /**
  * @brief Class describing the beeper
@@ -54,7 +54,11 @@ public:
             }
             std::memcpy(reinterpret_cast<void *>(stream), reinterpret_cast<void *>(&bpr->data[bpr->buffer_read][0]),
                         len);
-            bpr->buffer_read_ready = false;
+            bpr->buffer_read = (bpr->buffer_read + 1) % num_buffers;
+            if (bpr->buffer_read == bpr->buffer_write) {
+                // If we have caught up with the write buffer then we should stop reading until told to do so
+                bpr->buffer_read_ready = false;
+            }
         } else {
             std::memset(reinterpret_cast<void *>(stream), 0x0, len);
         }
@@ -79,8 +83,12 @@ public:
                     // Reached the end of the current data buffer
                     // Move on to next buffer and mark previous buffer as ready to read
                     index = 0;
-                    buffer_read = buffer_write;
-                    buffer_read_ready = true;
+                    if (!buffer_read_ready) {
+                        // If the buffer were not being read from then mark buffer as read ready
+                        // before moving along to the next one
+                        buffer_read = buffer_write;
+                        buffer_read_ready = true;
+                    }
                     buffer_write = (buffer_write + 1) % num_buffers;
                 }
                 SDL_UnlockAudioDevice(device);
