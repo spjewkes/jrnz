@@ -17,3 +17,4 @@ Please note that development is very much work-in-progress. The principle is to 
 * 06/04/2024 - Z80 instruction exerciser (documented instructions only) now passes all tests.
 * 10/04/2024 - Implemented support for Z80 file format (version 1 only)
 * 15/04/2024 - Z80 file format now supports version 2 and 3 (48k mode only)
+* 05/05/2024 - Implemented an early version of the beeper
