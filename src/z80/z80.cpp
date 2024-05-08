@@ -49,7 +49,9 @@ bool Z80::clock(bool no_cycles) {
                 case 2: {
                     Instruction inst{InstType::PUSH, "INT2", 1, 13, Operand::UNUSED, Operand::PC};
                     cycles = inst.execute(*this);
-                    uint16_t read_addr = ir.get() & 0xff00;
+                    // Assume data bus value is always 0xff. This seems to be the case for another emulator I looked at
+                    // And I've seen Z80 snapshots that seem to assume this too
+                    uint16_t read_addr = (ir.get() & 0xff00) + 0xff;
                     uint16_t jump_addr = bus.read_addr_from_mem(read_addr);
                     pc.set(jump_addr);
                     interrupt = false;
