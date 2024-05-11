@@ -13,9 +13,9 @@
 
 #include "common.hpp"
 
-constexpr uint16_t samples = 1024;
 constexpr uint32_t num_buffers = 32;
 constexpr uint32_t num_clocks_per_sample = 160;
+constexpr uint16_t samples = num_clocks_per_sample * 4;
 
 /**
  * @brief Class describing the beeper
@@ -95,8 +95,12 @@ public:
                     buffer_write = (buffer_write + 1) % num_buffers;
                 }
                 SDL_UnlockAudioDevice(device);
-                value = 0;
-                num_clocks = 0;
+                num_clocks -= num_clocks_per_sample;
+                if (num_clocks > 0 && is_ear_on) {
+                    value = 2;
+                } else {
+                    value = 0;
+                }
             }
         }
     }
