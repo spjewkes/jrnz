@@ -416,5 +416,10 @@ void Bus::load_z80(std::string &z80_file, Z80 &state) {
         }
 
         z80.close();
+
+        std::cout << "Setting PC to: " << state.pc << "\n";
+    } else {
+        std::cerr << "No Z80 file found called \'" << z80_file << "\'" << std::endl;
+        std::cerr << "Z80 file failed to load" << std::endl;
     }
 }

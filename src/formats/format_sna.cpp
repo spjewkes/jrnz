@@ -100,7 +100,7 @@ void Bus::load_snapshot(std::string &sna_file, Z80 &state) {
         std::cout << "Setting PC to: " << state.pc << "\n";
 
     } else {
-        std::cerr << "No SNA file found called " << sna_file << std::endl;
-        std::cerr << "SNA failed to load" << std::endl;
+        std::cerr << "No SNA file found called \'" << sna_file << "\'" << std::endl;
+        std::cerr << "SNA file failed to load" << std::endl;
     }
 }
