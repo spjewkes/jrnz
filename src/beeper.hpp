@@ -14,7 +14,8 @@
 #include "common.hpp"
 
 constexpr uint32_t num_buffers = 32;
-constexpr uint32_t num_clocks_per_sample = 160;
+constexpr uint16_t frequency = 22050;
+constexpr uint32_t num_clocks_per_sample = static_cast<int>(3500000 / frequency) + 1;
 constexpr uint16_t samples = num_clocks_per_sample * 4;
 
 /**
@@ -25,7 +26,7 @@ class Beeper {
 public:
     Beeper() {
         SDL_zero(audiospec);
-        audiospec.freq = 22050;
+        audiospec.freq = frequency;
         audiospec.format = AUDIO_S8;
         audiospec.channels = 1;
         audiospec.samples = samples;
