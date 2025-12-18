@@ -103,9 +103,9 @@ void ULA::clock(bool &do_exit, bool &do_break) {
             _z80.interrupt = false;
             break;
 
-        case 70000:
+        case 69888:
             //! TODO - a bit of a hack, but every 50th of a second (running at 3.5
-            //! Mhz)
+            //! Mhz on a 48K)
             //! reset the counter to start everything again.
             counter = UINT64_MAX;  // will wrap on increment
 

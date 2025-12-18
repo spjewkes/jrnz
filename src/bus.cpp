@@ -16,6 +16,7 @@ void Bus::load_rom(std::string &rom_file) {
     } else {
         std::cerr << "No ROM file found called " << rom_file << std::endl;
         std::cerr << "ROM uninitialized" << std::endl;
+        ram_start = 0x4000;
     }
 }
 
@@ -27,10 +28,10 @@ uint8_t Bus::read_port(uint16_t addr) const {
 
     if (addr % 2 == 0) {
         uint8_t half_rows = (addr & 0xff00) >> 8;
-        return get_keyboard_state(half_rows);
+        return static_cast<uint8_t>(0xe0 | get_keyboard_state(half_rows));
     }
 
-    return 0;
+    return 0xff;
 }
 
 void Bus::write_port(uint16_t addr, uint8_t v) {

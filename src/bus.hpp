@@ -71,5 +71,5 @@ public:
 
 private:
     std::vector<uint8_t> mem;
-    uint16_t ram_start;
+    uint16_t ram_start = {0x4000};
 };

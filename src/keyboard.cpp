@@ -11,7 +11,6 @@
 static bool get_bit(uint8_t byte, uint8_t pos) { return (byte & (1 << pos)) != 0; }
 
 uint8_t get_keyboard_state(uint8_t halfrows) {
-    SDL_PumpEvents();
     const uint8_t* key_state = static_cast<const uint8_t*>(SDL_GetKeyboardState(NULL));
 
     uint8_t ret_keys = 0x0;
