@@ -29,6 +29,7 @@ bool Z80::clock(bool no_cycles) {
             iff2 = iff1;
             iff1 = false;
             int_nmi = false;
+            ei_pending = false;
             halted = false;
             found = true;
         } else if (iff1 && interrupt) {
@@ -43,6 +44,7 @@ bool Z80::clock(bool no_cycles) {
                     cycles = inst.execute(*this);
                     pc.set(0x38);
                     interrupt = false;
+                    ei_pending = false;
                     found = true;
                     break;
                 }
@@ -55,6 +57,7 @@ bool Z80::clock(bool no_cycles) {
                     uint16_t jump_addr = bus.read_addr_from_mem(read_addr);
                     pc.set(jump_addr);
                     interrupt = false;
+                    ei_pending = false;
                     found = true;
                     break;
                 }
@@ -79,6 +82,11 @@ bool Z80::clock(bool no_cycles) {
             if (inst.inst != InstType::INV) {
                 pc.set(curr_opcode_pc + inst.size);
                 cycles = const_cast<Instruction &>(inst).execute(*this);
+                if (ei_pending && inst.inst != InstType::EI) {
+                    iff1 = true;
+                    iff2 = true;
+                    ei_pending = false;
+                }
                 found = true;
             } else {
                 std::cerr << "UNKNOWN OPCODE: 0x" << std::hex << std::setw(8) << std::setfill('0') << opcode;
@@ -108,19 +116,22 @@ void Z80::reset() {
     iff1 = false;
     iff2 = false;
     int_mode = 0;
+    ei_pending = false;
 }
 
 void Z80::update_r_reg(const Instruction &inst, uint32_t opcode) {
+    (void)inst;
     uint8_t r = ir.lo();
 
-    if (((opcode & 0xcb00) == 0xcb00) || ((opcode & 0xed00) == 0xed00) ||
-        (inst.inst == InstType::LD && inst.dst == Operand::R && inst.src == Operand::A) ||
-        (inst.inst == InstType::LD && inst.dst == Operand::A && inst.src == Operand::R) ||
-        (inst.inst == InstType::LDDR) || (inst.inst == InstType::LDIR)) {
-        r++;
+    uint8_t inc = 1;
+    if ((opcode & 0xff00) == 0xed00 || (opcode & 0xff00) == 0xcb00 || (opcode & 0xff00) == 0xdd00 ||
+        (opcode & 0xff00) == 0xfd00) {
+        inc++;
+    }
+    if ((opcode & 0xffff00) == 0xddcb00 || (opcode & 0xffff00) == 0xfdcb00) {
+        inc++;
     }
 
-    r++;
-    r &= 0x7f;
+    r = static_cast<uint8_t>((r + inc) & 0x7f);
     ir.lo(r);
 }

@@ -38,6 +38,7 @@ public:
     bool int_nmi = {false};
     bool interrupt = {false};
     bool halted = {false};
+    bool ei_pending = {false};
 
     uint32_t cycles_left = {0};
     uint64_t total_cycles = {0};

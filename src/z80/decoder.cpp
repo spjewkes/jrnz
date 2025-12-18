@@ -37,8 +37,8 @@ void init_map_inst() {
     map_inst.emplace(0x15, Instruction{InstType::DEC, "dec d", 1, 4, Operand::D, Operand::ONE});
     map_inst.emplace(0x16, Instruction{InstType::LD, "ld d,*", 2, 7, Operand::D, Operand::N});
     map_inst.emplace(0x17, Instruction{InstType::RLA, "rla", 1, 4, Operand::A});
-    map_inst.emplace(0x18, Instruction{InstType::JR, "jr *", 2, 18, Conditional::ALWAYS, Operand::PC, Operand::N});
-    map_inst.emplace(0x19, Instruction{InstType::ADD, "add hl,de", 1, 1, Operand::HL, Operand::DE});
+    map_inst.emplace(0x18, Instruction{InstType::JR, "jr *", 2, 12, Conditional::ALWAYS, Operand::PC, Operand::N});
+    map_inst.emplace(0x19, Instruction{InstType::ADD, "add hl,de", 1, 11, Operand::HL, Operand::DE});
     map_inst.emplace(0x1a, Instruction{InstType::LD, "ld a,(de)", 1, 7, Operand::A, Operand::indDE});
     map_inst.emplace(0x1b, Instruction{InstType::DEC, "dec de", 1, 6, Operand::DE, Operand::ONE});
     map_inst.emplace(0x1c, Instruction{InstType::INC, "inc e", 1, 4, Operand::E, Operand::ONE});
@@ -65,7 +65,7 @@ void init_map_inst() {
 
     map_inst.emplace(0x30, Instruction{InstType::JR, "jr nc,*", 2, 12, 7, Conditional::NC, Operand::PC, Operand::N});
     map_inst.emplace(0x31, Instruction{InstType::LD, "ld sp,**", 3, 10, Operand::SP, Operand::NN});
-    map_inst.emplace(0x32, Instruction{InstType::LD, "ld (**),a", 3, 12, Operand::indN, Operand::A});
+    map_inst.emplace(0x32, Instruction{InstType::LD, "ld (**),a", 3, 13, Operand::indN, Operand::A});
     map_inst.emplace(0x33, Instruction{InstType::INC, "inc sp", 1, 6, Operand::SP, Operand::ONE});
     map_inst.emplace(0x34, Instruction{InstType::INC, "inc (hl)", 1, 11, Operand::indHL, Operand::ONE});
     map_inst.emplace(0x35, Instruction{InstType::DEC, "dec (hl)", 1, 11, Operand::indHL, Operand::ONE});
