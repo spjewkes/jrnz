@@ -78,8 +78,10 @@ static void set_rendercolor(SDL_Renderer *renderer, uint8_t color, bool bright) 
 #endif
 
 void ULA::clock(bool &do_exit, bool &do_break) {
-    UNUSED(_z80);
-    UNUSED(_bus);
+    if (perf_freq == 0) {
+        perf_freq = SDL_GetPerformanceFrequency();
+        next_frame_deadline = SDL_GetPerformanceCounter() + (perf_freq / 50);
+    }
 
     switch (counter) {
         case 0: {
@@ -95,7 +97,6 @@ void ULA::clock(bool &do_exit, bool &do_break) {
 
             // Trigger interupt on Z80
             _z80.interrupt = true;
-            next_frame_ticks = SDL_GetTicks() + 20;
             break;
 
         case 32:
@@ -171,9 +172,19 @@ void ULA::clock(bool &do_exit, bool &do_break) {
                     invert = true;
             }
 
-            uint32_t ticks = SDL_GetTicks();
-            if (!fast_mode && ticks < next_frame_ticks) {
-                SDL_Delay(next_frame_ticks - ticks);
+            if (!fast_mode) {
+                uint64_t now = SDL_GetPerformanceCounter();
+                if (now < next_frame_deadline) {
+                    uint64_t remaining = next_frame_deadline - now;
+                    uint32_t ms = static_cast<uint32_t>((remaining * 1000) / perf_freq);
+                    if (ms > 0) {
+                        SDL_Delay(ms);
+                    }
+                    // Busy-wait the remainder for finer granularity
+                    while (SDL_GetPerformanceCounter() < next_frame_deadline) {
+                    }
+                }
+                next_frame_deadline += (perf_freq / 50);
             }
     }
 

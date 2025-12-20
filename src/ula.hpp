@@ -24,8 +24,9 @@ private:
     Bus &_bus;
 
     uint64_t counter = {0};
-    uint32_t next_frame_ticks = {0};
+    uint64_t next_frame_deadline = {0};
     uint64_t frame_counter = {0};
     bool invert = {false};
     bool fast_mode = {false};
+    uint64_t perf_freq = {0};
 };
