@@ -68,6 +68,7 @@ public:
 
     // TODO - this needs to be dealt with better at some point
     uint8_t port_254 = {0};
+    mutable uint16_t floating_counter = {0};
 
 private:
     std::vector<uint8_t> mem;
