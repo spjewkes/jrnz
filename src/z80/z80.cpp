@@ -132,6 +132,6 @@ void Z80::update_r_reg(const Instruction &inst, uint32_t opcode) {
         inc++;
     }
 
-    r = static_cast<uint8_t>((r + inc) & 0x7f);
-    ir.lo(r);
+    uint8_t new_r = static_cast<uint8_t>((r & 0x80) | ((r + inc) & 0x7f));
+    ir.lo(new_r);
 }
