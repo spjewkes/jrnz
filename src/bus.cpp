@@ -32,8 +32,7 @@ uint8_t Bus::read_port(uint16_t addr) const {
     }
 
     // Floating bus: return a byte from screen/attribute memory that changes over time.
-    // Note: keep counter outside const interface by not incrementing here.
-    uint16_t fb_addr = 0x4000 + (floating_counter & 0x3fff);
+    uint16_t fb_addr = 0x4000 + (floating_counter++ & 0x3fff);
     return mem[fb_addr];
 }
 
