@@ -2049,6 +2049,19 @@ const Instruction& decode_opcode(uint32_t opcode) {
         return search_op->second;
     }
 
+    uint32_t prefix = opcode & 0xff00;
+    if (prefix == 0xdd00 || prefix == 0xfd00) {
+        uint32_t base_op = opcode & 0xff;
+        auto base_it = map_inst.find(base_op);
+        if (base_it != map_inst.end()) {
+            // For unused IX/IY prefixes, the prefix is ignored but still consumes a byte.
+            static thread_local Instruction prefixed_copy = base_it->second;
+            prefixed_copy = base_it->second;
+            prefixed_copy.size = base_it->second.size + 1;
+            return prefixed_copy;
+        }
+    }
+
     return inv_inst;
 }
 
