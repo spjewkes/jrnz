@@ -632,19 +632,27 @@ void init_map_inst() {
 
     map_inst.emplace(0xeda0, Instruction{InstType::LDI, "ldi", 2, 16, Operand::indDE, Operand::indHL});
     map_inst.emplace(0xeda1, Instruction{InstType::CPI, "cpi", 2, 16, 16, Operand::UNUSED, Operand::UNUSED});
+    map_inst.emplace(0xeda2, Instruction{InstType::INI, "ini", 2, 16, Operand::UNUSED, Operand::UNUSED});
+    map_inst.emplace(0xeda3, Instruction{InstType::OUTI, "outi", 2, 16, Operand::UNUSED, Operand::UNUSED});
     //! ini
     //! outi
     map_inst.emplace(0xeda8, Instruction{InstType::LDD, "ldd", 2, 16, Operand::indDE, Operand::indHL});
     map_inst.emplace(0xeda9, Instruction{InstType::CPD, "cpd", 2, 16, 16, Operand::UNUSED, Operand::UNUSED});
+    map_inst.emplace(0xedaa, Instruction{InstType::IND, "ind", 2, 16, Operand::UNUSED, Operand::UNUSED});
+    map_inst.emplace(0xedab, Instruction{InstType::OUTD, "outd", 2, 16, Operand::UNUSED, Operand::UNUSED});
     //! ind
     //! outd
 
     map_inst.emplace(0xedb0, Instruction{InstType::LDIR, "ldir", 2, 21, 16, Operand::indDE, Operand::indHL});
     map_inst.emplace(0xedb1, Instruction{InstType::CPIR, "cpir", 2, 21, 16, Operand::UNUSED, Operand::UNUSED});
+    map_inst.emplace(0xedb2, Instruction{InstType::INIR, "inir", 2, 21, 16, Operand::UNUSED, Operand::UNUSED});
+    map_inst.emplace(0xedb3, Instruction{InstType::OTIR, "otir", 2, 21, 16, Operand::UNUSED, Operand::UNUSED});
     //! inir
     //! otir
     map_inst.emplace(0xedb8, Instruction{InstType::LDDR, "lddr", 2, 21, 16, Operand::indDE, Operand::indHL});
     map_inst.emplace(0xedb9, Instruction{InstType::CPDR, "cpdr", 2, 21, 16, Operand::UNUSED, Operand::UNUSED});
+    map_inst.emplace(0xedba, Instruction{InstType::INDR, "indr", 2, 21, 16, Operand::UNUSED, Operand::UNUSED});
+    map_inst.emplace(0xedbb, Instruction{InstType::OTDR, "otdr", 2, 21, 16, Operand::UNUSED, Operand::UNUSED});
     //! indr
     //! otdr
 

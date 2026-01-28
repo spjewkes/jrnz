@@ -195,6 +195,30 @@ size_t Instruction::execute(Z80 &state) {
         case InstType::CPDR:
             return do_cpdr(state, dst_elem, src_elem);
             break;
+        case InstType::INI:
+            return do_ini(state, dst_elem, src_elem);
+            break;
+        case InstType::INIR:
+            return do_inir(state, dst_elem, src_elem);
+            break;
+        case InstType::IND:
+            return do_ind(state, dst_elem, src_elem);
+            break;
+        case InstType::INDR:
+            return do_indr(state, dst_elem, src_elem);
+            break;
+        case InstType::OUTI:
+            return do_outi(state, dst_elem, src_elem);
+            break;
+        case InstType::OTIR:
+            return do_otir(state, dst_elem, src_elem);
+            break;
+        case InstType::OUTD:
+            return do_outd(state, dst_elem, src_elem);
+            break;
+        case InstType::OTDR:
+            return do_otdr(state, dst_elem, src_elem);
+            break;
         case InstType::RST:
             return do_rst(state, dst_elem, src_elem);
             break;
@@ -1008,6 +1032,62 @@ size_t Instruction::do_cpdr(Z80 &state, StorageElement &dst_elem, StorageElement
     return impl_cp_inc_dec(state, false /* do_inc */, true /* loop */);
 }
 
+size_t Instruction::do_ini(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem) {
+    UNUSED(dst_elem);
+    UNUSED(src_elem);
+
+    return impl_in_block(state, true /* inc */, false /* repeat */);
+}
+
+size_t Instruction::do_inir(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem) {
+    UNUSED(dst_elem);
+    UNUSED(src_elem);
+
+    return impl_in_block(state, true /* inc */, true /* repeat */);
+}
+
+size_t Instruction::do_ind(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem) {
+    UNUSED(dst_elem);
+    UNUSED(src_elem);
+
+    return impl_in_block(state, false /* inc */, false /* repeat */);
+}
+
+size_t Instruction::do_indr(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem) {
+    UNUSED(dst_elem);
+    UNUSED(src_elem);
+
+    return impl_in_block(state, false /* inc */, true /* repeat */);
+}
+
+size_t Instruction::do_outi(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem) {
+    UNUSED(dst_elem);
+    UNUSED(src_elem);
+
+    return impl_out_block(state, true /* inc */, false /* repeat */);
+}
+
+size_t Instruction::do_otir(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem) {
+    UNUSED(dst_elem);
+    UNUSED(src_elem);
+
+    return impl_out_block(state, true /* inc */, true /* repeat */);
+}
+
+size_t Instruction::do_outd(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem) {
+    UNUSED(dst_elem);
+    UNUSED(src_elem);
+
+    return impl_out_block(state, false /* inc */, false /* repeat */);
+}
+
+size_t Instruction::do_otdr(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem) {
+    UNUSED(dst_elem);
+    UNUSED(src_elem);
+
+    return impl_out_block(state, false /* inc */, true /* repeat */);
+}
+
 size_t Instruction::impl_cp_inc_dec(Z80 &state, bool do_inc, bool loop) {
     StorageElement regA = StorageElement::create_element(state, Operand::A);
     StorageElement regHL = StorageElement::create_element(state, Operand::HL);
@@ -1046,6 +1126,65 @@ size_t Instruction::impl_cp_inc_dec(Z80 &state, bool do_inc, bool loop) {
     }
 
     return cycles_not_cond;
+}
+
+size_t Instruction::impl_in_block(Z80 &state, bool inc, bool repeat) {
+    uint16_t port = state.bc.get();
+    uint8_t value = state.bus.read_port(port);
+    state.bus.write_data(state.hl.get(), value);
+
+    int adjust = (inc ? 1 : -1);
+    state.hl.set(static_cast<uint16_t>(state.hl.get() + adjust));
+
+    uint8_t b = static_cast<uint8_t>(state.bc.hi() - 1);
+    state.bc.hi(b);
+
+    state.af.flag(RegisterAF::Flags::Sign, (b & 0x80) != 0);
+    state.af.flag(RegisterAF::Flags::Zero, b == 0);
+    state.af.flag(RegisterAF::Flags::ParityOverflow, b != 0);
+    state.af.flag(RegisterAF::Flags::AddSubtract, true);
+    state.af.flag(RegisterAF::Flags::HalfCarry, false);
+    set_f3_f5(state.af, b);
+
+    if (repeat && b != 0) {
+        state.pc.set(state.pc.get() - size);
+        return cycles;
+    }
+
+    if (repeat) {
+        return cycles_not_cond;
+    }
+
+    return cycles;
+}
+
+size_t Instruction::impl_out_block(Z80 &state, bool inc, bool repeat) {
+    uint8_t value = state.bus.read_data(state.hl.get());
+    state.bus.write_port(state.bc.get(), value);
+
+    int adjust = (inc ? 1 : -1);
+    state.hl.set(static_cast<uint16_t>(state.hl.get() + adjust));
+
+    uint8_t b = static_cast<uint8_t>(state.bc.hi() - 1);
+    state.bc.hi(b);
+
+    state.af.flag(RegisterAF::Flags::Sign, (b & 0x80) != 0);
+    state.af.flag(RegisterAF::Flags::Zero, b == 0);
+    state.af.flag(RegisterAF::Flags::ParityOverflow, b != 0);
+    state.af.flag(RegisterAF::Flags::AddSubtract, true);
+    state.af.flag(RegisterAF::Flags::HalfCarry, false);
+    set_f3_f5(state.af, b);
+
+    if (repeat && b != 0) {
+        state.pc.set(state.pc.get() - size);
+        return cycles;
+    }
+
+    if (repeat) {
+        return cycles_not_cond;
+    }
+
+    return cycles;
 }
 
 size_t Instruction::do_rst(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem) {

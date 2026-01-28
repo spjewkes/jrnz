@@ -117,6 +117,14 @@ public:
     size_t do_cpir(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
     size_t do_cpd(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
     size_t do_cpdr(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
+    size_t do_ini(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
+    size_t do_inir(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
+    size_t do_ind(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
+    size_t do_indr(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
+    size_t do_outi(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
+    size_t do_otir(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
+    size_t do_outd(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
+    size_t do_otdr(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
     size_t do_rst(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
     size_t do_halt(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
     size_t do_daa(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem);
@@ -135,6 +143,8 @@ public:
     size_t impl_shift_left(Z80 &state, StorageElement &elem, bool logical);
     size_t impl_shift_right(Z80 &state, StorageElement &elem, bool logical);
     size_t impl_cp_inc_dec(Z80 &state, bool do_inc, bool loop);
+    size_t impl_in_block(Z80 &state, bool inc, bool repeat);
+    size_t impl_out_block(Z80 &state, bool inc, bool repeat);
     size_t impl_ret(Z80 &state, StorageElement &pc);
 
     bool is_cond_set(Conditional cond, Z80 &state);
