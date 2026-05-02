@@ -52,8 +52,17 @@ target_link_libraries(run_jrnz ${SDL2_LIBRARIES} jrnz_lib z80_lib)
 # Build unit tests
 include(CTest)
 
-add_executable(run_tests tests/test_adc.cpp tests/test_sbc.cpp
-                         tests/test_neg.cpp)
+add_executable(
+  run_tests
+  tests/test_adc.cpp
+  tests/test_sbc.cpp
+  tests/test_neg.cpp
+  tests/test_decoder.cpp
+  tests/test_control_flow.cpp
+  tests/test_flags_misc.cpp
+  tests/test_execution_control.cpp
+  tests/test_execution_alu.cpp
+  tests/test_execution_extended.cpp)
 target_link_libraries(
   run_tests
   z80_lib
