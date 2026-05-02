@@ -223,3 +223,52 @@ TEST_CASE("Undocumented IN (C) discards the byte but updates flags from the port
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::F5));
     }
 }
+
+TEST_CASE("Ignored prefix combinations follow last-prefix or no-effect rules", "[undocumented][prefix]") {
+    SECTION("Repeated DD prefixes ignore all but the last prefix") {
+        CpuHarness h;
+        h.load({0xdd, 0xdd, 0x21, 0x34, 0x12});
+
+        const StepResult step = h.step();
+
+        REQUIRE(h.cpu.ix.get() == 0x1234);
+        REQUIRE(h.cpu.pc.get() == 0x0005);
+        REQUIRE(step.cycle_delta() == 18);
+    }
+
+    SECTION("Mixed DD then FD leaves the last prefix in effect") {
+        CpuHarness h;
+        h.load({0xdd, 0xfd, 0x21, 0x78, 0x56});
+
+        const StepResult step = h.step();
+
+        REQUIRE(h.cpu.iy.get() == 0x5678);
+        REQUIRE(h.cpu.pc.get() == 0x0005);
+        REQUIRE(step.cycle_delta() == 18);
+    }
+
+    SECTION("DD before ED is ignored and the ED instruction still executes") {
+        CpuHarness h;
+        h.cpu.af.accum(0x01);
+        h.load({0xdd, 0xed, 0x44});
+
+        const StepResult step = h.step();
+
+        REQUIRE(h.cpu.af.accum() == 0xff);
+        REQUIRE(h.cpu.pc.get() == 0x0003);
+        REQUIRE(step.cycle_delta() == 12);
+    }
+
+    SECTION("FD before ED is ignored and the ED instruction still executes") {
+        CpuHarness h;
+        h.cpu.ir.hi(0x9a);
+        h.cpu.af.flag(RegisterAF::Flags::Carry, true);
+        h.load({0xfd, 0xed, 0x57});
+
+        const StepResult step = h.step();
+
+        REQUIRE(h.cpu.af.accum() == 0x9a);
+        REQUIRE(h.cpu.pc.get() == 0x0003);
+        REQUIRE(step.cycle_delta() == 13);
+    }
+}
