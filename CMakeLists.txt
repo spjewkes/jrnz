@@ -27,9 +27,11 @@ if(USE_VENDORED_CATCH2)
   )
 
   FetchContent_MakeAvailable(Catch2)
+  list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
 else()
   message(STATUS "Using Catch2 library")
   find_package(Catch2 3 REQUIRED)
+  list(APPEND CMAKE_MODULE_PATH ${Catch2_DIR})
 endif()
 
 add_library(z80_lib src/z80/instructions.cpp src/z80/storage_element.cpp
@@ -51,6 +53,7 @@ target_link_libraries(run_jrnz ${SDL2_LIBRARIES} jrnz_lib z80_lib)
 
 # Build unit tests
 include(CTest)
+include(Catch)
 
 add_executable(
   run_tests
@@ -72,4 +75,4 @@ target_link_libraries(
   z80_lib
   jrnz_lib)
 
-add_test(NAME run_tests COMMAND run_tests)
+catch_discover_tests(run_tests)
