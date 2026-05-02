@@ -2,6 +2,11 @@
 
 #include "test_support.hpp"
 
+static void require_f3_f5(const CpuHarness &h, bool f3, bool f5) {
+    REQUIRE(h.cpu.af.flag(RegisterAF::Flags::F3) == f3);
+    REQUIRE(h.cpu.af.flag(RegisterAF::Flags::F5) == f5);
+}
+
 TEST_CASE("Undocumented IN (C) discards the byte but updates flags from the port read", "[undocumented][flags][inc]") {
     SECTION("Even port reads the keyboard or ULA path and preserves general registers") {
         CpuHarness h;
@@ -24,8 +29,7 @@ TEST_CASE("Undocumented IN (C) discards the byte but updates flags from the port
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Zero));
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Sign));
-        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::F3));
-        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::F5));
+        require_f3_f5(h, true, true);
     }
 
     SECTION("Odd port reads the floating bus and still only updates flags") {
@@ -51,7 +55,76 @@ TEST_CASE("Undocumented IN (C) discards the byte but updates flags from the port
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Zero));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Sign));
-        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::F3));
-        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::F5));
+        require_f3_f5(h, false, false);
+    }
+}
+
+TEST_CASE("CP follows undocumented F3 and F5 result bits", "[undocumented][flags][cp]") {
+    CpuHarness h;
+    h.cpu.af.accum(0x30);
+    h.load({0xfe, 0x08});
+
+    const StepResult step = h.step();
+
+    REQUIRE(step.cycle_delta() == 7);
+    REQUIRE(h.cpu.af.accum() == 0x30);
+    REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Carry));
+    REQUIRE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+    require_f3_f5(h, true, true);
+}
+
+TEST_CASE("BIT copies undocumented flag bits from the tested source", "[undocumented][flags][bit]") {
+    SECTION("Register BIT copies F3 and F5 from the tested value") {
+        CpuHarness h;
+        h.cpu.bc.hi(0x28);
+        h.load({0xcb, 0x58});
+
+        const StepResult step = h.step();
+
+        REQUIRE(step.cycle_delta() == 8);
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Zero));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+        require_f3_f5(h, true, true);
+    }
+
+    SECTION("Indexed BIT copies F3 and F5 from the effective address high byte") {
+        CpuHarness h;
+        h.cpu.ix.set(0x2834);
+        h.mem[0x2834] = 0x00;
+        h.load({0xdd, 0xcb, 0x00, 0x46});
+
+        const StepResult step = h.step();
+
+        REQUIRE(step.cycle_delta() == 20);
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Zero));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+        require_f3_f5(h, true, true);
+    }
+}
+
+TEST_CASE("LD A,I and LD A,R copy undocumented flag bits from the loaded value", "[undocumented][flags][ir]") {
+    SECTION("LD A,I copies F3 and F5 from I") {
+        CpuHarness h;
+        h.cpu.ir.hi(0x28);
+        h.load({0xed, 0x57});
+
+        const StepResult step = h.step();
+
+        REQUIRE(step.cycle_delta() == 9);
+        REQUIRE(h.cpu.af.accum() == 0x28);
+        require_f3_f5(h, true, true);
+    }
+
+    SECTION("LD A,R copies F3 and F5 from the incremented R value") {
+        CpuHarness h;
+        h.cpu.ir.lo(0x26);
+        h.load({0xed, 0x5f});
+
+        const StepResult step = h.step();
+
+        REQUIRE(step.cycle_delta() == 9);
+        REQUIRE(h.cpu.af.accum() == 0x28);
+        require_f3_f5(h, true, true);
     }
 }
