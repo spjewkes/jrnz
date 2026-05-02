@@ -66,7 +66,8 @@ add_executable(
   tests/test_execution_control.cpp
   tests/test_execution_alu.cpp
   tests/test_execution_extended.cpp
-  tests/test_execution_block_io.cpp)
+  tests/test_execution_block_io.cpp
+  tests/test_execution_rotate_shift.cpp)
 target_link_libraries(
   run_tests
   z80_lib
