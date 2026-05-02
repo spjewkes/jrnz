@@ -154,3 +154,18 @@ TEST_CASE("Undocumented IM aliases select the expected interrupt mode", "[undocu
         }
     }
 }
+
+TEST_CASE("Undocumented OUT (C),0 writes a zero byte to the selected port", "[undocumented][outc0]") {
+    CpuHarness h;
+    h.cpu.bc.set(0x12fe);
+    h.cpu.af.accum(0xff);
+    h.mem.port_254 = 0xaa;
+    h.load({0xed, 0x71});
+
+    const StepResult step = h.step();
+
+    REQUIRE(step.cycle_delta() == 12);
+    REQUIRE(h.mem.port_254 == 0x00);
+    REQUIRE(h.cpu.bc.get() == 0x12fe);
+    REQUIRE(h.cpu.af.accum() == 0xff);
+}
