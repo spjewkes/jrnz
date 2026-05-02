@@ -81,3 +81,15 @@ target_link_libraries(
   jrnz_lib)
 
 catch_discover_tests(run_tests)
+
+add_executable(run_tests_undocumented tests/test_undocumented_opcodes.cpp)
+target_link_libraries(
+  run_tests_undocumented
+  z80_lib
+  jrnz_lib
+  ${SDL2_LIBRARIES}
+  Catch2::Catch2WithMain
+  z80_lib
+  jrnz_lib)
+
+catch_discover_tests(run_tests_undocumented TEST_PREFIX "undocumented::")
