@@ -94,7 +94,7 @@ void Bus::load_snapshot(std::string &sna_file, Z80 &state) {
 
         // Now execute a RETN instruction
         Instruction inst{InstType::RETN, "retn", 2, 14, Operand::PC};
-        state.update_r_reg(inst);
+        state.update_r_reg();
         inst.execute(state);
 
         std::cout << "Setting PC to: " << state.pc << "\n";

@@ -51,7 +51,7 @@ public:
 
     void reset();
 
-    void update_r_reg(const Instruction &inst, uint32_t opcode = 0x00);
+    void update_r_reg(uint8_t inc = 1);
 
 private:
     bool fast_mode = {false};

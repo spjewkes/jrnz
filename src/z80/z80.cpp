@@ -8,6 +8,10 @@
 
 Z80::Z80(Bus &_bus, bool fast_mode) : bus(_bus), fast_mode(fast_mode) { reset(); }
 
+static size_t ignored_prefix_cycles(const FetchedOpcode &fetched) {
+    return static_cast<size_t>(fetched.ignored_prefixes) * 4;
+}
+
 bool Z80::clock(bool no_cycles) {
     bool found = false;
 
@@ -23,7 +27,7 @@ bool Z80::clock(bool no_cycles) {
         uint32_t cycles = 0;
         if (int_nmi) {
             Instruction inst{InstType::PUSH, "NMI", 1, 11, Operand::UNUSED, Operand::PC};
-            update_r_reg(inst);
+            update_r_reg();
             cycles = inst.execute(*this);
             pc.set(0x66);
             iff2 = iff1;
@@ -40,7 +44,7 @@ bool Z80::clock(bool no_cycles) {
                    just make it emulate the mode 1 interrupt */
                 case 1: {
                     Instruction inst{InstType::PUSH, "INT1", 1, 13, Operand::UNUSED, Operand::PC};
-                    update_r_reg(inst);
+                    update_r_reg();
                     cycles = inst.execute(*this);
                     pc.set(0x38);
                     interrupt = false;
@@ -66,22 +70,21 @@ bool Z80::clock(bool no_cycles) {
             // The halt instruction will continuously execute NOPs until there is an
             // interrupt
             Instruction inst{InstType::NOP, "halt", 1, 4};
-            update_r_reg(inst);
+            update_r_reg();
             cycles = const_cast<Instruction &>(inst).execute(*this);
             found = true;
         } else {
             curr_opcode_pc = pc.get();
 
-            uint16_t operand_offset = 0;
-            const auto opcode = bus.read_opcode_from_mem(curr_opcode_pc, &operand_offset);
-            assert(operand_offset != 0);
-            curr_operand_pc = curr_opcode_pc + operand_offset;
+            const FetchedOpcode fetched = bus.read_opcode_from_mem(curr_opcode_pc);
+            assert(fetched.operand_offset != 0);
+            curr_operand_pc = curr_opcode_pc + fetched.operand_offset;
 
-            const Instruction &inst = decode_opcode(opcode);
-            update_r_reg(inst, opcode);
+            const Instruction &inst = decode_opcode(fetched.opcode);
+            update_r_reg(fetched.fetch_len);
             if (inst.inst != InstType::INV) {
-                pc.set(curr_opcode_pc + inst.size);
-                cycles = const_cast<Instruction &>(inst).execute(*this);
+                pc.set(curr_opcode_pc + inst.size + fetched.ignored_prefixes);
+                cycles = const_cast<Instruction &>(inst).execute(*this) + ignored_prefix_cycles(fetched);
                 if (ei_pending && inst.inst != InstType::EI) {
                     iff1 = true;
                     iff2 = true;
@@ -89,7 +92,7 @@ bool Z80::clock(bool no_cycles) {
                 }
                 found = true;
             } else {
-                std::cerr << "UNKNOWN OPCODE: 0x" << std::hex << std::setw(8) << std::setfill('0') << opcode;
+                std::cerr << "UNKNOWN OPCODE: 0x" << std::hex << std::setw(8) << std::setfill('0') << fetched.opcode;
                 std::cerr << " at 0x" << curr_opcode_pc << std::endl;
             }
         }
@@ -119,18 +122,8 @@ void Z80::reset() {
     ei_pending = false;
 }
 
-void Z80::update_r_reg(const Instruction &inst, uint32_t opcode) {
-    (void)inst;
+void Z80::update_r_reg(uint8_t inc) {
     uint8_t r = ir.lo();
-
-    uint8_t inc = 1;
-    if ((opcode & 0xff00) == 0xed00 || (opcode & 0xff00) == 0xcb00 || (opcode & 0xff00) == 0xdd00 ||
-        (opcode & 0xff00) == 0xfd00) {
-        inc++;
-    }
-    if ((opcode & 0xffff00) == 0xddcb00 || (opcode & 0xffff00) == 0xfdcb00) {
-        inc++;
-    }
 
     uint8_t new_r = static_cast<uint8_t>((r & 0x80) | ((r + inc) & 0x7f));
     ir.lo(new_r);

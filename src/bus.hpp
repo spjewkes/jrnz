@@ -21,6 +21,13 @@
  */
 class Z80;
 
+struct FetchedOpcode {
+    uint32_t opcode = {0};
+    uint16_t operand_offset = {0};
+    uint8_t fetch_len = {0};
+    uint8_t ignored_prefixes = {0};
+};
+
 /**
  * @brief Defines the memory/data bus of the device.
  */
@@ -60,7 +67,7 @@ public:
         return StorageElement(&mem[addr], count, (addr < ram_start));
     }
 
-    uint32_t read_opcode_from_mem(uint16_t addr, uint16_t *operand_offset = nullptr);
+    FetchedOpcode read_opcode_from_mem(uint16_t addr) const;
 
     void clock() {
         // Not actively used at the moment but may be useful for debugging

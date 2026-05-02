@@ -133,17 +133,18 @@ bool Debugger::clock() {
 std::stringstream Debugger::dump_instr_at_addr(uint16_t addr) {
     std::stringstream str;
 
-    const auto opcode = _bus.read_opcode_from_mem(addr);
-    const Instruction &inst = decode_opcode(opcode);
+    const FetchedOpcode fetched = _bus.read_opcode_from_mem(addr);
+    const Instruction &inst = decode_opcode(fetched.opcode);
     if (inst.inst != InstType::INV) {
-        str << std::left << std::setw(20) << dump_mem_at_addr(addr, inst.size).str();
+        str << std::left << std::setw(20) << dump_mem_at_addr(addr, inst.size + fetched.ignored_prefixes).str();
         str << std::setw(20) << inst.name;
 
         if (has_rom_label(addr)) {
             str << "Routine: " << decode_rom_label(addr);
         }
     } else {
-        str << dump_mem_at_addr(addr, 4).str() << " UNKNOWN INSTRUCTION: 0x" << std::hex << opcode << std::dec;
+        str << dump_mem_at_addr(addr, fetched.operand_offset + 1).str() << " UNKNOWN INSTRUCTION: 0x" << std::hex
+            << fetched.opcode << std::dec;
     }
 
     return str;
