@@ -182,3 +182,86 @@ TEST_CASE("RETN restores IFF1 from IFF2 and returns to the stacked address", "[i
     REQUIRE(h.cpu.iff1);
     REQUIRE(h.cpu.iff2);
 }
+
+TEST_CASE("RETI returns to the stacked address", "[interrupts]") {
+    CpuHarness h;
+    h.cpu.iff1 = false;
+    h.cpu.iff2 = true;
+    h.cpu.sp.set(0xfffc);
+    h.mem.write_addr_to_mem(0xfffc, 0x4567);
+    h.load({0xed, 0x4d});
+
+    const StepResult step = h.step();
+
+    REQUIRE(step.cycle_delta() == 14);
+    REQUIRE(h.cpu.pc.get() == 0x4567);
+    REQUIRE(h.cpu.sp.get() == 0xfffe);
+}
+
+TEST_CASE("Mode 2 interrupt pushes PC and vectors through the I register page", "[interrupts]") {
+    CpuHarness h;
+    h.cpu.pc.set(0x2000);
+    h.cpu.sp.set(0xfffe);
+    h.cpu.iff1 = true;
+    h.cpu.int_mode = 2;
+    h.cpu.ir.hi(0x12);
+    h.mem[0x12ff] = 0x56;
+    h.mem[0x1300] = 0x34;
+    h.cpu.interrupt = true;
+
+    const StepResult step = h.step();
+
+    REQUIRE(step.cycle_delta() == 13);
+    REQUIRE(h.cpu.pc.get() == 0x3456);
+    REQUIRE(h.cpu.sp.get() == 0xfffc);
+    REQUIRE(h.mem.read_addr_from_mem(0xfffc) == 0x2000);
+    REQUIRE_FALSE(h.cpu.interrupt);
+}
+
+TEST_CASE("HALT holds PC until an interrupt resumes execution", "[interrupts]") {
+    CpuHarness h;
+    h.load({0x76});
+
+    const StepResult halt = h.step();
+    REQUIRE(halt.cycle_delta() == 4);
+    REQUIRE(h.cpu.halted);
+    REQUIRE(h.cpu.pc.get() == 0x0001);
+
+    const StepResult stalled = h.step();
+    REQUIRE(stalled.cycle_delta() == 4);
+    REQUIRE(h.cpu.halted);
+    REQUIRE(h.cpu.pc.get() == 0x0001);
+
+    h.cpu.iff1 = true;
+    h.cpu.int_mode = 1;
+    h.cpu.interrupt = true;
+
+    const StepResult interrupt = h.step();
+    REQUIRE(interrupt.cycle_delta() == 13);
+    REQUIRE_FALSE(h.cpu.halted);
+    REQUIRE(h.cpu.pc.get() == 0x0038);
+    REQUIRE(h.cpu.sp.get() == 0xfffc);
+    REQUIRE(h.mem.read_addr_from_mem(0xfffc) == 0x0001);
+    REQUIRE_FALSE(h.cpu.interrupt);
+}
+
+TEST_CASE("NMI pushes PC, jumps to 0x66, and preserves IFF2 from IFF1", "[interrupts]") {
+    CpuHarness h;
+    h.cpu.pc.set(0x2345);
+    h.cpu.sp.set(0xfffe);
+    h.cpu.iff1 = true;
+    h.cpu.iff2 = false;
+    h.cpu.halted = true;
+    h.cpu.int_nmi = true;
+
+    const StepResult step = h.step();
+
+    REQUIRE(step.cycle_delta() == 11);
+    REQUIRE(h.cpu.pc.get() == 0x0066);
+    REQUIRE(h.cpu.sp.get() == 0xfffc);
+    REQUIRE(h.mem.read_addr_from_mem(0xfffc) == 0x2345);
+    REQUIRE_FALSE(h.cpu.iff1);
+    REQUIRE(h.cpu.iff2);
+    REQUIRE_FALSE(h.cpu.int_nmi);
+    REQUIRE_FALSE(h.cpu.halted);
+}
