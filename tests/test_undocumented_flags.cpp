@@ -128,3 +128,103 @@ TEST_CASE("LD A,I and LD A,R copy undocumented flag bits from the loaded value",
         require_f3_f5(h, true, true);
     }
 }
+
+TEST_CASE("Block compare instructions derive undocumented flags from A minus value minus HF",
+          "[undocumented][flags][block-cp]") {
+    SECTION("CPI sets F3 from bit 3 and F5 from bit 1 of the adjusted result") {
+        CpuHarness h;
+        h.cpu.af.accum(0x09);
+        h.cpu.hl.set(0x8400);
+        h.cpu.bc.set(0x0002);
+        h.mem[0x8400] = 0x01;
+        h.load({0xed, 0xa1});
+
+        const StepResult step = h.step();
+
+        REQUIRE(step.cycle_delta() == 16);
+        REQUIRE(h.cpu.hl.get() == 0x8401);
+        REQUIRE(h.cpu.bc.get() == 0x0001);
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Zero));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+        require_f3_f5(h, true, false);
+    }
+
+    SECTION("CPD uses the same F3 and F5 rule while decrementing HL") {
+        CpuHarness h;
+        h.cpu.af.accum(0x09);
+        h.cpu.hl.set(0x8501);
+        h.cpu.bc.set(0x0002);
+        h.mem[0x8501] = 0x01;
+        h.load({0xed, 0xa9});
+
+        const StepResult step = h.step();
+
+        REQUIRE(step.cycle_delta() == 16);
+        REQUIRE(h.cpu.hl.get() == 0x8500);
+        REQUIRE(h.cpu.bc.get() == 0x0001);
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Zero));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+        require_f3_f5(h, true, false);
+    }
+
+    SECTION("CPIR keeps the adjusted F3 and F5 values on the repeating step") {
+        CpuHarness h;
+        h.cpu.af.accum(0x09);
+        h.cpu.hl.set(0x8600);
+        h.cpu.bc.set(0x0002);
+        h.mem[0x8600] = 0x01;
+        h.mem[0x8601] = 0x09;
+        h.load({0xed, 0xb1});
+
+        const StepResult first = h.step();
+
+        REQUIRE(first.cycle_delta() == 21);
+        REQUIRE(h.cpu.pc.get() == 0x0000);
+        REQUIRE(h.cpu.hl.get() == 0x8601);
+        REQUIRE(h.cpu.bc.get() == 0x0001);
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Zero));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+        require_f3_f5(h, true, false);
+
+        const StepResult second = h.step();
+
+        REQUIRE(second.cycle_delta() == 16);
+        REQUIRE(h.cpu.pc.get() == 0x0002);
+        REQUIRE(h.cpu.hl.get() == 0x8602);
+        REQUIRE(h.cpu.bc.get() == 0x0000);
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Zero));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+        require_f3_f5(h, false, false);
+    }
+
+    SECTION("CPDR keeps the adjusted F3 and F5 values on the repeating step") {
+        CpuHarness h;
+        h.cpu.af.accum(0x09);
+        h.cpu.hl.set(0x8701);
+        h.cpu.bc.set(0x0002);
+        h.mem[0x8701] = 0x01;
+        h.mem[0x8700] = 0x09;
+        h.load({0xed, 0xb9});
+
+        const StepResult first = h.step();
+
+        REQUIRE(first.cycle_delta() == 21);
+        REQUIRE(h.cpu.pc.get() == 0x0000);
+        REQUIRE(h.cpu.hl.get() == 0x8700);
+        REQUIRE(h.cpu.bc.get() == 0x0001);
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Zero));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+        require_f3_f5(h, true, false);
+
+        const StepResult second = h.step();
+
+        REQUIRE(second.cycle_delta() == 16);
+        REQUIRE(h.cpu.pc.get() == 0x0002);
+        REQUIRE(h.cpu.hl.get() == 0x86ff);
+        REQUIRE(h.cpu.bc.get() == 0x0000);
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Zero));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+        require_f3_f5(h, false, false);
+    }
+}
