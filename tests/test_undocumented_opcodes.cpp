@@ -104,3 +104,53 @@ TEST_CASE("Undocumented RETN aliases restore IFF1 and return from the stack", "[
         REQUIRE(h.cpu.iff2);
     }
 }
+
+TEST_CASE("Undocumented IM aliases select the expected interrupt mode", "[undocumented][im-alias]") {
+    SECTION("IM 0 aliases") {
+        const uint8_t aliases[] = {0x66};
+
+        for (uint8_t alias : aliases) {
+            CpuHarness h;
+            h.cpu.int_mode = 2;
+            h.load({0xed, alias});
+
+            const StepResult step = h.step();
+
+            INFO("opcode=0xed" << std::hex << static_cast<uint32_t>(alias));
+            REQUIRE(step.cycle_delta() == 8);
+            REQUIRE(h.cpu.int_mode == 0);
+        }
+    }
+
+    SECTION("IM 1 aliases") {
+        const uint8_t aliases[] = {0x4e, 0x6e};
+
+        for (uint8_t alias : aliases) {
+            CpuHarness h;
+            h.cpu.int_mode = 0;
+            h.load({0xed, alias});
+
+            const StepResult step = h.step();
+
+            INFO("opcode=0xed" << std::hex << static_cast<uint32_t>(alias));
+            REQUIRE(step.cycle_delta() == 8);
+            REQUIRE(h.cpu.int_mode == 1);
+        }
+    }
+
+    SECTION("IM 2 aliases") {
+        const uint8_t aliases[] = {0x7e};
+
+        for (uint8_t alias : aliases) {
+            CpuHarness h;
+            h.cpu.int_mode = 0;
+            h.load({0xed, alias});
+
+            const StepResult step = h.step();
+
+            INFO("opcode=0xed" << std::hex << static_cast<uint32_t>(alias));
+            REQUIRE(step.cycle_delta() == 8);
+            REQUIRE(h.cpu.int_mode == 2);
+        }
+    }
+}
