@@ -579,7 +579,7 @@ void init_map_inst() {
     map_inst.emplace(0xed4b, Instruction{InstType::LD, "ld bc,(**)", 4, 20, Operand::BC, Operand::indNN});
     map_inst.emplace(0xed4c, Instruction{InstType::NEG, "neg", 2, 8, Operand::A, Operand::A});
     map_inst.emplace(0xed4d, Instruction{InstType::RETI, "reti", 2, 14, Operand::PC});
-    //! im 0/1
+    map_inst.emplace(0xed4e, Instruction{InstType::IM, "im 1", 2, 8, Operand::IM, Operand::ONE});
     map_inst.emplace(0xed4f, Instruction{InstType::LD, "ld r,a", 2, 9, Operand::R, Operand::A});
 
     map_inst.emplace(0xed50, Instruction{InstType::IN, "in d,(c)", 2, 12, Operand::D, Operand::PORTC});
@@ -612,7 +612,7 @@ void init_map_inst() {
     map_inst.emplace(0xed6a, Instruction{InstType::ADC, "adc hl,hl", 2, 15, Operand::HL, Operand::HL});
     map_inst.emplace(0xed6c, Instruction{InstType::NEG, "neg", 2, 8, Operand::A, Operand::A});
     map_inst.emplace(0xed6d, Instruction{InstType::RETN, "retn", 2, 14, Operand::PC});
-    //! im 0/1
+    map_inst.emplace(0xed6e, Instruction{InstType::IM, "im 1", 2, 8, Operand::IM, Operand::ONE});
     map_inst.emplace(0xed6f, Instruction{InstType::RLD, "rld", 2, 18});
 
     map_inst.emplace(0xed70, Instruction{InstType::IN, "in (c)", 2, 12, Operand::ZERO, Operand::PORTC});

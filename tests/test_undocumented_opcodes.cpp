@@ -123,7 +123,7 @@ TEST_CASE("Undocumented IM aliases select the expected interrupt mode", "[undocu
     }
 
     SECTION("IM 1 aliases") {
-        const uint8_t aliases[] = {0x4e, 0x6e};
+        const uint8_t aliases[] = {0x4e, 0x6e, 0x76};
 
         for (uint8_t alias : aliases) {
             CpuHarness h;

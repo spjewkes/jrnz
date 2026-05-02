@@ -1,3 +1,4 @@
+#include <array>
 #include <catch2/catch_test_macros.hpp>
 
 #include "decoder.hpp"
@@ -26,21 +27,37 @@ TEST_CASE("CB prefixed opcode table is complete", "[decoder]") {
     }
 }
 
-TEST_CASE("ED prefixed opcode table keeps documented coverage stable", "[decoder]") {
-    size_t valid_count = 0;
+TEST_CASE("ED prefixed opcode table separates documented coverage from undocumented aliases", "[decoder]") {
+    constexpr std::array<uint32_t, 18> undocumented_ed_opcodes = {
+        0xed4c, 0xed4e, 0xed54, 0xed55, 0xed5c, 0xed5d, 0xed64, 0xed65, 0xed66,
+        0xed6c, 0xed6d, 0xed6e, 0xed71, 0xed74, 0xed75, 0xed76, 0xed7c, 0xed7d,
+    };
+
+    size_t documented_count = 0;
+    size_t undocumented_count = 0;
     for (uint32_t opcode = 0x00; opcode <= 0xff; ++opcode) {
-        const Instruction &inst = decode_opcode(0xed00 | opcode);
+        const uint32_t full_opcode = 0xed00 | opcode;
+        const Instruction &inst = decode_opcode(full_opcode);
         if (inst.inst != InstType::INV) {
-            ++valid_count;
             REQUIRE((inst.size == 2 || inst.size == 4));
+            const bool is_undocumented = std::find(undocumented_ed_opcodes.begin(), undocumented_ed_opcodes.end(),
+                                                   full_opcode) != undocumented_ed_opcodes.end();
+            if (is_undocumented) {
+                ++undocumented_count;
+            } else {
+                ++documented_count;
+            }
         }
     }
 
-    REQUIRE(valid_count == 74);
+    REQUIRE(documented_count == 58);
+    REQUIRE(undocumented_count == undocumented_ed_opcodes.size());
     REQUIRE(decode_opcode(0xed44).inst == InstType::NEG);
     REQUIRE(decode_opcode(0xed4d).inst == InstType::RETI);
     REQUIRE(decode_opcode(0xed57).inst == InstType::LD);
     REQUIRE(decode_opcode(0xeda0).inst == InstType::LDI);
+    REQUIRE(decode_opcode(0xed4e).inst == InstType::IM);
+    REQUIRE(decode_opcode(0xed71).inst == InstType::OUT);
     REQUIRE(decode_opcode(0xed04).inst == InstType::INV);
 }
 
