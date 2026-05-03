@@ -79,10 +79,11 @@ bool Z80::clock(bool no_cycles) {
             curr_opcode_pc = pc.get();
 
             const FetchedOpcode fetched = bus.read_opcode_from_mem(curr_opcode_pc);
+            curr_opcode = fetched.opcode;
             assert(fetched.operand_offset != 0);
             curr_operand_pc = curr_opcode_pc + fetched.operand_offset;
 
-            const Instruction &inst = decode_opcode(fetched.opcode);
+            const Instruction &inst = decode_opcode(curr_opcode);
             update_r_reg(fetched.fetch_len);
             if (inst.inst != InstType::INV) {
                 pc.set(curr_opcode_pc + inst.size + fetched.ignored_prefixes);

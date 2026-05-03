@@ -30,6 +30,50 @@ void set_block_cp_f3_f5(RegisterAF &af, uint8_t v) {
 }
 
 bool even_parity(uint8_t v) { return (__builtin_popcount(static_cast<unsigned int>(v)) % 2) == 0; }
+
+Operand indexed_cb_copy_target(uint32_t opcode) {
+    const uint32_t prefix = opcode & 0xffff00;
+    if (prefix != 0xddcb00 && prefix != 0xfdcb00) {
+        return Operand::UNUSED;
+    }
+
+    const uint8_t low = static_cast<uint8_t>(opcode & 0xff);
+    if ((low & 0xc0) == 0x40) {
+        return Operand::UNUSED;
+    }
+
+    switch (low & 0x07) {
+        case 0:
+            return Operand::B;
+        case 1:
+            return Operand::C;
+        case 2:
+            return Operand::D;
+        case 3:
+            return Operand::E;
+        case 4:
+            return Operand::H;
+        case 5:
+            return Operand::L;
+        case 6:
+            return Operand::UNUSED;
+        case 7:
+            return Operand::A;
+        default:
+            assert(false);
+            return Operand::UNUSED;
+    }
+}
+
+void copy_indexed_cb_result(Z80 &state, const StorageElement &mem_elem) {
+    const Operand reg = indexed_cb_copy_target(state.curr_opcode);
+    if (reg == Operand::UNUSED) {
+        return;
+    }
+
+    StorageElement reg_elem = StorageElement::create_element(state, reg);
+    reg_elem = mem_elem;
+}
 }  // namespace
 
 size_t Instruction::execute(Z80 &state) {
@@ -586,12 +630,14 @@ size_t Instruction::do_res(Z80 &state, StorageElement &dst_elem, StorageElement 
 }
 
 size_t Instruction::impl_set_bit(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem, bool set) {
-    UNUSED(state);
-
     if (set) {
         dst_elem.set_bit(src_elem);
     } else {
         dst_elem.reset_bit(src_elem);
+    }
+
+    if (dst == Operand::indIXN || dst == Operand::indIYN) {
+        copy_indexed_cb_result(state, dst_elem);
     }
 
     return cycles;
@@ -744,6 +790,9 @@ size_t Instruction::do_rlc(Z80 &state, StorageElement &dst_elem, StorageElement 
     assert(Operand::UNUSED == src);
 
     impl_rotate_left(state, dst_elem, true /* set_state */, false /* rot_9bit */);
+    if (dst == Operand::indIXN || dst == Operand::indIYN) {
+        copy_indexed_cb_result(state, dst_elem);
+    }
 
     return cycles;
 }
@@ -753,6 +802,9 @@ size_t Instruction::do_rl(Z80 &state, StorageElement &dst_elem, StorageElement &
     assert(Operand::UNUSED == src);
 
     impl_rotate_left(state, dst_elem, true /* set_state */, true /* rot_9bit */);
+    if (dst == Operand::indIXN || dst == Operand::indIYN) {
+        copy_indexed_cb_result(state, dst_elem);
+    }
 
     return cycles;
 }
@@ -762,6 +814,9 @@ size_t Instruction::do_rrc(Z80 &state, StorageElement &dst_elem, StorageElement 
     assert(Operand::UNUSED == src);
 
     impl_rotate_right(state, dst_elem, true /* set_state */, false /* rot_9bit */);
+    if (dst == Operand::indIXN || dst == Operand::indIYN) {
+        copy_indexed_cb_result(state, dst_elem);
+    }
 
     return cycles;
 }
@@ -771,6 +826,9 @@ size_t Instruction::do_rr(Z80 &state, StorageElement &dst_elem, StorageElement &
     assert(Operand::UNUSED == src);
 
     impl_rotate_right(state, dst_elem, true /* set_state */, true /* rot_9bit */);
+    if (dst == Operand::indIXN || dst == Operand::indIYN) {
+        copy_indexed_cb_result(state, dst_elem);
+    }
 
     return cycles;
 }
@@ -780,6 +838,9 @@ size_t Instruction::do_sla(Z80 &state, StorageElement &dst_elem, StorageElement 
     assert(Operand::UNUSED == src);
 
     impl_shift_left(state, dst_elem, false /* logical */);
+    if (dst == Operand::indIXN || dst == Operand::indIYN) {
+        copy_indexed_cb_result(state, dst_elem);
+    }
 
     return cycles;
 }
@@ -789,6 +850,9 @@ size_t Instruction::do_sll(Z80 &state, StorageElement &dst_elem, StorageElement 
     assert(Operand::UNUSED == src);
 
     impl_shift_left(state, dst_elem, true /* logical */);
+    if (dst == Operand::indIXN || dst == Operand::indIYN) {
+        copy_indexed_cb_result(state, dst_elem);
+    }
 
     return cycles;
 }
@@ -798,6 +862,9 @@ size_t Instruction::do_sra(Z80 &state, StorageElement &dst_elem, StorageElement 
     assert(Operand::UNUSED == src);
 
     impl_shift_right(state, dst_elem, false /* logical */);
+    if (dst == Operand::indIXN || dst == Operand::indIYN) {
+        copy_indexed_cb_result(state, dst_elem);
+    }
 
     return cycles;
 }
@@ -807,6 +874,9 @@ size_t Instruction::do_srl(Z80 &state, StorageElement &dst_elem, StorageElement 
     assert(Operand::UNUSED == src);
 
     impl_shift_right(state, dst_elem, true /* logical */);
+    if (dst == Operand::indIXN || dst == Operand::indIYN) {
+        copy_indexed_cb_result(state, dst_elem);
+    }
 
     return cycles;
 }

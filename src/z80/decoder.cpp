@@ -11,6 +11,55 @@ static std::map<uint32_t, std::string> map_rom;
 static Instruction inv_inst{InstType::INV, "INVALID", 0, 0};
 static std::string unk_rom_addr{""};
 
+namespace {
+Operand indexed_cb_bit_operand(uint8_t opcode) {
+    switch ((opcode >> 3) & 0x07) {
+        case 0:
+            return Operand::ZERO;
+        case 1:
+            return Operand::ONE;
+        case 2:
+            return Operand::TWO;
+        case 3:
+            return Operand::THREE;
+        case 4:
+            return Operand::FOUR;
+        case 5:
+            return Operand::FIVE;
+        case 6:
+            return Operand::SIX;
+        case 7:
+            return Operand::SEVEN;
+        default:
+            assert(false);
+            return Operand::UNUSED;
+    }
+}
+
+void add_indexed_cb_copy_forms(uint32_t prefix, Operand mem_operand) {
+    for (uint32_t opcode = 0x00; opcode <= 0xff; ++opcode) {
+        if ((opcode & 0x07) == 0x06) {
+            continue;
+        }
+        if ((opcode & 0xc0) == 0x40) {
+            continue;
+        }
+
+        const Instruction& base_inst = decode_opcode(0xcb00 | opcode);
+        if (base_inst.inst == InstType::INV) {
+            continue;
+        }
+
+        if (base_inst.src == Operand::UNUSED) {
+            map_inst.emplace(prefix | opcode, Instruction{base_inst.inst, base_inst.name.c_str(), 4, 23, mem_operand});
+        } else {
+            map_inst.emplace(prefix | opcode, Instruction{base_inst.inst, base_inst.name.c_str(), 4, 23, mem_operand,
+                                                          indexed_cb_bit_operand(static_cast<uint8_t>(opcode))});
+        }
+    }
+}
+}  // namespace
+
 void init_map_inst() {
     map_inst.emplace(0x00, Instruction{InstType::NOP, "nop", 1, 4});
     map_inst.emplace(0x01, Instruction{InstType::LD, "ld bc,**", 3, 10, Operand::BC, Operand::NN});
@@ -814,6 +863,7 @@ void init_map_inst() {
     map_inst.emplace(0xddcbee, Instruction{InstType::SET, "set 5,(ix+*)", 4, 23, Operand::indIXN, Operand::FIVE});
     map_inst.emplace(0xddcbf6, Instruction{InstType::SET, "set 6,(ix+*)", 4, 23, Operand::indIXN, Operand::SIX});
     map_inst.emplace(0xddcbfe, Instruction{InstType::SET, "set 7,(ix+*)", 4, 23, Operand::indIXN, Operand::SEVEN});
+    add_indexed_cb_copy_forms(0xddcb00, Operand::indIXN);
 
     map_inst.emplace(0xfd09, Instruction{InstType::ADD, "add iy,bc", 2, 15, Operand::IY, Operand::BC});
 
@@ -974,6 +1024,7 @@ void init_map_inst() {
     map_inst.emplace(0xfdcbee, Instruction{InstType::SET, "set 5,(iy+*)", 4, 23, Operand::indIYN, Operand::FIVE});
     map_inst.emplace(0xfdcbf6, Instruction{InstType::SET, "set 6,(iy+*)", 4, 23, Operand::indIYN, Operand::SIX});
     map_inst.emplace(0xfdcbfe, Instruction{InstType::SET, "set 7,(iy+*)", 4, 23, Operand::indIYN, Operand::SEVEN});
+    add_indexed_cb_copy_forms(0xfdcb00, Operand::indIYN);
 }
 
 void init_map_rom() {

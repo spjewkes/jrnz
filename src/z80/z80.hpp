@@ -17,6 +17,7 @@ class Z80 {
 public:
     Z80(Bus &_bus, bool fast_mode = false);
 
+    uint32_t curr_opcode = {0};      // Stores the canonical fetched opcode under execution
     uint16_t curr_opcode_pc = {0};   // Stores the PC of the opcode under execution
     uint16_t curr_operand_pc = {0};  // Stores the PC of the expected first operand (if there are any) of
                                      // the opcode under execution

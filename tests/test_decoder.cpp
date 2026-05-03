@@ -101,6 +101,6 @@ TEST_CASE("Indexed bit-op tables remain complete", "[decoder]") {
         }
     }
 
-    REQUIRE(ddcb_count == 32);
-    REQUIRE(fdcb_count == 32);
+    REQUIRE(ddcb_count == 200);
+    REQUIRE(fdcb_count == 200);
 }
