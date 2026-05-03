@@ -75,6 +75,7 @@ add_executable(
   tests/test_execution_nibbles.cpp
   tests/test_execution_ports_matrix.cpp
   tests/test_execution_misc_documented.cpp
+  tests/test_execution_family_matrix.cpp
   tests/test_execution_bitsetres.cpp
   tests/test_execution_exchange_stack.cpp
   tests/test_execution_index_halves.cpp)
