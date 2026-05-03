@@ -64,6 +64,7 @@ add_executable(
   tests/test_control_flow.cpp
   tests/test_flags_misc.cpp
   tests/test_execution_control.cpp
+  tests/test_execution_control_matrix.cpp
   tests/test_execution_alu.cpp
   tests/test_execution_arithmetic16.cpp
   tests/test_execution_loads.cpp
