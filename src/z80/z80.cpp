@@ -38,6 +38,8 @@ bool Z80::clock(bool no_cycles) {
             found = true;
         } else if (iff1 && interrupt) {
             halted = false;
+            iff1 = false;
+            iff2 = false;
             switch (int_mode) {
                 case 0:
                 /* TODO mode 0 should be made more generic than this but for the ZX Spectrum we can
