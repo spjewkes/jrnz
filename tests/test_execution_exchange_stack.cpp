@@ -65,6 +65,47 @@ TEST_CASE("PUSH and POP round-trip register pairs through the stack", "[exchange
         REQUIRE(h.cpu.sp.get() == 0xfffe);
         REQUIRE(h.cpu.pc.get() == 0x0004);
     }
+
+    SECTION("PUSH/POP DE and HL preserve flags and stack byte order") {
+        CpuHarness h;
+        h.cpu.af.flags(0x96);
+        h.cpu.de.set(0x2468);
+        h.cpu.hl.set(0x1357);
+        h.cpu.sp.set(0xfffe);
+        h.load({0xd5, 0xe5, 0xe1, 0xd1});
+
+        const StepResult push_de = h.step();
+        REQUIRE(push_de.cycle_delta() == 11);
+        REQUIRE(push_de.pc_after == 0x0001);
+        REQUIRE(h.cpu.sp.get() == 0xfffc);
+        REQUIRE(h.mem[0xfffc] == 0x68);
+        REQUIRE(h.mem[0xfffd] == 0x24);
+        REQUIRE(h.cpu.af.flags() == 0x96);
+
+        const StepResult push_hl = h.step();
+        REQUIRE(push_hl.cycle_delta() == 11);
+        REQUIRE(push_hl.pc_after == 0x0002);
+        REQUIRE(h.cpu.sp.get() == 0xfffa);
+        REQUIRE(h.mem[0xfffa] == 0x57);
+        REQUIRE(h.mem[0xfffb] == 0x13);
+        REQUIRE(h.cpu.af.flags() == 0x96);
+
+        h.cpu.hl.set(0x0000);
+        const StepResult pop_hl = h.step();
+        REQUIRE(pop_hl.cycle_delta() == 10);
+        REQUIRE(pop_hl.pc_after == 0x0003);
+        REQUIRE(h.cpu.hl.get() == 0x1357);
+        REQUIRE(h.cpu.sp.get() == 0xfffc);
+        REQUIRE(h.cpu.af.flags() == 0x96);
+
+        h.cpu.de.set(0x0000);
+        const StepResult pop_de = h.step();
+        REQUIRE(pop_de.cycle_delta() == 10);
+        REQUIRE(pop_de.pc_after == 0x0004);
+        REQUIRE(h.cpu.de.get() == 0x2468);
+        REQUIRE(h.cpu.sp.get() == 0xfffe);
+        REQUIRE(h.cpu.af.flags() == 0x96);
+    }
 }
 
 TEST_CASE("Exchange instructions swap the documented registers", "[exchange-stack]") {

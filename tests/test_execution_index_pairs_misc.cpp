@@ -69,12 +69,39 @@ TEST_CASE("Indexed pair control and stack forms use IX and IY exactly as documen
         REQUIRE(h.cpu.af.flags() == 0x5a);
     }
 
-    SECTION("ADD IX,IX and ADD IY,IY use indexed 16-bit half-carry and carry rules") {
+    SECTION("PUSH and POP IX preserve the neighboring indexed register and flags") {
         CpuHarness h;
-        h.cpu.af.flags(0x00);
+        h.cpu.ix.set(0x1234);
+        h.cpu.iy.set(0xabcd);
+        h.cpu.sp.set(0x9100);
+        h.cpu.af.flags(0x3c);
+        h.load({0xdd, 0xe5, 0xdd, 0xe1});
+
+        const StepResult push = h.step();
+        REQUIRE(push.cycle_delta() == 15);
+        REQUIRE(push.pc_after == 0x0002);
+        REQUIRE(h.cpu.sp.get() == 0x90fe);
+        REQUIRE(h.mem[0x90fe] == 0x34);
+        REQUIRE(h.mem[0x90ff] == 0x12);
+        REQUIRE(h.cpu.iy.get() == 0xabcd);
+        REQUIRE(h.cpu.af.flags() == 0x3c);
+
+        h.cpu.ix.set(0x0000);
+        const StepResult pop = h.step();
+        REQUIRE(pop.cycle_delta() == 14);
+        REQUIRE(pop.pc_after == 0x0004);
+        REQUIRE(h.cpu.ix.get() == 0x1234);
+        REQUIRE(h.cpu.iy.get() == 0xabcd);
+        REQUIRE(h.cpu.sp.get() == 0x9100);
+        REQUIRE(h.cpu.af.flags() == 0x3c);
+    }
+
+    SECTION("Indexed pair arithmetic and increment-decrement preserve the documented flag subset") {
+        CpuHarness h;
+        h.cpu.af.flags(0xa5);
         h.cpu.ix.set(0x8fff);
         h.cpu.iy.set(0xffff);
-        h.load({0xdd, 0x29, 0xfd, 0x29});
+        h.load({0xdd, 0x29, 0xfd, 0x29, 0xdd, 0x23, 0xfd, 0x2b});
 
         const StepResult add_ix_ix = h.step();
         REQUIRE(add_ix_ix.cycle_delta() == 15);
@@ -91,5 +118,18 @@ TEST_CASE("Indexed pair control and stack forms use IX and IY exactly as documen
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Carry));
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+
+        const uint8_t flags_before_inc_dec = h.cpu.af.flags();
+        const StepResult inc_ix = h.step();
+        REQUIRE(inc_ix.cycle_delta() == 10);
+        REQUIRE(inc_ix.pc_after == 0x0006);
+        REQUIRE(h.cpu.ix.get() == 0x1fff);
+        REQUIRE(h.cpu.af.flags() == flags_before_inc_dec);
+
+        const StepResult dec_iy = h.step();
+        REQUIRE(dec_iy.cycle_delta() == 10);
+        REQUIRE(dec_iy.pc_after == 0x0008);
+        REQUIRE(h.cpu.iy.get() == 0xfffd);
+        REQUIRE(h.cpu.af.flags() == flags_before_inc_dec);
     }
 }
