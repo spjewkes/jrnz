@@ -23,6 +23,11 @@ void set_f3_f5(RegisterAF &af, uint8_t v) {
     af.flag(RegisterAF::Flags::F3, (v & 0x08) != 0);
     af.flag(RegisterAF::Flags::F5, (v & 0x20) != 0);
 }
+
+void set_block_cp_f3_f5(RegisterAF &af, uint8_t v) {
+    af.flag(RegisterAF::Flags::F3, (v & 0x08) != 0);
+    af.flag(RegisterAF::Flags::F5, (v & 0x02) != 0);
+}
 }  // namespace
 
 size_t Instruction::execute(Z80 &state) {
@@ -558,7 +563,14 @@ size_t Instruction::do_bit(Z80 &state, StorageElement &dst_elem, StorageElement 
     state.af.flag(RegisterAF::Flags::Zero, !is_set);
     state.af.flag(RegisterAF::Flags::ParityOverflow, !is_set);
     state.af.flag(RegisterAF::Flags::Sign, (bit_index == 7) && is_set);
-    set_f3_f5(state.af, flag_value(dst_elem, false));
+    if (dst == Operand::indIXN || dst == Operand::indIYN) {
+        const int8_t displacement = static_cast<int8_t>(state.bus.read_data(state.curr_operand_pc - 1));
+        const uint16_t base = (dst == Operand::indIXN) ? state.ix.get() : state.iy.get();
+        const uint16_t effective_addr = static_cast<uint16_t>(base + displacement);
+        set_f3_f5(state.af, static_cast<uint8_t>(effective_addr >> 8));
+    } else {
+        set_f3_f5(state.af, flag_value(dst_elem, false));
+    }
 
     return cycles;
 }
@@ -1119,6 +1131,10 @@ size_t Instruction::impl_cp_inc_dec(Z80 &state, bool do_inc, bool loop) {
     state.af.flag(RegisterAF::Flags::HalfCarry, result.is_half());
     state.af.flag(RegisterAF::Flags::AddSubtract, true);
     state.af.flag(RegisterAF::Flags::ParityOverflow, (valueBC == 0 ? false : true));
+    uint32_t raw_result = 0;
+    result.get_value(raw_result);
+    const uint8_t adjusted_result = static_cast<uint8_t>(raw_result - (result.is_half() ? 1 : 0));
+    set_block_cp_f3_f5(state.af, adjusted_result);
 
     if (loop && state.bc.get() != 0 && !set_z) {
         state.pc.set(state.pc.get() - size);
