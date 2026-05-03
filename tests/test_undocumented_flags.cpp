@@ -2,11 +2,6 @@
 
 #include "test_support.hpp"
 
-static void require_f3_f5(const CpuHarness &h, bool f3, bool f5) {
-    REQUIRE(h.cpu.af.flag(RegisterAF::Flags::F3) == f3);
-    REQUIRE(h.cpu.af.flag(RegisterAF::Flags::F5) == f5);
-}
-
 TEST_CASE("Undocumented IN (C) discards the byte but updates flags from the port read", "[undocumented][flags][inc]") {
     SECTION("Even port reads the keyboard or ULA path and preserves general registers") {
         CpuHarness h;

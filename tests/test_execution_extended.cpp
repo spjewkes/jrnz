@@ -4,6 +4,7 @@
 
 TEST_CASE("LDI copies a byte and updates registers and flags", "[extended]") {
     CpuHarness h;
+    h.cpu.af.accum(0x11);
     h.cpu.hl.set(0x5000);
     h.cpu.de.set(0x6000);
     h.cpu.bc.set(0x0002);
@@ -14,6 +15,7 @@ TEST_CASE("LDI copies a byte and updates registers and flags", "[extended]") {
     const StepResult step = h.step();
 
     REQUIRE(step.cycle_delta() == 16);
+    REQUIRE(step.pc_after == 0x0002);
     REQUIRE(h.mem[0x6000] == 0xa5);
     REQUIRE(h.cpu.hl.get() == 0x5001);
     REQUIRE(h.cpu.de.get() == 0x6001);
@@ -22,6 +24,7 @@ TEST_CASE("LDI copies a byte and updates registers and flags", "[extended]") {
     REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
     REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
     REQUIRE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+    REQUIRE(h.cpu.af.accum() == 0x11);
 }
 
 TEST_CASE("LDIR repeats until BC becomes zero", "[extended]") {
@@ -40,6 +43,9 @@ TEST_CASE("LDIR repeats until BC becomes zero", "[extended]") {
     REQUIRE(h.cpu.hl.get() == 0x5001);
     REQUIRE(h.cpu.de.get() == 0x6001);
     REQUIRE(h.cpu.bc.get() == 0x0001);
+    REQUIRE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+    REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+    REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
 
     const StepResult second = h.step();
     REQUIRE(second.cycle_delta() == 16);
@@ -49,6 +55,8 @@ TEST_CASE("LDIR repeats until BC becomes zero", "[extended]") {
     REQUIRE(h.cpu.de.get() == 0x6002);
     REQUIRE(h.cpu.bc.get() == 0x0000);
     REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+    REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+    REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
 }
 
 TEST_CASE("CPIR repeats until match and leaves HL and BC in the matched state", "[extended]") {
@@ -68,6 +76,8 @@ TEST_CASE("CPIR repeats until match and leaves HL and BC in the matched state", 
     REQUIRE(h.cpu.bc.get() == 0x0002);
     REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Zero));
     REQUIRE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+    REQUIRE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+    REQUIRE(h.cpu.af.accum() == 0x34);
 
     const StepResult second = h.step();
     REQUIRE(second.cycle_delta() == 16);
@@ -76,6 +86,8 @@ TEST_CASE("CPIR repeats until match and leaves HL and BC in the matched state", 
     REQUIRE(h.cpu.bc.get() == 0x0001);
     REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Zero));
     REQUIRE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+    REQUIRE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+    REQUIRE(h.cpu.af.accum() == 0x34);
 }
 
 TEST_CASE("Indexed addressing uses signed displacement with IX and IY", "[indexed]") {
@@ -86,11 +98,15 @@ TEST_CASE("Indexed addressing uses signed displacement with IX and IY", "[indexe
 
         const StepResult store = h.step();
         REQUIRE(store.cycle_delta() == 19);
+        REQUIRE(store.pc_after == 0x0004);
         REQUIRE(h.mem[0x7002] == 0x9a);
+        REQUIRE(h.cpu.ix.get() == 0x7004);
 
         const StepResult load = h.step();
         REQUIRE(load.cycle_delta() == 19);
+        REQUIRE(load.pc_after == 0x0007);
         REQUIRE(h.cpu.af.accum() == 0x9a);
+        REQUIRE(h.cpu.ix.get() == 0x7004);
     }
 
     SECTION("LD (IY+d),n with positive displacement") {
@@ -100,7 +116,9 @@ TEST_CASE("Indexed addressing uses signed displacement with IX and IY", "[indexe
 
         const StepResult step = h.step();
         REQUIRE(step.cycle_delta() == 19);
+        REQUIRE(step.pc_after == 0x0004);
         REQUIRE(h.mem[0x7105] == 0x33);
+        REQUIRE(h.cpu.iy.get() == 0x7100);
     }
 }
 
@@ -129,6 +147,7 @@ TEST_CASE("R register increments according to fetched opcode length", "[rreg]") 
 
         h.step();
         REQUIRE(h.cpu.ir.lo() == 0x01);
+        REQUIRE(h.cpu.pc.get() == 0x0001);
     }
 
     SECTION("CB prefix increments R by two") {
@@ -139,6 +158,7 @@ TEST_CASE("R register increments according to fetched opcode length", "[rreg]") 
 
         h.step();
         REQUIRE(h.cpu.ir.lo() == 0x02);
+        REQUIRE(h.cpu.pc.get() == 0x0002);
     }
 
     SECTION("Ignored DD prefix still increments R by two") {
@@ -160,5 +180,6 @@ TEST_CASE("R register increments according to fetched opcode length", "[rreg]") 
 
         h.step();
         REQUIRE(h.cpu.ir.lo() == 0x03);
+        REQUIRE(h.cpu.pc.get() == 0x0004);
     }
 }

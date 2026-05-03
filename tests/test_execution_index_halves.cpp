@@ -11,10 +11,12 @@ TEST_CASE("IXH and IXL participate in load instructions as 8-bit registers", "[i
         const StepResult high = h.step();
         REQUIRE(high.cycle_delta() == 11);
         REQUIRE(h.cpu.ix.get() == 0x1200);
+        REQUIRE(high.pc_after == 0x0003);
 
         const StepResult low = h.step();
         REQUIRE(low.cycle_delta() == 11);
         REQUIRE(h.cpu.ix.get() == 0x1234);
+        REQUIRE(low.pc_after == 0x0006);
     }
 
     SECTION("LD B,IXH and LD C,IXL read the IX halves") {
@@ -25,10 +27,12 @@ TEST_CASE("IXH and IXL participate in load instructions as 8-bit registers", "[i
         const StepResult into_b = h.step();
         REQUIRE(into_b.cycle_delta() == 8);
         REQUIRE(h.cpu.bc.hi() == 0xab);
+        REQUIRE(h.cpu.ix.get() == 0xabcd);
 
         const StepResult into_c = h.step();
         REQUIRE(into_c.cycle_delta() == 8);
         REQUIRE(h.cpu.bc.lo() == 0xcd);
+        REQUIRE(h.cpu.ix.get() == 0xabcd);
     }
 
     SECTION("LD IXH,B and LD IXL,A update only the targeted half") {
@@ -41,10 +45,12 @@ TEST_CASE("IXH and IXL participate in load instructions as 8-bit registers", "[i
         const StepResult from_b = h.step();
         REQUIRE(from_b.cycle_delta() == 8);
         REQUIRE(h.cpu.ix.get() == 0xaa55);
+        REQUIRE(h.cpu.bc.hi() == 0xaa);
 
         const StepResult from_a = h.step();
         REQUIRE(from_a.cycle_delta() == 8);
         REQUIRE(h.cpu.ix.get() == 0xaa77);
+        REQUIRE(h.cpu.af.accum() == 0x77);
     }
 }
 
@@ -57,10 +63,12 @@ TEST_CASE("IYH and IYL participate in load instructions as 8-bit registers", "[i
         const StepResult high = h.step();
         REQUIRE(high.cycle_delta() == 11);
         REQUIRE(h.cpu.iy.get() == 0x9a00);
+        REQUIRE(high.pc_after == 0x0003);
 
         const StepResult low = h.step();
         REQUIRE(low.cycle_delta() == 11);
         REQUIRE(h.cpu.iy.get() == 0x9abc);
+        REQUIRE(low.pc_after == 0x0006);
     }
 
     SECTION("LD D,IYH and LD E,IYL read the IY halves") {
@@ -71,10 +79,12 @@ TEST_CASE("IYH and IYL participate in load instructions as 8-bit registers", "[i
         const StepResult into_d = h.step();
         REQUIRE(into_d.cycle_delta() == 8);
         REQUIRE(h.cpu.de.hi() == 0x24);
+        REQUIRE(h.cpu.iy.get() == 0x2468);
 
         const StepResult into_e = h.step();
         REQUIRE(into_e.cycle_delta() == 8);
         REQUIRE(h.cpu.de.lo() == 0x68);
+        REQUIRE(h.cpu.iy.get() == 0x2468);
     }
 
     SECTION("LD IYH,D and LD IYL,E update only the targeted half") {
@@ -86,10 +96,12 @@ TEST_CASE("IYH and IYL participate in load instructions as 8-bit registers", "[i
         const StepResult from_d = h.step();
         REQUIRE(from_d.cycle_delta() == 8);
         REQUIRE(h.cpu.iy.get() == 0xa502);
+        REQUIRE(h.cpu.de.get() == 0xa5c3);
 
         const StepResult from_e = h.step();
         REQUIRE(from_e.cycle_delta() == 8);
         REQUIRE(h.cpu.iy.get() == 0xa5c3);
+        REQUIRE(h.cpu.de.get() == 0xa5c3);
     }
 }
 
@@ -107,6 +119,8 @@ TEST_CASE("IX half-register arithmetic and flag behavior follow 8-bit rules", "[
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Carry));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Zero));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Sign));
+        require_f3_f5(h, false, true);
     }
 
     SECTION("ADC A,IXL uses incoming carry") {
@@ -123,6 +137,9 @@ TEST_CASE("IX half-register arithmetic and flag behavior follow 8-bit rules", "[
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Carry));
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Zero));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Sign));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
     }
 
     SECTION("INC IXH preserves carry and updates overflow/sign") {
@@ -139,6 +156,9 @@ TEST_CASE("IX half-register arithmetic and flag behavior follow 8-bit rules", "[
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Sign));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Zero));
+        require_f3_f5(h, false, false);
     }
 
     SECTION("DEC IXL preserves carry and updates overflow/zero/sign") {
@@ -156,6 +176,8 @@ TEST_CASE("IX half-register arithmetic and flag behavior follow 8-bit rules", "[
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Zero));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Sign));
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
+        require_f3_f5(h, true, true);
     }
 }
 
@@ -173,6 +195,10 @@ TEST_CASE("IY half-register logic and compare instructions behave as 8-bit opera
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Carry));
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Zero));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Sign));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+        require_f3_f5(h, false, false);
     }
 
     SECTION("XOR IYL") {
@@ -188,6 +214,10 @@ TEST_CASE("IY half-register logic and compare instructions behave as 8-bit opera
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Carry));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Zero));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Sign));
+        require_f3_f5(h, true, false);
     }
 
     SECTION("CP IYH compares without changing A") {
@@ -203,5 +233,9 @@ TEST_CASE("IY half-register logic and compare instructions behave as 8-bit opera
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Zero));
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Carry));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Sign));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
+        require_f3_f5(h, false, false);
     }
 }

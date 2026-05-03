@@ -36,6 +36,7 @@ TEST_CASE("CB rotate instructions update register values and flags", "[rotate-sh
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Sign));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
     }
 
     SECTION("RRC B rotates bit 0 into carry and bit 7") {
@@ -52,6 +53,8 @@ TEST_CASE("CB rotate instructions update register values and flags", "[rotate-sh
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Sign));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Zero));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
     }
 
     SECTION("RR B rotates old carry into bit 7") {
@@ -68,6 +71,8 @@ TEST_CASE("CB rotate instructions update register values and flags", "[rotate-sh
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Zero));
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Sign));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
     }
 }
 
@@ -85,6 +90,8 @@ TEST_CASE("Shift instructions follow Z80 result and flag rules", "[rotate-shift]
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Sign));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Zero));
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
     }
 
     SECTION("SRA B preserves the original sign bit") {
@@ -100,6 +107,8 @@ TEST_CASE("Shift instructions follow Z80 result and flag rules", "[rotate-shift]
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Sign));
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Zero));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
     }
 
     SECTION("SRL B shifts in zero at bit 7") {
@@ -115,6 +124,8 @@ TEST_CASE("Shift instructions follow Z80 result and flag rules", "[rotate-shift]
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Sign));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Zero));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
     }
 }
 
@@ -144,6 +155,8 @@ TEST_CASE("Accumulator rotate instructions preserve SZPV and update carry", "[ro
         h.cpu.af.accum(0x80);
         h.cpu.af.flag(RegisterAF::Flags::Carry, true);
         h.cpu.af.flag(RegisterAF::Flags::Zero, true);
+        h.cpu.af.flag(RegisterAF::Flags::Sign, false);
+        h.cpu.af.flag(RegisterAF::Flags::ParityOverflow, false);
         h.load({0x17});
 
         const StepResult step = h.step();
@@ -154,11 +167,15 @@ TEST_CASE("Accumulator rotate instructions preserve SZPV and update carry", "[ro
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Zero));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Sign));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
     }
 
     SECTION("RRCA rotates right circular through A only") {
         CpuHarness h;
         h.cpu.af.accum(0x01);
+        h.cpu.af.flag(RegisterAF::Flags::Zero, false);
+        h.cpu.af.flag(RegisterAF::Flags::Sign, false);
         h.cpu.af.flag(RegisterAF::Flags::ParityOverflow, true);
         h.load({0x0f});
 
@@ -170,13 +187,17 @@ TEST_CASE("Accumulator rotate instructions preserve SZPV and update carry", "[ro
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Zero));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Sign));
     }
 
     SECTION("RRA rotates old carry into A bit 7") {
         CpuHarness h;
         h.cpu.af.accum(0x01);
         h.cpu.af.flag(RegisterAF::Flags::Carry, false);
+        h.cpu.af.flag(RegisterAF::Flags::Zero, false);
         h.cpu.af.flag(RegisterAF::Flags::Sign, true);
+        h.cpu.af.flag(RegisterAF::Flags::ParityOverflow, false);
         h.load({0x1f});
 
         const StepResult step = h.step();
@@ -187,6 +208,8 @@ TEST_CASE("Accumulator rotate instructions preserve SZPV and update carry", "[ro
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Sign));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Zero));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
     }
 }
 
@@ -203,6 +226,10 @@ TEST_CASE("Rotate and shift instructions operate on memory through HL", "[rotate
         REQUIRE(h.mem[0x9400] == 0x01);
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Carry));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Zero));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Sign));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
     }
 
     SECTION("SRL (HL)") {
@@ -218,5 +245,8 @@ TEST_CASE("Rotate and shift instructions operate on memory through HL", "[rotate
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Carry));
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Zero));
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Sign));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
     }
 }

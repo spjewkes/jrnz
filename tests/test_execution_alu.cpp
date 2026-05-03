@@ -12,6 +12,8 @@ TEST_CASE("Logical immediate opcodes follow Z80 flag rules", "[alu]") {
         const StepResult step = h.step();
 
         REQUIRE(step.cycle_delta() == 7);
+        REQUIRE(step.pc_before == 0x0000);
+        REQUIRE(step.pc_after == 0x0002);
         REQUIRE(h.cpu.af.accum() == 0x00);
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Carry));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
@@ -30,6 +32,7 @@ TEST_CASE("Logical immediate opcodes follow Z80 flag rules", "[alu]") {
         const StepResult step = h.step();
 
         REQUIRE(step.cycle_delta() == 7);
+        REQUIRE(step.pc_after == 0x0002);
         REQUIRE(h.cpu.af.accum() == 0x81);
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Carry));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
@@ -48,6 +51,7 @@ TEST_CASE("Logical immediate opcodes follow Z80 flag rules", "[alu]") {
         const StepResult step = h.step();
 
         REQUIRE(step.cycle_delta() == 7);
+        REQUIRE(step.pc_after == 0x0002);
         REQUIRE(h.cpu.af.accum() == 0xf0);
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Carry));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
@@ -67,6 +71,7 @@ TEST_CASE("CP n compares without modifying A", "[alu]") {
     const StepResult step = h.step();
 
     REQUIRE(step.cycle_delta() == 7);
+    REQUIRE(step.pc_after == 0x0002);
     REQUIRE(h.cpu.af.accum() == 0x3c);
     REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Carry));
     REQUIRE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
@@ -84,18 +89,23 @@ TEST_CASE("SCF CCF and CPL update accumulator and flags per spec", "[alu]") {
 
     const StepResult scf = h.step();
     REQUIRE(scf.cycle_delta() == 4);
+    REQUIRE(scf.pc_after == 0x0001);
+    REQUIRE(h.cpu.af.accum() == 0x35);
     REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Carry));
     REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
     REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
 
     const StepResult ccf = h.step();
     REQUIRE(ccf.cycle_delta() == 4);
+    REQUIRE(ccf.pc_after == 0x0002);
+    REQUIRE(h.cpu.af.accum() == 0x35);
     REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Carry));
     REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
     REQUIRE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
 
     const StepResult cpl = h.step();
     REQUIRE(cpl.cycle_delta() == 4);
+    REQUIRE(cpl.pc_after == 0x0003);
     REQUIRE(h.cpu.af.accum() == static_cast<uint8_t>(~0x35));
     REQUIRE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
     REQUIRE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
@@ -112,9 +122,13 @@ TEST_CASE("DAA adjusts BCD results after addition and subtraction", "[alu]") {
 
         const StepResult daa = h.step();
         REQUIRE(daa.cycle_delta() == 4);
+        REQUIRE(daa.pc_after == 0x0003);
         REQUIRE(h.cpu.af.accum() == 0x42);
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Carry));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Zero));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Sign));
     }
 
     SECTION("Subtraction path") {
@@ -128,8 +142,12 @@ TEST_CASE("DAA adjusts BCD results after addition and subtraction", "[alu]") {
 
         const StepResult daa = h.step();
         REQUIRE(daa.cycle_delta() == 4);
+        REQUIRE(daa.pc_after == 0x0003);
         REQUIRE(h.cpu.af.accum() == 0x09);
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Carry));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Zero));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Sign));
     }
 }

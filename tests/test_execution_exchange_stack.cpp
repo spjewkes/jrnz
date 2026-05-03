@@ -13,12 +13,15 @@ TEST_CASE("PUSH and POP round-trip register pairs through the stack", "[exchange
         REQUIRE(push.cycle_delta() == 11);
         REQUIRE(h.cpu.sp.get() == 0xfffc);
         REQUIRE(h.mem.read_addr_from_mem(0xfffc) == 0x1234);
+        REQUIRE(h.mem[0xfffc] == 0x34);
+        REQUIRE(h.mem[0xfffd] == 0x12);
 
         h.cpu.bc.set(0x0000);
         const StepResult pop = h.step();
         REQUIRE(pop.cycle_delta() == 10);
         REQUIRE(h.cpu.bc.get() == 0x1234);
         REQUIRE(h.cpu.sp.get() == 0xfffe);
+        REQUIRE(h.cpu.pc.get() == 0x0002);
     }
 
     SECTION("PUSH/POP AF") {
@@ -31,12 +34,15 @@ TEST_CASE("PUSH and POP round-trip register pairs through the stack", "[exchange
         REQUIRE(push.cycle_delta() == 11);
         REQUIRE(h.cpu.sp.get() == 0xfffc);
         REQUIRE(h.mem.read_addr_from_mem(0xfffc) == 0xa55a);
+        REQUIRE(h.mem[0xfffc] == 0x5a);
+        REQUIRE(h.mem[0xfffd] == 0xa5);
 
         h.cpu.af.set(0x0000);
         const StepResult pop = h.step();
         REQUIRE(pop.cycle_delta() == 10);
         REQUIRE(h.cpu.af.get() == 0xa55a);
         REQUIRE(h.cpu.sp.get() == 0xfffe);
+        REQUIRE(h.cpu.pc.get() == 0x0002);
     }
 
     SECTION("PUSH/POP IX") {
@@ -49,12 +55,15 @@ TEST_CASE("PUSH and POP round-trip register pairs through the stack", "[exchange
         REQUIRE(push.cycle_delta() == 15);
         REQUIRE(h.cpu.sp.get() == 0xfffc);
         REQUIRE(h.mem.read_addr_from_mem(0xfffc) == 0xbeef);
+        REQUIRE(h.mem[0xfffc] == 0xef);
+        REQUIRE(h.mem[0xfffd] == 0xbe);
 
         h.cpu.ix.set(0x0000);
         const StepResult pop = h.step();
         REQUIRE(pop.cycle_delta() == 14);
         REQUIRE(h.cpu.ix.get() == 0xbeef);
         REQUIRE(h.cpu.sp.get() == 0xfffe);
+        REQUIRE(h.cpu.pc.get() == 0x0004);
     }
 }
 
@@ -70,6 +79,7 @@ TEST_CASE("Exchange instructions swap the documented registers", "[exchange-stac
         REQUIRE(step.cycle_delta() == 4);
         REQUIRE(h.cpu.de.get() == 0xabcd);
         REQUIRE(h.cpu.hl.get() == 0x1234);
+        REQUIRE(h.cpu.pc.get() == 0x0001);
     }
 
     SECTION("EX AF,AF' swaps with the alternate AF register") {
@@ -83,6 +93,7 @@ TEST_CASE("Exchange instructions swap the documented registers", "[exchange-stac
 
         REQUIRE(step.cycle_delta() == 4);
         REQUIRE(h.cpu.af.get() == 0xaaaa);
+        REQUIRE(h.cpu.pc.get() == 0x0001);
 
         h.cpu.af.swap();
         REQUIRE(h.cpu.af.get() == 0x1234);
@@ -107,6 +118,7 @@ TEST_CASE("Exchange instructions swap the documented registers", "[exchange-stac
         REQUIRE(h.cpu.bc.get() == 0xb0b0);
         REQUIRE(h.cpu.de.get() == 0xd0d0);
         REQUIRE(h.cpu.hl.get() == 0xe0e0);
+        REQUIRE(h.cpu.pc.get() == 0x0001);
 
         h.cpu.bc.swap();
         h.cpu.de.swap();
@@ -130,6 +142,7 @@ TEST_CASE("EX (SP),rr swaps stack memory with register pairs", "[exchange-stack]
         REQUIRE(step.cycle_delta() == 19);
         REQUIRE(h.cpu.hl.get() == 0xabcd);
         REQUIRE(h.mem.read_addr_from_mem(0xfffc) == 0x1234);
+        REQUIRE(h.cpu.sp.get() == 0xfffc);
     }
 
     SECTION("EX (SP),IX") {
@@ -144,6 +157,7 @@ TEST_CASE("EX (SP),rr swaps stack memory with register pairs", "[exchange-stack]
         REQUIRE(step.cycle_delta() == 23);
         REQUIRE(h.cpu.ix.get() == 0x2468);
         REQUIRE(h.mem.read_addr_from_mem(0xfffc) == 0x1357);
+        REQUIRE(h.cpu.sp.get() == 0xfffc);
     }
 
     SECTION("EX (SP),IY") {
@@ -158,5 +172,6 @@ TEST_CASE("EX (SP),rr swaps stack memory with register pairs", "[exchange-stack]
         REQUIRE(step.cycle_delta() == 23);
         REQUIRE(h.cpu.iy.get() == 0xbeef);
         REQUIRE(h.mem.read_addr_from_mem(0xfffc) == 0xface);
+        REQUIRE(h.cpu.sp.get() == 0xfffc);
     }
 }

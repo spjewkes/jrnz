@@ -19,6 +19,7 @@ TEST_CASE("BIT instructions update flags according to the tested bit", "[bitsetr
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Sign));
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+        require_f3_f5(h, false, false);
     }
 
     SECTION("BIT 7,B sets sign when bit 7 is set") {
@@ -36,6 +37,7 @@ TEST_CASE("BIT instructions update flags according to the tested bit", "[bitsetr
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Sign));
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+        require_f3_f5(h, false, false);
     }
 
     SECTION("BIT 7,(HL) sets Z and PV when the tested bit is clear") {
@@ -54,6 +56,7 @@ TEST_CASE("BIT instructions update flags according to the tested bit", "[bitsetr
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Sign));
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+        require_f3_f5(h, false, false);
     }
 
     SECTION("BIT 7,(IX+d) uses the indexed memory byte") {
@@ -87,6 +90,7 @@ TEST_CASE("SET instructions modify the addressed bit and preserve flags", "[bits
         REQUIRE(step.cycle_delta() == 8);
         REQUIRE(h.cpu.bc.hi() == 0x08);
         REQUIRE(h.cpu.af.flags() == 0xff);
+        REQUIRE(h.cpu.pc.get() == 0x0002);
     }
 
     SECTION("SET 0,(HL)") {
@@ -101,6 +105,7 @@ TEST_CASE("SET instructions modify the addressed bit and preserve flags", "[bits
         REQUIRE(step.cycle_delta() == 15);
         REQUIRE(h.mem[0x9700] == 0x21);
         REQUIRE(h.cpu.af.flags() == 0x2a);
+        REQUIRE(h.cpu.hl.get() == 0x9700);
     }
 
     SECTION("SET 0,(IX+d)") {
@@ -115,6 +120,7 @@ TEST_CASE("SET instructions modify the addressed bit and preserve flags", "[bits
         REQUIRE(step.cycle_delta() == 23);
         REQUIRE(h.mem[0x9801] == 0x11);
         REQUIRE(h.cpu.af.flags() == 0x55);
+        REQUIRE(h.cpu.ix.get() == 0x9800);
     }
 }
 
@@ -130,6 +136,7 @@ TEST_CASE("RES instructions clear the addressed bit and preserve flags", "[bitse
         REQUIRE(step.cycle_delta() == 8);
         REQUIRE(h.cpu.bc.hi() == 0x7f);
         REQUIRE(h.cpu.af.flags() == 0x00);
+        REQUIRE(h.cpu.pc.get() == 0x0002);
     }
 
     SECTION("RES 0,(HL)") {
@@ -144,6 +151,7 @@ TEST_CASE("RES instructions clear the addressed bit and preserve flags", "[bitse
         REQUIRE(step.cycle_delta() == 15);
         REQUIRE(h.mem[0x9900] == 0xfe);
         REQUIRE(h.cpu.af.flags() == 0xa5);
+        REQUIRE(h.cpu.hl.get() == 0x9900);
     }
 
     SECTION("RES 0,(IX+d)") {
@@ -158,5 +166,6 @@ TEST_CASE("RES instructions clear the addressed bit and preserve flags", "[bitse
         REQUIRE(step.cycle_delta() == 23);
         REQUIRE(h.mem[0x99ff] == 0x00);
         REQUIRE(h.cpu.af.flags() == 0x5a);
+        REQUIRE(h.cpu.ix.get() == 0x9a00);
     }
 }

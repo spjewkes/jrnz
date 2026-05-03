@@ -11,7 +11,9 @@ TEST_CASE("Conditional JP executes and skips according to flags", "[control-exec
         const StepResult step = h.step();
 
         REQUIRE(step.cycle_delta() == 10);
+        REQUIRE(step.pc_before == 0x0000);
         REQUIRE(h.cpu.pc.get() == 0x1234);
+        REQUIRE(h.cpu.sp.get() == 0xfffe);
     }
 
     SECTION("JP NZ not taken") {
@@ -23,6 +25,7 @@ TEST_CASE("Conditional JP executes and skips according to flags", "[control-exec
 
         REQUIRE(step.cycle_delta() == 10);
         REQUIRE(h.cpu.pc.get() == 0x0003);
+        REQUIRE(h.cpu.sp.get() == 0xfffe);
     }
 }
 
@@ -38,6 +41,8 @@ TEST_CASE("Conditional CALL and RET use documented taken and untaken behavior", 
         REQUIRE(h.cpu.pc.get() == 0x5678);
         REQUIRE(h.cpu.sp.get() == 0xfffc);
         REQUIRE(h.mem.read_addr_from_mem(0xfffc) == 0x0003);
+        REQUIRE(h.mem[0xfffc] == 0x03);
+        REQUIRE(h.mem[0xfffd] == 0x00);
     }
 
     SECTION("CALL Z not taken only advances PC") {
@@ -50,6 +55,8 @@ TEST_CASE("Conditional CALL and RET use documented taken and untaken behavior", 
         REQUIRE(step.cycle_delta() == 10);
         REQUIRE(h.cpu.pc.get() == 0x0003);
         REQUIRE(h.cpu.sp.get() == 0xfffe);
+        REQUIRE(h.mem[0xfffc] == 0x00);
+        REQUIRE(h.mem[0xfffd] == 0x00);
     }
 
     SECTION("RET C taken pops PC from stack") {
@@ -64,6 +71,7 @@ TEST_CASE("Conditional CALL and RET use documented taken and untaken behavior", 
         REQUIRE(step.cycle_delta() == 11);
         REQUIRE(h.cpu.pc.get() == 0x3456);
         REQUIRE(h.cpu.sp.get() == 0xfffe);
+        REQUIRE(h.mem.read_addr_from_mem(0xfffc) == 0x3456);
     }
 
     SECTION("RET C not taken leaves stack untouched") {
@@ -78,6 +86,7 @@ TEST_CASE("Conditional CALL and RET use documented taken and untaken behavior", 
         REQUIRE(step.cycle_delta() == 5);
         REQUIRE(h.cpu.pc.get() == 0x0001);
         REQUIRE(h.cpu.sp.get() == 0xfffc);
+        REQUIRE(h.mem.read_addr_from_mem(0xfffc) == 0x3456);
     }
 }
 
@@ -92,6 +101,8 @@ TEST_CASE("RST pushes the next PC and jumps to the fixed vector", "[control-exec
     REQUIRE(h.cpu.pc.get() == 0x0028);
     REQUIRE(h.cpu.sp.get() == 0xfffc);
     REQUIRE(h.mem.read_addr_from_mem(0xfffc) == 0x0101);
+    REQUIRE(h.mem[0xfffc] == 0x01);
+    REQUIRE(h.mem[0xfffd] == 0x01);
 }
 
 TEST_CASE("IM instructions set the interrupt mode operand", "[control-exec]") {
@@ -101,6 +112,7 @@ TEST_CASE("IM instructions set the interrupt mode operand", "[control-exec]") {
 
         const StepResult step = h.step();
         REQUIRE(step.cycle_delta() == 8);
+        REQUIRE(step.pc_after == 0x0002);
         REQUIRE(h.cpu.int_mode == 0);
     }
 
@@ -110,6 +122,7 @@ TEST_CASE("IM instructions set the interrupt mode operand", "[control-exec]") {
 
         const StepResult step = h.step();
         REQUIRE(step.cycle_delta() == 8);
+        REQUIRE(step.pc_after == 0x0002);
         REQUIRE(h.cpu.int_mode == 1);
     }
 
@@ -119,6 +132,7 @@ TEST_CASE("IM instructions set the interrupt mode operand", "[control-exec]") {
 
         const StepResult step = h.step();
         REQUIRE(step.cycle_delta() == 8);
+        REQUIRE(step.pc_after == 0x0002);
         REQUIRE(h.cpu.int_mode == 2);
     }
 }
@@ -143,6 +157,7 @@ TEST_CASE("LD A,I and LD A,R apply documented flag side effects", "[ir-transfer]
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Zero));
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Sign));
+        require_f3_f5(h, false, false);
     }
 
     SECTION("LD A,R copies the incremented R value and mirrors IFF2 into PV") {
@@ -163,6 +178,7 @@ TEST_CASE("LD A,I and LD A,R apply documented flag side effects", "[ir-transfer]
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Zero));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Sign));
+        require_f3_f5(h, false, true);
     }
 }
 
@@ -181,6 +197,7 @@ TEST_CASE("RETN restores IFF1 from IFF2 and returns to the stacked address", "[i
     REQUIRE(h.cpu.sp.get() == 0xfffe);
     REQUIRE(h.cpu.iff1);
     REQUIRE(h.cpu.iff2);
+    REQUIRE(h.mem.read_addr_from_mem(0xfffc) == 0x4000);
 }
 
 TEST_CASE("RETI returns to the stacked address", "[interrupts]") {
@@ -196,6 +213,8 @@ TEST_CASE("RETI returns to the stacked address", "[interrupts]") {
     REQUIRE(step.cycle_delta() == 14);
     REQUIRE(h.cpu.pc.get() == 0x4567);
     REQUIRE(h.cpu.sp.get() == 0xfffe);
+    REQUIRE_FALSE(h.cpu.iff1);
+    REQUIRE(h.cpu.iff2);
 }
 
 TEST_CASE("Mode 2 interrupt pushes PC and vectors through the I register page", "[interrupts]") {
@@ -215,6 +234,8 @@ TEST_CASE("Mode 2 interrupt pushes PC and vectors through the I register page", 
     REQUIRE(h.cpu.pc.get() == 0x3456);
     REQUIRE(h.cpu.sp.get() == 0xfffc);
     REQUIRE(h.mem.read_addr_from_mem(0xfffc) == 0x2000);
+    REQUIRE_FALSE(h.cpu.iff1);
+    REQUIRE_FALSE(h.cpu.iff2);
     REQUIRE_FALSE(h.cpu.interrupt);
 }
 
@@ -242,6 +263,8 @@ TEST_CASE("HALT holds PC until an interrupt resumes execution", "[interrupts]") 
     REQUIRE(h.cpu.pc.get() == 0x0038);
     REQUIRE(h.cpu.sp.get() == 0xfffc);
     REQUIRE(h.mem.read_addr_from_mem(0xfffc) == 0x0001);
+    REQUIRE_FALSE(h.cpu.iff1);
+    REQUIRE_FALSE(h.cpu.iff2);
     REQUIRE_FALSE(h.cpu.interrupt);
 }
 

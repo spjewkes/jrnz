@@ -43,3 +43,8 @@ struct CpuHarness {
         return result;
     }
 };
+
+inline void require_f3_f5(const CpuHarness &h, bool f3, bool f5) {
+    REQUIRE(h.cpu.af.flag(RegisterAF::Flags::F3) == f3);
+    REQUIRE(h.cpu.af.flag(RegisterAF::Flags::F5) == f5);
+}
