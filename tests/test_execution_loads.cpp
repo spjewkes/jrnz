@@ -133,16 +133,15 @@ TEST_CASE("Extended and indexed load instructions preserve byte order and target
         REQUIRE(h.cpu.af.flags() == 0x69);
     }
 
-    SECTION("ED-prefixed absolute word transfers cover DE, HL and SP symmetrically") {
+    SECTION("ED-prefixed absolute word transfers cover documented DE and SP forms") {
         CpuHarness h;
         h.cpu.af.flags(0x42);
         h.cpu.de.set(0x5678);
+        h.cpu.hl.set(0xaaaa);
         h.cpu.sp.set(0x9abc);
-        h.mem[0x8b40] = 0x21;
-        h.mem[0x8b41] = 0x43;
         h.mem[0x8b50] = 0xfe;
         h.mem[0x8b51] = 0xdc;
-        h.load({0xed, 0x53, 0x00, 0x8b, 0xed, 0x6b, 0x40, 0x8b, 0xed, 0x73, 0x10, 0x8b, 0xed, 0x7b, 0x50, 0x8b});
+        h.load({0xed, 0x53, 0x00, 0x8b, 0xed, 0x73, 0x10, 0x8b, 0xed, 0x7b, 0x50, 0x8b});
 
         const StepResult store_de = h.step();
         REQUIRE(store_de.cycle_delta() == 20);
@@ -150,24 +149,19 @@ TEST_CASE("Extended and indexed load instructions preserve byte order and target
         REQUIRE(h.mem.read_addr_from_mem(0x8b00) == 0x5678);
         REQUIRE(h.cpu.af.flags() == 0x42);
 
-        const StepResult load_hl = h.step();
-        REQUIRE(load_hl.cycle_delta() == 20);
-        REQUIRE(load_hl.pc_after == 0x0008);
-        REQUIRE(h.cpu.hl.get() == 0x4321);
-        REQUIRE(h.cpu.af.flags() == 0x42);
-
         const StepResult store_sp = h.step();
         REQUIRE(store_sp.cycle_delta() == 20);
-        REQUIRE(store_sp.pc_after == 0x000c);
+        REQUIRE(store_sp.pc_after == 0x0008);
         REQUIRE(h.mem.read_addr_from_mem(0x8b10) == 0x9abc);
+        REQUIRE(h.cpu.hl.get() == 0xaaaa);
         REQUIRE(h.cpu.af.flags() == 0x42);
 
         h.cpu.sp.set(0x1111);
         const StepResult load_sp = h.step();
         REQUIRE(load_sp.cycle_delta() == 20);
-        REQUIRE(load_sp.pc_after == 0x0010);
+        REQUIRE(load_sp.pc_after == 0x000c);
         REQUIRE(h.cpu.sp.get() == 0xdcfe);
-        REQUIRE(h.cpu.hl.get() == 0x4321);
+        REQUIRE(h.cpu.hl.get() == 0xaaaa);
         REQUIRE(h.cpu.af.flags() == 0x42);
     }
 
