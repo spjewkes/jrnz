@@ -228,3 +228,135 @@ TEST_CASE("Block compare instructions derive undocumented flags from A minus val
         require_f3_f5(h, false, false);
     }
 }
+
+TEST_CASE("SCF CCF and CPL copy undocumented flag bits from A or the result", "[undocumented][flags][misc]") {
+    SECTION("SCF copies F3 and F5 from A") {
+        CpuHarness h;
+        h.cpu.af.accum(0x28);
+        h.cpu.af.flag(RegisterAF::Flags::AddSubtract, true);
+        h.cpu.af.flag(RegisterAF::Flags::HalfCarry, true);
+        h.load({0x37});
+
+        const StepResult step = h.step();
+
+        REQUIRE(step.cycle_delta() == 4);
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Carry));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
+        require_f3_f5(h, true, true);
+    }
+
+    SECTION("CCF copies F3 and F5 from A while half-carry follows old carry") {
+        CpuHarness h;
+        h.cpu.af.accum(0x08);
+        h.cpu.af.flag(RegisterAF::Flags::Carry, true);
+        h.load({0x3f});
+
+        const StepResult step = h.step();
+
+        REQUIRE(step.cycle_delta() == 4);
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Carry));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
+        require_f3_f5(h, true, false);
+    }
+
+    SECTION("CPL copies F3 and F5 from the complemented result") {
+        CpuHarness h;
+        h.cpu.af.accum(0xd7);
+        h.load({0x2f});
+
+        const StepResult step = h.step();
+
+        REQUIRE(step.cycle_delta() == 4);
+        REQUIRE(h.cpu.af.accum() == 0x28);
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
+        require_f3_f5(h, true, true);
+    }
+}
+
+TEST_CASE("Block transfer instructions derive undocumented flags from A plus transferred byte",
+          "[undocumented][flags][block-ld]") {
+    SECTION("LDI sets F3 and F5 from A plus the copied byte and preserves SZC") {
+        CpuHarness h;
+        h.cpu.af.accum(0x01);
+        h.cpu.af.flag(RegisterAF::Flags::Carry, true);
+        h.cpu.af.flag(RegisterAF::Flags::Sign, true);
+        h.cpu.af.flag(RegisterAF::Flags::Zero, true);
+        h.cpu.hl.set(0x8800);
+        h.cpu.de.set(0x8900);
+        h.cpu.bc.set(0x0002);
+        h.mem[0x8800] = 0x27;
+        h.load({0xed, 0xa0});
+
+        const StepResult step = h.step();
+
+        REQUIRE(step.cycle_delta() == 16);
+        REQUIRE(h.mem[0x8900] == 0x27);
+        REQUIRE(h.cpu.hl.get() == 0x8801);
+        REQUIRE(h.cpu.de.get() == 0x8901);
+        REQUIRE(h.cpu.bc.get() == 0x0001);
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Carry));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Sign));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Zero));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+        require_f3_f5(h, true, true);
+    }
+
+    SECTION("LDD uses the same F3 and F5 rule while decrementing HL and DE") {
+        CpuHarness h;
+        h.cpu.af.accum(0x01);
+        h.cpu.hl.set(0x8a01);
+        h.cpu.de.set(0x8b01);
+        h.cpu.bc.set(0x0002);
+        h.mem[0x8a01] = 0x27;
+        h.load({0xed, 0xa8});
+
+        const StepResult step = h.step();
+
+        REQUIRE(step.cycle_delta() == 16);
+        REQUIRE(h.mem[0x8b01] == 0x27);
+        REQUIRE(h.cpu.hl.get() == 0x8a00);
+        REQUIRE(h.cpu.de.get() == 0x8b00);
+        REQUIRE(h.cpu.bc.get() == 0x0001);
+        require_f3_f5(h, true, true);
+    }
+}
+
+TEST_CASE("Block I/O instructions expose undocumented N and F3/F5 behaviour", "[undocumented][flags][block-io]") {
+    SECTION("INI takes N from bit 7 of the input byte and F3/F5 from decremented B") {
+        CpuHarness h;
+        h.cpu.bc.set(0x02ff);
+        h.cpu.hl.set(0x8c00);
+        h.mem[0x4000] = 0x01;
+        h.mem.floating_counter = 0;
+        h.load({0xed, 0xa2});
+
+        const StepResult step = h.step();
+
+        REQUIRE(step.cycle_delta() == 16);
+        REQUIRE(h.mem[0x8c00] == 0x01);
+        REQUIRE(h.cpu.bc.get() == 0x01ff);
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+        require_f3_f5(h, false, false);
+    }
+
+    SECTION("OUTI takes N from bit 7 of the written byte and F3/F5 from decremented B") {
+        CpuHarness h;
+        h.cpu.bc.set(0x02fe);
+        h.cpu.hl.set(0x8d00);
+        h.mem[0x8d00] = 0x01;
+        h.load({0xed, 0xa3});
+
+        const StepResult step = h.step();
+
+        REQUIRE(step.cycle_delta() == 16);
+        REQUIRE(h.mem.port_254 == 0x01);
+        REQUIRE(h.cpu.bc.get() == 0x01fe);
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+        require_f3_f5(h, false, false);
+    }
+}
