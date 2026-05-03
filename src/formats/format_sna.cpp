@@ -13,6 +13,10 @@ static uint8_t get_next_byte(std::ifstream &stream) {
 
 void Bus::load_snapshot(std::string &sna_file, Z80 &state) {
     if (std::ifstream sna{sna_file, std::ios::binary | std::ios::ate}) {
+        state.reset();
+        port_254 = 0;
+        floating_counter = 0;
+
         auto file_size = sna.tellg();
         if (file_size != 49179) {
             std::cerr << "WARNING: SNA file size is " << file_size << std::endl;
@@ -92,10 +96,11 @@ void Bus::load_snapshot(std::string &sna_file, Z80 &state) {
         sna.read(reinterpret_cast<char *>(&mem[16384]), 49152);
         sna.close();
 
-        // Now execute a RETN instruction
-        Instruction inst{InstType::RETN, "retn", 2, 14, Operand::PC};
-        state.update_r_reg();
-        inst.execute(state);
+        // 48K SNA stores the return PC on the stack; loading should restore it
+        // directly without mutating the saved R value.
+        state.pc.set(read_addr_from_mem(state.sp.get()));
+        state.sp.set(static_cast<uint16_t>(state.sp.get() + 2));
+        state.iff1 = state.iff2;
 
         std::cout << "Setting PC to: " << state.pc << "\n";
 

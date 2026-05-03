@@ -60,6 +60,8 @@ add_executable(
   tests/test_adc.cpp
   tests/test_sbc.cpp
   tests/test_neg.cpp
+  tests/test_snapshot_sna.cpp
+  tests/test_snapshot_z80.cpp
   tests/test_decoder.cpp
   tests/test_control_flow.cpp
   tests/test_flags_misc.cpp

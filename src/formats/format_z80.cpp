@@ -82,8 +82,8 @@ static void read_data_block(uint32_t version, std::vector<uint8_t> &mem, std::if
  */
 void read_header_1(std::ifstream &stream, Z80 &state, Bus &bus, uint32_t &version, bool &compression_on) {
     // 0x00 - AF
-    state.af.lo(get_next_byte(stream));
     state.af.hi(get_next_byte(stream));
+    state.af.lo(get_next_byte(stream));
 
     // 0x02 - BC
     state.bc.lo(get_next_byte(stream));
@@ -154,8 +154,8 @@ void read_header_1(std::ifstream &stream, Z80 &state, Bus &bus, uint32_t &versio
 
     // 0x15 - AF'
     state.af.swap();
-    state.af.lo(get_next_byte(stream));
     state.af.hi(get_next_byte(stream));
+    state.af.lo(get_next_byte(stream));
     state.af.swap();
 
     // 0x17 - IY
@@ -167,15 +167,10 @@ void read_header_1(std::ifstream &stream, Z80 &state, Bus &bus, uint32_t &versio
     state.ix.hi(get_next_byte(stream));
 
     // 0x1B - Interrupt flipflop, 0=DI, otherwise EI
-    bool interrupt_enabled = static_cast<bool>(get_next_byte(stream));
-    if (interrupt_enabled) {
-        state.iff1 = true;
-        state.iff2 = true;
-    }
+    state.iff1 = static_cast<bool>(get_next_byte(stream));
 
     // 0x1C - IFF2
-    uint8_t iff = get_next_byte(stream);
-    UNUSED(iff);
+    state.iff2 = static_cast<bool>(get_next_byte(stream));
 
     // 0x1D - Byte 29
     uint8_t byte_29 = get_next_byte(stream);
@@ -385,6 +380,10 @@ uint16_t get_addr_start_from_page(uint8_t page) {
 
 void Bus::load_z80(std::string &z80_file, Z80 &state) {
     if (std::ifstream z80{z80_file, std::ios::binary | std::ios::ate}) {
+        state.reset();
+        port_254 = 0;
+        floating_counter = 0;
+
         uint32_t version = 0;
         auto file_size = z80.tellg();
         UNUSED(file_size);
