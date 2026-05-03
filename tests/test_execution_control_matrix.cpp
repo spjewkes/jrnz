@@ -35,6 +35,66 @@ TEST_CASE("Conditional control instructions honor the broader documented conditi
         REQUIRE(h.cpu.pc.get() == 0x5678);
     }
 
+    SECTION("Conditional JP covers zero, carry and sign branches in both directions") {
+        struct Case {
+            uint8_t opcode;
+            uint8_t flags;
+            bool taken;
+            uint16_t target;
+        };
+
+        const Case cases[] = {
+            {0xc2, 0x00, true, 0x1234},   // JP NZ
+            {0xca, 0x00, false, 0x5678},  // JP Z
+            {0xda, 0x01, true, 0x9abc},   // JP C
+            {0xf2, 0x80, false, 0xdef0},  // JP P
+        };
+
+        for (const auto& test_case : cases) {
+            CpuHarness h;
+            h.cpu.af.flags(test_case.flags);
+            h.load({test_case.opcode, static_cast<uint8_t>(test_case.target & 0x00ff),
+                    static_cast<uint8_t>(test_case.target >> 8)});
+
+            const StepResult step = h.step();
+            REQUIRE(step.cycle_delta() == 10);
+            REQUIRE(h.cpu.pc.get() == (test_case.taken ? test_case.target : 0x0003));
+        }
+    }
+
+    SECTION("Conditional CALL covers zero carry parity and sign conditions") {
+        struct Case {
+            uint8_t opcode;
+            uint8_t flags;
+            bool taken;
+            uint16_t target;
+        };
+
+        const Case cases[] = {
+            {0xc4, 0x00, true, 0x3456},   // CALL NZ
+            {0xcc, 0x00, false, 0x4567},  // CALL Z
+            {0xdc, 0x01, true, 0x5678},   // CALL C
+            {0xec, 0x00, false, 0x6789},  // CALL PE
+            {0xfc, 0x80, true, 0x789a},   // CALL M
+        };
+
+        for (const auto& test_case : cases) {
+            CpuHarness h;
+            h.cpu.af.flags(test_case.flags);
+            h.cpu.sp.set(0xfffe);
+            h.load({test_case.opcode, static_cast<uint8_t>(test_case.target & 0x00ff),
+                    static_cast<uint8_t>(test_case.target >> 8)});
+
+            const StepResult step = h.step();
+            REQUIRE(step.cycle_delta() == (test_case.taken ? 17 : 10));
+            REQUIRE(h.cpu.pc.get() == (test_case.taken ? test_case.target : 0x0003));
+            REQUIRE(h.cpu.sp.get() == (test_case.taken ? 0xfffc : 0xfffe));
+            if (test_case.taken) {
+                REQUIRE(h.mem.read_addr_from_mem(0xfffc) == 0x0003);
+            }
+        }
+    }
+
     SECTION("RET P and RET M use the sign flag") {
         CpuHarness h;
         h.cpu.sp.set(0xfffc);
@@ -55,6 +115,36 @@ TEST_CASE("Conditional control instructions honor the broader documented conditi
         REQUIRE(ret_m.cycle_delta() == 11);
         REQUIRE(h.cpu.pc.get() == 0x789a);
         REQUIRE(h.cpu.sp.get() == 0xfffe);
+    }
+
+    SECTION("Conditional RET covers zero carry and parity with taken and untaken paths") {
+        struct Case {
+            uint8_t opcode;
+            uint8_t flags;
+            bool taken;
+            uint16_t stacked_pc;
+        };
+
+        const Case cases[] = {
+            {0xc0, 0x40, false, 0x1111},  // RET NZ
+            {0xc8, 0x40, true, 0x2222},   // RET Z
+            {0xd0, 0x00, true, 0x3333},   // RET NC
+            {0xe8, 0x00, false, 0x4444},  // RET PE
+            {0xe0, 0x00, true, 0x5555},   // RET PO
+        };
+
+        for (const auto& test_case : cases) {
+            CpuHarness h;
+            h.cpu.af.flags(test_case.flags);
+            h.cpu.sp.set(0xfffc);
+            h.mem.write_addr_to_mem(0xfffc, test_case.stacked_pc);
+            h.load({test_case.opcode});
+
+            const StepResult step = h.step();
+            REQUIRE(step.cycle_delta() == (test_case.taken ? 11 : 5));
+            REQUIRE(h.cpu.pc.get() == (test_case.taken ? test_case.stacked_pc : 0x0001));
+            REQUIRE(h.cpu.sp.get() == (test_case.taken ? 0xfffe : 0xfffc));
+        }
     }
 
     SECTION("JP (HL) jumps through the register pair without reading immediates") {
