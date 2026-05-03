@@ -327,7 +327,7 @@ TEST_CASE("Block transfer instructions derive undocumented flags from A plus tra
 }
 
 TEST_CASE("Block I/O instructions expose undocumented N and F3/F5 behaviour", "[undocumented][flags][block-io]") {
-    SECTION("INI takes N from bit 7 of the input byte and F3/F5 from decremented B") {
+    SECTION("INI takes flags from the input byte, adjusted C, and decremented B") {
         CpuHarness h;
         h.cpu.bc.set(0x02ff);
         h.cpu.hl.set(0x8c00);
@@ -340,11 +340,32 @@ TEST_CASE("Block I/O instructions expose undocumented N and F3/F5 behaviour", "[
         REQUIRE(step.cycle_delta() == 16);
         REQUIRE(h.mem[0x8c00] == 0x01);
         REQUIRE(h.cpu.bc.get() == 0x01ff);
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Carry));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
         require_f3_f5(h, false, false);
     }
 
-    SECTION("OUTI takes N from bit 7 of the written byte and F3/F5 from decremented B") {
+    SECTION("INI sets N H and C when the transferred byte has bit 7 set and the adjusted sum overflows") {
+        CpuHarness h;
+        h.cpu.bc.set(0x02fe);
+        h.cpu.hl.set(0x8c10);
+        h.load({0xed, 0xa2});
+
+        const StepResult step = h.step();
+
+        REQUIRE(step.cycle_delta() == 16);
+        REQUIRE(h.mem[0x8c10] == 0xff);
+        REQUIRE(h.cpu.bc.get() == 0x01fe);
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Carry));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+        require_f3_f5(h, false, false);
+    }
+
+    SECTION("OUTI takes flags from the written byte, new L, and decremented B") {
         CpuHarness h;
         h.cpu.bc.set(0x02fe);
         h.cpu.hl.set(0x8d00);
@@ -356,7 +377,29 @@ TEST_CASE("Block I/O instructions expose undocumented N and F3/F5 behaviour", "[
         REQUIRE(step.cycle_delta() == 16);
         REQUIRE(h.mem.port_254 == 0x01);
         REQUIRE(h.cpu.bc.get() == 0x01fe);
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Carry));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+        require_f3_f5(h, false, false);
+    }
+
+    SECTION("OUTI sets N H and C when the written byte has bit 7 set and the adjusted sum overflows") {
+        CpuHarness h;
+        h.cpu.bc.set(0x02fe);
+        h.cpu.hl.set(0x8e00);
+        h.mem[0x8e00] = 0xff;
+        h.load({0xed, 0xa3});
+
+        const StepResult step = h.step();
+
+        REQUIRE(step.cycle_delta() == 16);
+        REQUIRE(h.mem.port_254 == 0xff);
+        REQUIRE(h.cpu.bc.get() == 0x01fe);
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Carry));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
         require_f3_f5(h, false, false);
     }
 }

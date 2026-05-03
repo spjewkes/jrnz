@@ -19,8 +19,9 @@ TEST_CASE("INI reads from the port into memory and updates registers", "[block-i
     REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Sign));
     REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Zero));
     REQUIRE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
-    REQUIRE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+    REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
     REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
+    REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Carry));
 }
 
 TEST_CASE("INIR repeats until B becomes zero", "[block-io]") {
@@ -64,8 +65,10 @@ TEST_CASE("IND reads from the port into memory and decrements HL", "[block-io]")
     REQUIRE(h.cpu.hl.get() == 0x8200);
     REQUIRE(h.cpu.bc.get() == 0x01ff);
     REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Zero));
-    REQUIRE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
-    REQUIRE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+    REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+    REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+    REQUIRE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
+    REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Carry));
 }
 
 TEST_CASE("INDR repeats while decrementing HL until B becomes zero", "[block-io]") {
@@ -91,7 +94,7 @@ TEST_CASE("INDR repeats while decrementing HL until B becomes zero", "[block-io]
     REQUIRE(h.cpu.hl.get() == 0x82ff);
     REQUIRE(h.cpu.bc.get() == 0x00ff);
     REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Zero));
-    REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+    REQUIRE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
 }
 
 TEST_CASE("OUTI writes memory to the port and increments HL", "[block-io]") {
@@ -108,8 +111,10 @@ TEST_CASE("OUTI writes memory to the port and increments HL", "[block-io]") {
     REQUIRE(h.cpu.hl.get() == 0x9001);
     REQUIRE(h.cpu.bc.get() == 0x01fe);
     REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Zero));
-    REQUIRE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
-    REQUIRE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+    REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+    REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+    REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
+    REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Carry));
 }
 
 TEST_CASE("OTIR repeats until B becomes zero", "[block-io]") {
@@ -134,7 +139,7 @@ TEST_CASE("OTIR repeats until B becomes zero", "[block-io]") {
     REQUIRE(h.cpu.hl.get() == 0x9102);
     REQUIRE(h.cpu.bc.get() == 0x00fe);
     REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Zero));
-    REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+    REQUIRE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
 }
 
 TEST_CASE("OUTD writes memory to the port and decrements HL", "[block-io]") {
@@ -151,8 +156,10 @@ TEST_CASE("OUTD writes memory to the port and decrements HL", "[block-io]") {
     REQUIRE(h.cpu.hl.get() == 0x9200);
     REQUIRE(h.cpu.bc.get() == 0x01fe);
     REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Zero));
-    REQUIRE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+    REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
     REQUIRE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+    REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
+    REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Carry));
 }
 
 TEST_CASE("OTDR repeats while decrementing HL until B becomes zero", "[block-io]") {

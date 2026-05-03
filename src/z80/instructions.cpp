@@ -28,6 +28,8 @@ void set_block_cp_f3_f5(RegisterAF &af, uint8_t v) {
     af.flag(RegisterAF::Flags::F3, (v & 0x08) != 0);
     af.flag(RegisterAF::Flags::F5, (v & 0x02) != 0);
 }
+
+bool even_parity(uint8_t v) { return (__builtin_popcount(static_cast<unsigned int>(v)) % 2) == 0; }
 }  // namespace
 
 size_t Instruction::execute(Z80 &state) {
@@ -1155,11 +1157,15 @@ size_t Instruction::impl_in_block(Z80 &state, bool inc, bool repeat) {
     uint8_t b = static_cast<uint8_t>(state.bc.hi() - 1);
     state.bc.hi(b);
 
+    const uint8_t adjusted_c = static_cast<uint8_t>(state.bc.lo() + (inc ? 1 : -1));
+    const uint16_t k = static_cast<uint16_t>(value) + adjusted_c;
+
     state.af.flag(RegisterAF::Flags::Sign, (b & 0x80) != 0);
     state.af.flag(RegisterAF::Flags::Zero, b == 0);
-    state.af.flag(RegisterAF::Flags::ParityOverflow, b != 0);
-    state.af.flag(RegisterAF::Flags::AddSubtract, true);
-    state.af.flag(RegisterAF::Flags::HalfCarry, false);
+    state.af.flag(RegisterAF::Flags::ParityOverflow, even_parity(static_cast<uint8_t>((k & 0x07) ^ b)));
+    state.af.flag(RegisterAF::Flags::AddSubtract, (value & 0x80) != 0);
+    state.af.flag(RegisterAF::Flags::HalfCarry, k > 0xff);
+    state.af.flag(RegisterAF::Flags::Carry, k > 0xff);
     set_f3_f5(state.af, b);
 
     if (repeat && b != 0) {
@@ -1183,12 +1189,15 @@ size_t Instruction::impl_out_block(Z80 &state, bool inc, bool repeat) {
 
     uint8_t b = static_cast<uint8_t>(state.bc.hi() - 1);
     state.bc.hi(b);
+    const uint8_t new_l = state.hl.lo();
+    const uint16_t k = static_cast<uint16_t>(value) + new_l;
 
     state.af.flag(RegisterAF::Flags::Sign, (b & 0x80) != 0);
     state.af.flag(RegisterAF::Flags::Zero, b == 0);
-    state.af.flag(RegisterAF::Flags::ParityOverflow, b != 0);
-    state.af.flag(RegisterAF::Flags::AddSubtract, true);
-    state.af.flag(RegisterAF::Flags::HalfCarry, false);
+    state.af.flag(RegisterAF::Flags::ParityOverflow, even_parity(static_cast<uint8_t>((k & 0x07) ^ b)));
+    state.af.flag(RegisterAF::Flags::AddSubtract, (value & 0x80) != 0);
+    state.af.flag(RegisterAF::Flags::HalfCarry, k > 0xff);
+    state.af.flag(RegisterAF::Flags::Carry, k > 0xff);
     set_f3_f5(state.af, b);
 
     if (repeat && b != 0) {
