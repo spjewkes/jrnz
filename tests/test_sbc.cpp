@@ -1,6 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include "bus.hpp"
+#include "test_support.hpp"
 #include "z80.hpp"
 
 TEST_CASE("Carry Overflow Sub", "[sbc]") {
@@ -150,5 +151,75 @@ TEST_CASE("Carry Overflow Sub 16bit", "[sbc]") {
         REQUIRE(result == sbc_tests[i].result);
         REQUIRE(state.af.flag(RegisterAF::Flags::Carry) == carry_out);
         REQUIRE(state.af.flag(RegisterAF::Flags::ParityOverflow) == overflow);
+    }
+}
+
+TEST_CASE("SBC edge cases update all documented flags", "[sbc]") {
+    Bus mem(65536);
+    Z80 state(mem, true);
+    Instruction instruction(InstType::SBC, "test", 0, 0);
+
+    struct TestCase {
+        uint8_t lhs;
+        uint8_t rhs;
+        bool carry_in;
+        uint8_t result;
+        uint8_t flags;
+    };
+
+    const TestCase cases[] = {
+        {0x10, 0x01, false, 0x0f, 0x1a}, {0x80, 0x00, true, 0x7f, 0x3e},  {0x00, 0x80, false, 0x80, 0x87},
+        {0x00, 0x00, true, 0xff, 0xbb},  {0x20, 0x08, false, 0x18, 0x1a}, {0x00, 0x01, false, 0xff, 0xbb},
+    };
+
+    for (const auto &tc : cases) {
+        state.af.flags(0);
+        state.af.flag(RegisterAF::Flags::Carry, tc.carry_in);
+        uint8_t result = tc.lhs;
+        StorageElement dst(&result, 1);
+        StorageElement src(tc.rhs);
+
+        instruction.do_sbc(state, dst, src);
+
+        INFO("lhs=0x" << std::hex << static_cast<unsigned int>(tc.lhs) << " rhs=0x" << static_cast<unsigned int>(tc.rhs)
+                      << " carry_in=" << tc.carry_in);
+        REQUIRE(result == tc.result);
+        require_flags(state.af.flags(), tc.flags);
+    }
+}
+
+TEST_CASE("SBC HL,rr edge cases copy F3 and F5 from the high result byte", "[sbc]") {
+    Bus mem(65536);
+    Z80 state(mem, true);
+    Instruction instruction(InstType::SBC, "test", 0, 0);
+
+    struct TestCase {
+        uint16_t lhs;
+        uint16_t rhs;
+        bool carry_in;
+        uint16_t result;
+        uint8_t flags;
+    };
+
+    const TestCase cases[] = {
+        {0x1000, 0x0001, false, 0x0fff, 0x1a}, {0x8000, 0x0000, true, 0x7fff, 0x3e},
+        {0x0000, 0x8000, false, 0x8000, 0x87}, {0x0000, 0x0000, true, 0xffff, 0xbb},
+        {0x2000, 0x0800, false, 0x1800, 0x0a}, {0x0000, 0x0001, false, 0xffff, 0xbb},
+    };
+
+    for (const auto &tc : cases) {
+        state.af.flags(0);
+        state.af.flag(RegisterAF::Flags::Carry, tc.carry_in);
+        uint8_t dst_data[2] = {static_cast<uint8_t>(tc.lhs & 0xff), static_cast<uint8_t>((tc.lhs >> 8) & 0xff)};
+        StorageElement dst(dst_data, 2);
+        StorageElement src(static_cast<uint8_t>(tc.rhs & 0xff), static_cast<uint8_t>((tc.rhs >> 8) & 0xff));
+
+        instruction.do_sbc(state, dst, src);
+
+        uint32_t result = 0;
+        dst.get_value(result);
+        INFO("lhs=0x" << std::hex << tc.lhs << " rhs=0x" << tc.rhs << " carry_in=" << tc.carry_in);
+        REQUIRE(result == tc.result);
+        require_flags(state.af.flags(), tc.flags);
     }
 }
