@@ -416,3 +416,91 @@ TEST_CASE("Interrupt sequencing preserves documented IFF and mode transitions", 
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Zero));
     }
 }
+
+TEST_CASE("Interrupt edge cases cover HALT and IM2 vector details", "[interrupts][edge]") {
+    SECTION("A maskable interrupt does not release HALT while IFF1 is clear") {
+        CpuHarness h;
+        h.load({0x76});
+
+        const StepResult halt = h.step();
+        REQUIRE(halt.cycle_delta() == 4);
+        REQUIRE(h.cpu.halted);
+
+        h.cpu.interrupt = true;
+        h.cpu.int_mode = 1;
+        const StepResult stalled = h.step();
+        REQUIRE(stalled.cycle_delta() == 4);
+        REQUIRE(h.cpu.halted);
+        REQUIRE(h.cpu.pc.get() == 0x0001);
+        REQUIRE(h.cpu.interrupt);
+    }
+
+    SECTION("HALT after EI becomes interruptible on the following instruction boundary") {
+        CpuHarness h;
+        h.load({0xfb, 0x76});
+
+        const StepResult ei = h.step();
+        REQUIRE(ei.cycle_delta() == 4);
+        REQUIRE(h.cpu.ei_pending);
+        REQUIRE_FALSE(h.cpu.iff1);
+
+        const StepResult halt = h.step();
+        REQUIRE(halt.cycle_delta() == 4);
+        REQUIRE(h.cpu.halted);
+        REQUIRE(h.cpu.pc.get() == 0x0002);
+        REQUIRE(h.cpu.iff1);
+        REQUIRE(h.cpu.iff2);
+        REQUIRE_FALSE(h.cpu.ei_pending);
+
+        h.cpu.interrupt = true;
+        h.cpu.int_mode = 1;
+        const StepResult interrupt = h.step();
+        REQUIRE(interrupt.cycle_delta() == 13);
+        REQUIRE_FALSE(h.cpu.halted);
+        REQUIRE(h.cpu.pc.get() == 0x0038);
+        REQUIRE(h.mem.read_addr_from_mem(0xfffc) == 0x0002);
+    }
+
+    SECTION("Mode 2 interrupts vector through I:0xff even when IFF2 started clear") {
+        CpuHarness h;
+        h.cpu.pc.set(0x3456);
+        h.cpu.sp.set(0xfffe);
+        h.cpu.iff1 = true;
+        h.cpu.iff2 = false;
+        h.cpu.int_mode = 2;
+        h.cpu.ir.hi(0x9a);
+        h.cpu.interrupt = true;
+        h.mem[0x9aff] = 0x78;
+        h.mem[0x9b00] = 0x56;
+
+        const StepResult step = h.step();
+        REQUIRE(step.cycle_delta() == 13);
+        REQUIRE(h.cpu.pc.get() == 0x5678);
+        REQUIRE(h.mem.read_addr_from_mem(0xfffc) == 0x3456);
+        REQUIRE_FALSE(h.cpu.iff1);
+        REQUIRE_FALSE(h.cpu.iff2);
+        REQUIRE_FALSE(h.cpu.interrupt);
+    }
+
+    SECTION("NMI releases HALT without consuming the pending maskable interrupt request") {
+        CpuHarness h;
+        h.load({0x76});
+
+        const StepResult halt = h.step();
+        REQUIRE(halt.cycle_delta() == 4);
+        REQUIRE(h.cpu.halted);
+
+        h.cpu.iff1 = true;
+        h.cpu.iff2 = true;
+        h.cpu.interrupt = true;
+        h.cpu.int_nmi = true;
+
+        const StepResult nmi = h.step();
+        REQUIRE(nmi.cycle_delta() == 11);
+        REQUIRE_FALSE(h.cpu.halted);
+        REQUIRE(h.cpu.pc.get() == 0x0066);
+        REQUIRE(h.mem.read_addr_from_mem(0xfffc) == 0x0001);
+        REQUIRE(h.cpu.interrupt);
+        REQUIRE_FALSE(h.cpu.int_nmi);
+    }
+}
