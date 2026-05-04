@@ -142,33 +142,35 @@ TEST_CASE("DAA edge cases update all documented flags", "[flags]") {
 TEST_CASE("BIT updates status but preserves carry", "[flags]") {
     Bus mem(65536);
     Z80 state(mem, true);
+    Instruction bit(InstType::BIT, "bit", 0, 0, Operand::A, Operand::UNUSED);
 
-    Instruction bit(InstType::BIT, "bit", 0, 0, Operand::A, Operand::SEVEN);
+    struct BitCase {
+        uint8_t value;
+        uint8_t bit_index;
+        uint8_t flags;
+    };
 
-    state.af.flags(0);
-    state.af.flag(RegisterAF::Flags::Carry, true);
-    uint8_t value = 0x80;
-    StorageElement dst(&value, 1);
-    StorageElement bit7(7);
+    const BitCase cases[] = {
+        {0x80, 7, 0x91},
+        {0x00, 3, 0x55},
+        {0x28, 3, 0x39},
+        {0x08, 7, 0x5d},
+    };
 
-    bit.do_bit(state, dst, bit7);
-    REQUIRE(state.af.flag(RegisterAF::Flags::Carry));
-    REQUIRE_FALSE(state.af.flag(RegisterAF::Flags::Zero));
-    REQUIRE_FALSE(state.af.flag(RegisterAF::Flags::ParityOverflow));
-    REQUIRE(state.af.flag(RegisterAF::Flags::Sign));
-    REQUIRE(state.af.flag(RegisterAF::Flags::HalfCarry));
-    REQUIRE_FALSE(state.af.flag(RegisterAF::Flags::AddSubtract));
+    for (const auto &test : cases) {
+        state.af.flags(0);
+        state.af.flag(RegisterAF::Flags::Carry, true);
+        uint8_t value = test.value;
+        StorageElement dst(&value, 1);
+        StorageElement bit_index(test.bit_index);
 
-    state.af.flags(0);
-    state.af.flag(RegisterAF::Flags::Carry, true);
-    value = 0x00;
-    StorageElement bit3(3);
+        bit.do_bit(state, dst, bit_index);
 
-    bit.do_bit(state, dst, bit3);
-    REQUIRE(state.af.flag(RegisterAF::Flags::Carry));
-    REQUIRE(state.af.flag(RegisterAF::Flags::Zero));
-    REQUIRE(state.af.flag(RegisterAF::Flags::ParityOverflow));
-    REQUIRE_FALSE(state.af.flag(RegisterAF::Flags::Sign));
+        INFO("value=0x" << std::hex << static_cast<unsigned int>(test.value)
+                        << " bit=" << static_cast<unsigned int>(test.bit_index));
+        REQUIRE(state.af.flag(RegisterAF::Flags::Carry));
+        require_flags(state.af.flags(), test.flags);
+    }
 }
 
 TEST_CASE("INC and DEC preserve carry while updating other arithmetic flags", "[flags]") {
@@ -177,29 +179,53 @@ TEST_CASE("INC and DEC preserve carry while updating other arithmetic flags", "[
 
     Instruction inc(InstType::INC, "inc", 0, 0, Operand::A, Operand::ONE);
     Instruction dec(InstType::DEC, "dec", 0, 0, Operand::A, Operand::ONE);
-
-    state.af.flags(0);
-    state.af.flag(RegisterAF::Flags::Carry, true);
-    uint8_t inc_value = 0x7f;
-    StorageElement inc_dst(&inc_value, 1);
     StorageElement one(1);
 
-    inc.do_inc(state, inc_dst, one);
-    REQUIRE(inc_value == 0x80);
-    REQUIRE(state.af.flag(RegisterAF::Flags::Carry));
-    REQUIRE(state.af.flag(RegisterAF::Flags::ParityOverflow));
-    REQUIRE(state.af.flag(RegisterAF::Flags::Sign));
-    REQUIRE_FALSE(state.af.flag(RegisterAF::Flags::AddSubtract));
+    struct ArithCase {
+        uint8_t input;
+        uint8_t result;
+        uint8_t flags;
+    };
 
-    state.af.flags(0);
-    state.af.flag(RegisterAF::Flags::Carry, true);
-    uint8_t dec_value = 0x80;
-    StorageElement dec_dst(&dec_value, 1);
+    const ArithCase inc_cases[] = {
+        {0x0f, 0x10, 0x11},
+        {0x7f, 0x80, 0x95},
+        {0xff, 0x00, 0x51},
+        {0x1f, 0x20, 0x31},
+    };
 
-    dec.do_dec(state, dec_dst, one);
-    REQUIRE(dec_value == 0x7f);
-    REQUIRE(state.af.flag(RegisterAF::Flags::Carry));
-    REQUIRE(state.af.flag(RegisterAF::Flags::ParityOverflow));
-    REQUIRE_FALSE(state.af.flag(RegisterAF::Flags::Sign));
-    REQUIRE(state.af.flag(RegisterAF::Flags::AddSubtract));
+    for (const auto &test : inc_cases) {
+        state.af.flags(0);
+        state.af.flag(RegisterAF::Flags::Carry, true);
+        uint8_t value = test.input;
+        StorageElement dst(&value, 1);
+
+        inc.do_inc(state, dst, one);
+
+        INFO("inc input=0x" << std::hex << static_cast<unsigned int>(test.input));
+        REQUIRE(value == test.result);
+        REQUIRE(state.af.flag(RegisterAF::Flags::Carry));
+        require_flags(state.af.flags(), test.flags);
+    }
+
+    const ArithCase dec_cases[] = {
+        {0x10, 0x0f, 0x1b},
+        {0x80, 0x7f, 0x3f},
+        {0x01, 0x00, 0x43},
+        {0x20, 0x1f, 0x1b},
+    };
+
+    for (const auto &test : dec_cases) {
+        state.af.flags(0);
+        state.af.flag(RegisterAF::Flags::Carry, true);
+        uint8_t value = test.input;
+        StorageElement dst(&value, 1);
+
+        dec.do_dec(state, dst, one);
+
+        INFO("dec input=0x" << std::hex << static_cast<unsigned int>(test.input));
+        REQUIRE(value == test.result);
+        REQUIRE(state.af.flag(RegisterAF::Flags::Carry));
+        require_flags(state.af.flags(), test.flags);
+    }
 }
