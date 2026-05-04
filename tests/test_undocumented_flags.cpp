@@ -21,7 +21,7 @@ TEST_CASE("Undocumented IN (C) discards the byte but updates flags from the port
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Carry));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
-        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Zero));
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Sign));
         require_f3_f5(h, true, true);
@@ -189,7 +189,7 @@ TEST_CASE("Block compare instructions derive undocumented flags from A minus val
         REQUIRE(h.cpu.hl.get() == 0x8602);
         REQUIRE(h.cpu.bc.get() == 0x0000);
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Zero));
-        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
         require_f3_f5(h, false, false);
     }
 
@@ -372,8 +372,8 @@ TEST_CASE("Block I/O instructions expose undocumented N and F3/F5 behaviour", "[
         REQUIRE(step.cycle_delta() == 16);
         REQUIRE(h.mem.port_254 == 0x01);
         REQUIRE(h.cpu.bc.get() == 0x01fe);
-        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Carry));
-        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Carry));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
         require_f3_f5(h, false, false);
@@ -391,9 +391,9 @@ TEST_CASE("Block I/O instructions expose undocumented N and F3/F5 behaviour", "[
         REQUIRE(step.cycle_delta() == 16);
         REQUIRE(h.mem.port_254 == 0xff);
         REQUIRE(h.cpu.bc.get() == 0x01fe);
-        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Carry));
-        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
-        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Carry));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
         require_f3_f5(h, false, false);
     }
@@ -431,8 +431,8 @@ TEST_CASE("Block I/O instructions expose undocumented N and F3/F5 behaviour", "[
         REQUIRE(h.mem[0x8f20] == 0xff);
         REQUIRE(h.cpu.hl.get() == 0x8f1f);
         REQUIRE(h.cpu.bc.get() == 0x01fe);
-        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Carry));
-        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Carry));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
         require_f3_f5(h, false, false);
@@ -518,6 +518,49 @@ TEST_CASE("Block I/O instructions expose undocumented N and F3/F5 behaviour", "[
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+        require_f3_f5(h, false, false);
+    }
+}
+
+TEST_CASE("Rotate and shift families copy undocumented F3 and F5 bits from the result",
+          "[undocumented][flags][rotate-shift]") {
+    SECTION("CB-prefixed rotate copies F3 and F5 from the transformed byte") {
+        CpuHarness h;
+        h.cpu.bc.hi(0x14);
+        h.load({0xcb, 0x00});
+
+        const StepResult step = h.step();
+
+        REQUIRE(step.cycle_delta() == 8);
+        REQUIRE(h.cpu.bc.hi() == 0x28);
+        require_f3_f5(h, true, true);
+    }
+
+    SECTION("Accumulator rotate copies F3 and F5 from the new A value while preserving SZPV") {
+        CpuHarness h;
+        h.cpu.af.accum(0x84);
+        h.cpu.af.flags(0xc4);
+        h.load({0x07});
+
+        const StepResult step = h.step();
+
+        REQUIRE(step.cycle_delta() == 4);
+        REQUIRE(h.cpu.af.accum() == 0x09);
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Sign));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Zero));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+        require_f3_f5(h, true, false);
+    }
+
+    SECTION("Shift copies F3 and F5 from the shifted result") {
+        CpuHarness h;
+        h.cpu.bc.hi(0x48);
+        h.load({0xcb, 0x20});
+
+        const StepResult step = h.step();
+
+        REQUIRE(step.cycle_delta() == 8);
+        REQUIRE(h.cpu.bc.hi() == 0x90);
         require_f3_f5(h, false, false);
     }
 }

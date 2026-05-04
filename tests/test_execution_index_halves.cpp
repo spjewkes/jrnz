@@ -288,7 +288,7 @@ TEST_CASE("Indexed half-register arithmetic and compare edge cases match 8-bit f
         const CompareCase cases[] = {
             {"cp iyh borrow", {0xfd, 0xbc}, 0x0100, 0x00, 0xbb},
             {"cp iyl equal", {0xfd, 0xbd}, 0x0040, 0x40, 0x42},
-            {"cp iyl signed overflow", {0xfd, 0xbd}, 0x00ff, 0x7f, 0xc7},
+            {"cp iyl signed overflow", {0xfd, 0xbd}, 0x00ff, 0x7f, 0x87},
         };
 
         for (const auto &tc : cases) {

@@ -997,6 +997,7 @@ size_t Instruction::impl_rotate_left(Z80 &state, StorageElement &elem, bool set_
     state.af.flag(RegisterAF::Flags::Carry, elem.is_carry());
     state.af.flag(RegisterAF::Flags::AddSubtract, false);
     state.af.flag(RegisterAF::Flags::HalfCarry, false);
+    set_f3_f5(state.af, flag_value(elem, false));
 
     if (set_state) {
         state.af.flag(RegisterAF::Flags::ParityOverflow, elem.is_even_parity());
@@ -1013,6 +1014,7 @@ size_t Instruction::impl_rotate_right(Z80 &state, StorageElement &elem, bool set
     state.af.flag(RegisterAF::Flags::Carry, elem.is_carry());
     state.af.flag(RegisterAF::Flags::AddSubtract, false);
     state.af.flag(RegisterAF::Flags::HalfCarry, false);
+    set_f3_f5(state.af, flag_value(elem, false));
 
     if (set_state) {
         state.af.flag(RegisterAF::Flags::ParityOverflow, elem.is_even_parity());
@@ -1032,6 +1034,7 @@ size_t Instruction::impl_shift_left(Z80 &state, StorageElement &elem, bool logic
     state.af.flag(RegisterAF::Flags::ParityOverflow, elem.is_even_parity());
     state.af.flag(RegisterAF::Flags::Zero, elem.is_zero());
     state.af.flag(RegisterAF::Flags::Sign, elem.is_neg());
+    set_f3_f5(state.af, flag_value(elem, false));
 
     return cycles;
 }
@@ -1045,6 +1048,7 @@ size_t Instruction::impl_shift_right(Z80 &state, StorageElement &elem, bool logi
     state.af.flag(RegisterAF::Flags::ParityOverflow, elem.is_even_parity());
     state.af.flag(RegisterAF::Flags::Zero, elem.is_zero());
     state.af.flag(RegisterAF::Flags::Sign, elem.is_neg());
+    set_f3_f5(state.af, flag_value(elem, false));
 
     return cycles;
 }
