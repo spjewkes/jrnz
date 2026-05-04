@@ -260,13 +260,13 @@ TEST_CASE("R register increments according to fetched opcode length", "[rreg]") 
     SECTION("ED prefix increments R by two") {
         CpuHarness h;
         h.cpu.ir.lo(0x10);
-        h.cpu.hl.set(0x1234);
-        h.mem.write_addr(0x4000, 0xabcd);
-        h.load({0xed, 0x6b, 0x00, 0x40});
+        h.cpu.de.set(0x1234);
+        h.mem.write_addr_to_mem(0x4000, 0xabcd);
+        h.load({0xed, 0x5b, 0x00, 0x40});
 
         h.step();
         REQUIRE(h.cpu.ir.lo() == 0x12);
-        REQUIRE(h.cpu.hl.get() == 0xabcd);
+        REQUIRE(h.cpu.de.get() == 0xabcd);
         REQUIRE(h.cpu.pc.get() == 0x0004);
     }
 
@@ -314,7 +314,8 @@ TEST_CASE("R register increments according to fetched opcode length", "[rreg]") 
         h.cpu.iff2 = true;
         h.cpu.interrupt = true;
         h.cpu.int_mode = 2;
-        h.mem.write_addr(0x12ff, 0x4567);
+        h.mem[0x12ff] = 0x67;
+        h.mem[0x1300] = 0x45;
 
         h.step();
         REQUIRE(h.cpu.ir.lo() == 0x51);

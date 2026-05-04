@@ -56,6 +56,7 @@ bool Z80::clock(bool no_cycles) {
                 }
                 case 2: {
                     Instruction inst{InstType::PUSH, "INT2", 1, 13, Operand::UNUSED, Operand::PC};
+                    update_r_reg();
                     cycles = inst.execute(*this);
                     // Assume data bus value is always 0xff. This seems to be the case for another emulator I looked at
                     // And I've seen Z80 snapshots that seem to assume this too
