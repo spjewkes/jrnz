@@ -122,6 +122,61 @@ TEST_CASE("Indexed addressing uses signed displacement with IX and IY", "[indexe
     }
 }
 
+TEST_CASE("Indexed execution counts ignored prefixes while still choosing the final effective register", "[indexed]") {
+    SECTION("Repeated DD prefixes still execute IX displacement stores with an extra prefix cost") {
+        CpuHarness h;
+        h.cpu.ix.set(0x7204);
+        h.load({0xdd, 0xdd, 0x36, 0xfe, 0xa5});
+
+        const StepResult step = h.step();
+        REQUIRE(step.cycle_delta() == 23);
+        REQUIRE(h.cpu.pc.get() == 0x0005);
+        REQUIRE(h.mem[0x7202] == 0xa5);
+        REQUIRE(h.cpu.ix.get() == 0x7204);
+    }
+
+    SECTION("Mixed DD then FD prefixes leave IY indexed loads in effect") {
+        CpuHarness h;
+        h.cpu.ix.set(0x7300);
+        h.cpu.iy.set(0x7402);
+        h.mem[0x7401] = 0x6c;
+        h.load({0xdd, 0xfd, 0x7e, 0xff});
+
+        const StepResult step = h.step();
+        REQUIRE(step.cycle_delta() == 23);
+        REQUIRE(h.cpu.pc.get() == 0x0004);
+        REQUIRE(h.cpu.af.accum() == 0x6c);
+        REQUIRE(h.cpu.ix.get() == 0x7300);
+        REQUIRE(h.cpu.iy.get() == 0x7402);
+    }
+
+    SECTION("An ignored indexed prefix ahead of an ED transfer still consumes bytes and cycles") {
+        CpuHarness h;
+        h.cpu.de.set(0x0000);
+        h.mem.write_addr_to_mem(0x4000, 0xcafe);
+        h.load({0xdd, 0xed, 0x5b, 0x00, 0x40});
+
+        const StepResult step = h.step();
+        REQUIRE(step.cycle_delta() == 24);
+        REQUIRE(h.cpu.pc.get() == 0x0005);
+        REQUIRE(h.cpu.de.get() == 0xcafe);
+    }
+
+    SECTION("Repeated FD prefixes keep IY stack exchange semantics with added prefix cost") {
+        CpuHarness h;
+        h.cpu.iy.set(0x1357);
+        h.cpu.sp.set(0xfffc);
+        h.mem.write_addr_to_mem(0xfffc, 0x2468);
+        h.load({0xfd, 0xfd, 0xe3});
+
+        const StepResult step = h.step();
+        REQUIRE(step.cycle_delta() == 27);
+        REQUIRE(h.cpu.pc.get() == 0x0003);
+        REQUIRE(h.cpu.iy.get() == 0x2468);
+        REQUIRE(h.mem.read_addr_from_mem(0xfffc) == 0x1357);
+    }
+}
+
 TEST_CASE("Block repeat instructions distinguish repeating and terminal iterations", "[extended]") {
     SECTION("LDIR with BC=1 completes in the terminal 16-cycle form without rewinding PC") {
         CpuHarness h;
