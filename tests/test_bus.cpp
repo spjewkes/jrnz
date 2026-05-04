@@ -1,0 +1,56 @@
+#include <catch2/catch_test_macros.hpp>
+
+#include "bus.hpp"
+
+TEST_CASE("Bus preserves ROM write protection and RAM visibility", "[bus]") {
+    Bus bus(65536);
+
+    bus[0x3fff] = 0x11;
+    bus[0x4000] = 0x22;
+
+    bus.write_data(0x3fff, 0xaa);
+    bus.write_data(0x4000, 0xbb);
+
+    REQUIRE(bus.read_data(0x3fff) == 0x11);
+    REQUIRE(bus.read_data(0x4000) == 0xbb);
+}
+
+TEST_CASE("Word writes respect the ROM to RAM boundary one byte at a time", "[bus]") {
+    Bus bus(65536);
+
+    bus[0x3fff] = 0x12;
+    bus[0x4000] = 0x34;
+
+    bus.write_addr_to_mem(0x3fff, 0xabcd);
+
+    REQUIRE(bus.read_data(0x3fff) == 0x12);
+    REQUIRE(bus.read_data(0x4000) == 0xab);
+}
+
+TEST_CASE("Port reads distinguish even keyboard ports from the floating bus path", "[bus]") {
+    Bus bus(65536);
+    bus[0x4000] = 0x81;
+    bus[0x4001] = 0x42;
+    bus.floating_counter = 0;
+
+    const uint8_t even = bus.read_port(0x00fe);
+    REQUIRE(even == 0xff);
+    REQUIRE(bus.floating_counter == 0);
+
+    const uint8_t first_odd = bus.read_port(0x00ff);
+    const uint8_t second_odd = bus.read_port(0x00ff);
+    REQUIRE(first_odd == 0x81);
+    REQUIRE(second_odd == 0x42);
+    REQUIRE(bus.floating_counter == 2);
+}
+
+TEST_CASE("Port writes only latch the Spectrum ULA port when the low byte is 0xfe", "[bus]") {
+    Bus bus(65536);
+
+    bus.port_254 = 0x00;
+    bus.write_port(0x12fe, 0x77);
+    REQUIRE(bus.port_254 == 0x77);
+
+    bus.write_port(0x12ff, 0x33);
+    REQUIRE(bus.port_254 == 0x77);
+}
