@@ -1,6 +1,7 @@
 #include <array>
 #include <catch2/catch_test_macros.hpp>
 
+#include "bus.hpp"
 #include "decoder.hpp"
 
 TEST_CASE("Base opcode table covers all non-prefix opcodes", "[decoder]") {
@@ -87,6 +88,112 @@ TEST_CASE("Indexed prefix decoding handles both overrides and ignored prefixes",
 
     REQUIRE(decode_opcode(0xddcb06).inst == InstType::RLC);
     REQUIRE(decode_opcode(0xfdcb7e).inst == InstType::BIT);
+}
+
+TEST_CASE("Opcode fetch preserves prefix semantics and operand offsets", "[decoder][fetch]") {
+    auto load = [](Bus &bus, std::initializer_list<uint8_t> bytes, uint16_t start = 0x0000) {
+        size_t offset = 0;
+        for (uint8_t byte : bytes) {
+            bus[static_cast<uint16_t>(start + offset)] = byte;
+            ++offset;
+        }
+    };
+
+    SECTION("Repeated DD prefixes count as ignored prefixes before the final indexed opcode") {
+        Bus bus(65536);
+        load(bus, {0xdd, 0xdd, 0x21, 0x34, 0x12});
+
+        const FetchedOpcode fetched = bus.read_opcode_from_mem(0x0000);
+
+        REQUIRE(fetched.opcode == 0xdd21);
+        REQUIRE(fetched.ignored_prefixes == 1);
+        REQUIRE(fetched.fetch_len == 3);
+        REQUIRE(fetched.operand_offset == 3);
+    }
+
+    SECTION("Mixed DD and FD chains leave only the last indexed prefix in effect") {
+        Bus bus(65536);
+        load(bus, {0xdd, 0xfd, 0x77, 0x05});
+
+        const FetchedOpcode fetched = bus.read_opcode_from_mem(0x0000);
+
+        REQUIRE(fetched.opcode == 0xfd77);
+        REQUIRE(fetched.ignored_prefixes == 1);
+        REQUIRE(fetched.fetch_len == 3);
+        REQUIRE(fetched.operand_offset == 3);
+    }
+
+    SECTION("DD before ED is ignored and leaves an ED opcode") {
+        Bus bus(65536);
+        load(bus, {0xdd, 0xed, 0x44});
+
+        const FetchedOpcode fetched = bus.read_opcode_from_mem(0x0000);
+
+        REQUIRE(fetched.opcode == 0xed44);
+        REQUIRE(fetched.ignored_prefixes == 1);
+        REQUIRE(fetched.fetch_len == 3);
+        REQUIRE(fetched.operand_offset == 3);
+    }
+
+    SECTION("FD before ED is ignored and leaves an ED opcode") {
+        Bus bus(65536);
+        load(bus, {0xfd, 0xed, 0x4d});
+
+        const FetchedOpcode fetched = bus.read_opcode_from_mem(0x0000);
+
+        REQUIRE(fetched.opcode == 0xed4d);
+        REQUIRE(fetched.ignored_prefixes == 1);
+        REQUIRE(fetched.fetch_len == 3);
+        REQUIRE(fetched.operand_offset == 3);
+    }
+
+    SECTION("DDCB forms keep the displacement as an operand rather than part of fetch length") {
+        Bus bus(65536);
+        load(bus, {0xdd, 0xcb, 0xfe, 0x46});
+
+        const FetchedOpcode fetched = bus.read_opcode_from_mem(0x0000);
+
+        REQUIRE(fetched.opcode == 0xddcb46);
+        REQUIRE(fetched.ignored_prefixes == 0);
+        REQUIRE(fetched.fetch_len == 3);
+        REQUIRE(fetched.operand_offset == 2);
+    }
+
+    SECTION("Ignored prefixes ahead of DDCB still contribute to fetch length and operand offset") {
+        Bus bus(65536);
+        load(bus, {0xdd, 0xdd, 0xcb, 0x08, 0x4e});
+
+        const FetchedOpcode fetched = bus.read_opcode_from_mem(0x0000);
+
+        REQUIRE(fetched.opcode == 0xddcb4e);
+        REQUIRE(fetched.ignored_prefixes == 1);
+        REQUIRE(fetched.fetch_len == 4);
+        REQUIRE(fetched.operand_offset == 3);
+    }
+
+    SECTION("FDCB forms report the displacement byte after the indexed prefix pair") {
+        Bus bus(65536);
+        load(bus, {0xfd, 0xcb, 0x10, 0x86});
+
+        const FetchedOpcode fetched = bus.read_opcode_from_mem(0x0000);
+
+        REQUIRE(fetched.opcode == 0xfdcb86);
+        REQUIRE(fetched.ignored_prefixes == 0);
+        REQUIRE(fetched.fetch_len == 3);
+        REQUIRE(fetched.operand_offset == 2);
+    }
+
+    SECTION("Plain ED fetches report the second byte as the first operand position") {
+        Bus bus(65536);
+        load(bus, {0xed, 0x57});
+
+        const FetchedOpcode fetched = bus.read_opcode_from_mem(0x0000);
+
+        REQUIRE(fetched.opcode == 0xed57);
+        REQUIRE(fetched.ignored_prefixes == 0);
+        REQUIRE(fetched.fetch_len == 2);
+        REQUIRE(fetched.operand_offset == 2);
+    }
 }
 
 TEST_CASE("Indexed bit-op tables remain complete", "[decoder]") {
