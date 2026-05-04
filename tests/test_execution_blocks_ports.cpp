@@ -109,6 +109,50 @@ TEST_CASE("Decrementing block instructions follow documented transfer and compar
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
     }
+
+    SECTION("LDDR with BC=1 completes immediately without rewinding PC") {
+        CpuHarness h;
+        h.cpu.hl.set(0x9300);
+        h.cpu.de.set(0x9400);
+        h.cpu.bc.set(0x0001);
+        h.mem[0x9300] = 0x3d;
+        h.load({0xed, 0xb8});
+
+        const StepResult step = h.step();
+        REQUIRE(step.cycle_delta() == 16);
+        REQUIRE(h.cpu.pc.get() == 0x0002);
+        REQUIRE(h.mem[0x9400] == 0x3d);
+        REQUIRE(h.cpu.hl.get() == 0x92ff);
+        REQUIRE(h.cpu.de.get() == 0x93ff);
+        REQUIRE(h.cpu.bc.get() == 0x0000);
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+    }
+
+    SECTION("CPDR exhausts BC on the final non-matching compare without rewinding PC") {
+        CpuHarness h;
+        h.cpu.af.accum(0x7e);
+        h.cpu.hl.set(0x9501);
+        h.cpu.bc.set(0x0002);
+        h.mem[0x9501] = 0x10;
+        h.mem[0x9500] = 0x20;
+        h.load({0xed, 0xb9});
+
+        const StepResult first = h.step();
+        REQUIRE(first.cycle_delta() == 21);
+        REQUIRE(h.cpu.pc.get() == 0x0000);
+        REQUIRE(h.cpu.hl.get() == 0x9500);
+        REQUIRE(h.cpu.bc.get() == 0x0001);
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Zero));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+
+        const StepResult second = h.step();
+        REQUIRE(second.cycle_delta() == 16);
+        REQUIRE(h.cpu.pc.get() == 0x0002);
+        REQUIRE(h.cpu.hl.get() == 0x94ff);
+        REQUIRE(h.cpu.bc.get() == 0x0000);
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Zero));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+    }
 }
 
 TEST_CASE("Documented port instructions use the expected ports and flag rules", "[blocks-ports]") {

@@ -122,6 +122,53 @@ TEST_CASE("Indexed addressing uses signed displacement with IX and IY", "[indexe
     }
 }
 
+TEST_CASE("Block repeat instructions distinguish repeating and terminal iterations", "[extended]") {
+    SECTION("LDIR with BC=1 completes in the terminal 16-cycle form without rewinding PC") {
+        CpuHarness h;
+        h.cpu.hl.set(0x5400);
+        h.cpu.de.set(0x6400);
+        h.cpu.bc.set(0x0001);
+        h.mem[0x5400] = 0x9c;
+        h.load({0xed, 0xb0});
+
+        const StepResult step = h.step();
+
+        REQUIRE(step.cycle_delta() == 16);
+        REQUIRE(h.cpu.pc.get() == 0x0002);
+        REQUIRE(h.mem[0x6400] == 0x9c);
+        REQUIRE(h.cpu.hl.get() == 0x5401);
+        REQUIRE(h.cpu.de.get() == 0x6401);
+        REQUIRE(h.cpu.bc.get() == 0x0000);
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+    }
+
+    SECTION("CPIR exhausts BC without rewinding PC once the final compare completes") {
+        CpuHarness h;
+        h.cpu.af.accum(0x44);
+        h.cpu.hl.set(0x5500);
+        h.cpu.bc.set(0x0002);
+        h.mem[0x5500] = 0x11;
+        h.mem[0x5501] = 0x22;
+        h.load({0xed, 0xb1});
+
+        const StepResult first = h.step();
+        REQUIRE(first.cycle_delta() == 21);
+        REQUIRE(h.cpu.pc.get() == 0x0000);
+        REQUIRE(h.cpu.hl.get() == 0x5501);
+        REQUIRE(h.cpu.bc.get() == 0x0001);
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Zero));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+
+        const StepResult second = h.step();
+        REQUIRE(second.cycle_delta() == 16);
+        REQUIRE(h.cpu.pc.get() == 0x0002);
+        REQUIRE(h.cpu.hl.get() == 0x5502);
+        REQUIRE(h.cpu.bc.get() == 0x0000);
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Zero));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+    }
+}
+
 TEST_CASE("BIT on indexed memory updates flags from the fetched byte", "[indexed]") {
     CpuHarness h;
     h.cpu.ix.set(0x7200);

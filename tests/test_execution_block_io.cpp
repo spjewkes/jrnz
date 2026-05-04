@@ -50,6 +50,75 @@ TEST_CASE("INIR repeats until B becomes zero", "[block-io]") {
     REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
 }
 
+TEST_CASE("Repeating block I/O instructions switch between looping and terminal timing", "[block-io]") {
+    SECTION("INIR with B=1 completes in 16 cycles and advances PC") {
+        CpuHarness h;
+        h.cpu.bc.set(0x01ff);
+        h.cpu.hl.set(0x8400);
+        h.mem.floating_counter = 0;
+        h.mem[0x4000] = 0x6a;
+        h.load({0xed, 0xb2});
+
+        const StepResult step = h.step();
+        REQUIRE(step.cycle_delta() == 16);
+        REQUIRE(h.cpu.pc.get() == 0x0002);
+        REQUIRE(h.mem[0x8400] == 0x6a);
+        REQUIRE(h.cpu.hl.get() == 0x8401);
+        REQUIRE(h.cpu.bc.get() == 0x00ff);
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Zero));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+    }
+
+    SECTION("INDR with B=1 completes in 16 cycles and advances PC") {
+        CpuHarness h;
+        h.cpu.bc.set(0x01ff);
+        h.cpu.hl.set(0x8500);
+        h.mem.floating_counter = 0;
+        h.mem[0x4000] = 0x91;
+        h.load({0xed, 0xba});
+
+        const StepResult step = h.step();
+        REQUIRE(step.cycle_delta() == 16);
+        REQUIRE(h.cpu.pc.get() == 0x0002);
+        REQUIRE(h.mem[0x8500] == 0x91);
+        REQUIRE(h.cpu.hl.get() == 0x84ff);
+        REQUIRE(h.cpu.bc.get() == 0x00ff);
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Zero));
+    }
+
+    SECTION("OTIR with B=1 completes in 16 cycles and advances PC") {
+        CpuHarness h;
+        h.cpu.bc.set(0x01fe);
+        h.cpu.hl.set(0x9600);
+        h.mem[0x9600] = 0x5d;
+        h.load({0xed, 0xb3});
+
+        const StepResult step = h.step();
+        REQUIRE(step.cycle_delta() == 16);
+        REQUIRE(h.cpu.pc.get() == 0x0002);
+        REQUIRE(h.mem.port_254 == 0x5d);
+        REQUIRE(h.cpu.hl.get() == 0x9601);
+        REQUIRE(h.cpu.bc.get() == 0x00fe);
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Zero));
+    }
+
+    SECTION("OTDR with B=1 completes in 16 cycles and advances PC") {
+        CpuHarness h;
+        h.cpu.bc.set(0x01fe);
+        h.cpu.hl.set(0x9700);
+        h.mem[0x9700] = 0xa7;
+        h.load({0xed, 0xbb});
+
+        const StepResult step = h.step();
+        REQUIRE(step.cycle_delta() == 16);
+        REQUIRE(h.cpu.pc.get() == 0x0002);
+        REQUIRE(h.mem.port_254 == 0xa7);
+        REQUIRE(h.cpu.hl.get() == 0x96ff);
+        REQUIRE(h.cpu.bc.get() == 0x00fe);
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Zero));
+    }
+}
+
 TEST_CASE("IND reads from the port into memory and decrements HL", "[block-io]") {
     CpuHarness h;
     h.cpu.bc.set(0x02ff);
