@@ -288,3 +288,131 @@ TEST_CASE("NMI pushes PC, jumps to 0x66, and preserves IFF2 from IFF1", "[interr
     REQUIRE_FALSE(h.cpu.int_nmi);
     REQUIRE_FALSE(h.cpu.halted);
 }
+
+TEST_CASE("Interrupt sequencing preserves documented IFF and mode transitions", "[interrupts][sequencing]") {
+    SECTION("EI does not allow an immediately pending interrupt to pre-empt the following instruction") {
+        CpuHarness h;
+        h.cpu.interrupt = true;
+        h.cpu.int_mode = 1;
+        h.load({0xfb, 0x00});
+
+        const StepResult ei = h.step();
+        REQUIRE(ei.cycle_delta() == 4);
+        REQUIRE(h.cpu.pc.get() == 0x0001);
+        REQUIRE_FALSE(h.cpu.iff1);
+        REQUIRE_FALSE(h.cpu.iff2);
+        REQUIRE(h.cpu.ei_pending);
+
+        const StepResult following = h.step();
+        REQUIRE(following.cycle_delta() == 4);
+        REQUIRE(h.cpu.pc.get() == 0x0002);
+        REQUIRE(h.cpu.iff1);
+        REQUIRE(h.cpu.iff2);
+        REQUIRE_FALSE(h.cpu.ei_pending);
+        REQUIRE(h.cpu.interrupt);
+    }
+
+    SECTION("DI after EI cancels the pending enable before interrupts become visible") {
+        CpuHarness h;
+        h.cpu.interrupt = true;
+        h.cpu.int_mode = 1;
+        h.load({0xfb, 0xf3, 0x00});
+
+        const StepResult ei = h.step();
+        REQUIRE(ei.cycle_delta() == 4);
+        REQUIRE(h.cpu.ei_pending);
+
+        const StepResult di = h.step();
+        REQUIRE(di.cycle_delta() == 4);
+        REQUIRE(h.cpu.pc.get() == 0x0002);
+        REQUIRE_FALSE(h.cpu.iff1);
+        REQUIRE_FALSE(h.cpu.iff2);
+        REQUIRE_FALSE(h.cpu.ei_pending);
+
+        const StepResult nop = h.step();
+        REQUIRE(nop.cycle_delta() == 4);
+        REQUIRE(h.cpu.pc.get() == 0x0003);
+        REQUIRE(h.cpu.interrupt);
+        REQUIRE_FALSE(h.cpu.iff1);
+        REQUIRE_FALSE(h.cpu.iff2);
+    }
+
+    SECTION("NMI clears a pending EI request and restores from the pre-NMI IFF state via RETN") {
+        CpuHarness h;
+        h.cpu.sp.set(0xfffe);
+        h.load({0xfb});
+
+        const StepResult ei = h.step();
+        REQUIRE(ei.cycle_delta() == 4);
+        REQUIRE(h.cpu.ei_pending);
+
+        h.cpu.int_nmi = true;
+        const StepResult nmi = h.step();
+        REQUIRE(nmi.cycle_delta() == 11);
+        REQUIRE(h.cpu.pc.get() == 0x0066);
+        REQUIRE_FALSE(h.cpu.iff1);
+        REQUIRE_FALSE(h.cpu.iff2);
+        REQUIRE_FALSE(h.cpu.ei_pending);
+
+        h.mem[0x0066] = 0xed;
+        h.mem[0x0067] = 0x45;
+        const StepResult retn = h.step();
+        REQUIRE(retn.cycle_delta() == 14);
+        REQUIRE(h.cpu.pc.get() == 0x0001);
+        REQUIRE_FALSE(h.cpu.iff1);
+        REQUIRE_FALSE(h.cpu.iff2);
+    }
+
+    SECTION("Mode 0 interrupts follow the mode 1 vectoring path used by the emulator") {
+        CpuHarness h;
+        h.cpu.pc.set(0x2000);
+        h.cpu.sp.set(0xfffe);
+        h.cpu.iff1 = true;
+        h.cpu.iff2 = true;
+        h.cpu.interrupt = true;
+        h.cpu.int_mode = 0;
+
+        const StepResult step = h.step();
+        REQUIRE(step.cycle_delta() == 13);
+        REQUIRE(h.cpu.pc.get() == 0x0038);
+        REQUIRE(h.cpu.sp.get() == 0xfffc);
+        REQUIRE(h.mem.read_addr_from_mem(0xfffc) == 0x2000);
+        REQUIRE_FALSE(h.cpu.iff1);
+        REQUIRE_FALSE(h.cpu.iff2);
+        REQUIRE_FALSE(h.cpu.interrupt);
+    }
+
+    SECTION("RETN can also restore IFF1 back to false when IFF2 is clear") {
+        CpuHarness h;
+        h.cpu.iff1 = true;
+        h.cpu.iff2 = false;
+        h.cpu.sp.set(0xfffc);
+        h.mem.write_addr_to_mem(0xfffc, 0x6789);
+        h.load({0xed, 0x45});
+
+        const StepResult step = h.step();
+        REQUIRE(step.cycle_delta() == 14);
+        REQUIRE(h.cpu.pc.get() == 0x6789);
+        REQUIRE_FALSE(h.cpu.iff1);
+        REQUIRE_FALSE(h.cpu.iff2);
+    }
+
+    SECTION("LD A,I uses the current IFF2 state even after DI has cleared both flip-flops") {
+        CpuHarness h;
+        h.cpu.iff1 = true;
+        h.cpu.iff2 = true;
+        h.cpu.ir.hi(0x00);
+        h.load({0xf3, 0xed, 0x57});
+
+        const StepResult di = h.step();
+        REQUIRE(di.cycle_delta() == 4);
+        REQUIRE_FALSE(h.cpu.iff1);
+        REQUIRE_FALSE(h.cpu.iff2);
+
+        const StepResult ldai = h.step();
+        REQUIRE(ldai.cycle_delta() == 9);
+        REQUIRE(h.cpu.af.accum() == 0x00);
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Zero));
+    }
+}
