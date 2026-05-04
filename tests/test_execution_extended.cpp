@@ -182,4 +182,105 @@ TEST_CASE("R register increments according to fetched opcode length", "[rreg]") 
         REQUIRE(h.cpu.ir.lo() == 0x03);
         REQUIRE(h.cpu.pc.get() == 0x0004);
     }
+
+    SECTION("R preserves bit 7 while incrementing the low seven bits") {
+        CpuHarness h;
+        h.cpu.ir.lo(0x80);
+        h.load({0x00});
+
+        h.step();
+        REQUIRE(h.cpu.ir.lo() == 0x81);
+    }
+
+    SECTION("R wraps the low seven bits after 0x7f") {
+        CpuHarness h;
+        h.cpu.ir.lo(0x7f);
+        h.load({0x00});
+
+        h.step();
+        REQUIRE(h.cpu.ir.lo() == 0x00);
+    }
+
+    SECTION("R wraps the low seven bits while preserving bit 7") {
+        CpuHarness h;
+        h.cpu.ir.lo(0xff);
+        h.load({0x00});
+
+        h.step();
+        REQUIRE(h.cpu.ir.lo() == 0x80);
+    }
+
+    SECTION("ED prefix increments R by two") {
+        CpuHarness h;
+        h.cpu.ir.lo(0x10);
+        h.cpu.hl.set(0x1234);
+        h.mem.write_addr(0x4000, 0xabcd);
+        h.load({0xed, 0x6b, 0x00, 0x40});
+
+        h.step();
+        REQUIRE(h.cpu.ir.lo() == 0x12);
+        REQUIRE(h.cpu.hl.get() == 0xabcd);
+        REQUIRE(h.cpu.pc.get() == 0x0004);
+    }
+
+    SECTION("Repeated indexed prefixes increment R for each fetched prefix byte") {
+        CpuHarness h;
+        h.cpu.ir.lo(0x20);
+        h.load({0xdd, 0xfd, 0x00});
+
+        h.step();
+        REQUIRE(h.cpu.ir.lo() == 0x23);
+        REQUIRE(h.cpu.pc.get() == 0x0003);
+    }
+
+    SECTION("Indexed CB forms with ignored prefixes still count every fetched prefix toward R") {
+        CpuHarness h;
+        h.cpu.ix.set(0x6200);
+        h.cpu.ir.lo(0x30);
+        h.mem[0x6200] = 0x01;
+        h.load({0xdd, 0xdd, 0xcb, 0x00, 0x46});
+
+        h.step();
+        REQUIRE(h.cpu.ir.lo() == 0x34);
+        REQUIRE(h.cpu.pc.get() == 0x0005);
+    }
+
+    SECTION("Maskable interrupts increment R when the interrupt is acknowledged") {
+        CpuHarness h;
+        h.cpu.ir.lo(0x40);
+        h.cpu.iff1 = true;
+        h.cpu.iff2 = true;
+        h.cpu.interrupt = true;
+        h.cpu.int_mode = 1;
+
+        h.step();
+        REQUIRE(h.cpu.ir.lo() == 0x41);
+        REQUIRE(h.cpu.pc.get() == 0x0038);
+    }
+
+    SECTION("Mode 2 interrupts increment R when the interrupt is acknowledged") {
+        CpuHarness h;
+        h.cpu.ir.hi(0x12);
+        h.cpu.ir.lo(0x50);
+        h.cpu.sp.set(0xfffe);
+        h.cpu.iff1 = true;
+        h.cpu.iff2 = true;
+        h.cpu.interrupt = true;
+        h.cpu.int_mode = 2;
+        h.mem.write_addr(0x12ff, 0x4567);
+
+        h.step();
+        REQUIRE(h.cpu.ir.lo() == 0x51);
+        REQUIRE(h.cpu.pc.get() == 0x4567);
+    }
+
+    SECTION("NMI increments R before vectoring to 0x0066") {
+        CpuHarness h;
+        h.cpu.ir.lo(0x60);
+        h.cpu.int_nmi = true;
+
+        h.step();
+        REQUIRE(h.cpu.ir.lo() == 0x61);
+        REQUIRE(h.cpu.pc.get() == 0x0066);
+    }
 }
