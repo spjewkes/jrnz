@@ -1,6 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include "bus.hpp"
+#include "test_support.hpp"
 #include "z80.hpp"
 
 TEST_CASE("NEG handles zero, borrow, and overflow edges", "[flags]") {
@@ -72,6 +73,70 @@ TEST_CASE("DAA corrects both addition and subtraction BCD results", "[flags]") {
     REQUIRE(sub_result == 0x09);
     REQUIRE(state.af.flag(RegisterAF::Flags::AddSubtract));
     REQUIRE_FALSE(state.af.flag(RegisterAF::Flags::Carry));
+}
+
+TEST_CASE("CP edge cases update all documented flags without modifying A", "[flags]") {
+    Bus mem(65536);
+    Z80 state(mem, true);
+    Instruction cp(InstType::CP, "cp *", 0, 0, Operand::A, Operand::N);
+
+    struct CpCase {
+        uint8_t a;
+        uint8_t operand;
+        uint8_t flags;
+    };
+
+    const CpCase cases[] = {
+        {0x00, 0x00, 0x42}, {0x10, 0x01, 0x1a}, {0x00, 0x01, 0xbb},
+        {0x80, 0x01, 0x3e}, {0x7f, 0xff, 0x87}, {0x28, 0x08, 0x22},
+    };
+
+    for (const auto &test : cases) {
+        state.af.accum(test.a);
+        state.af.flags(0);
+        uint8_t a_after = test.a;
+        StorageElement dst(&a_after, 1);
+        StorageElement src(test.operand);
+
+        cp.do_cp(state, dst, src);
+
+        INFO("a=0x" << std::hex << static_cast<unsigned int>(test.a) << " operand=0x"
+                    << static_cast<unsigned int>(test.operand));
+        REQUIRE(a_after == test.a);
+        require_flags(state.af.flags(), test.flags);
+    }
+}
+
+TEST_CASE("DAA edge cases update all documented flags", "[flags]") {
+    Bus mem(65536);
+    Z80 state(mem, true);
+    Instruction daa(InstType::DAA, "daa", 0, 0, Operand::A, Operand::A);
+
+    struct DaaCase {
+        uint8_t input;
+        uint8_t initial_flags;
+        uint8_t result;
+        uint8_t flags;
+    };
+
+    const DaaCase cases[] = {
+        {0x3c, 0x00, 0x42, 0x14}, {0x9a, 0x00, 0x00, 0x55}, {0x0f, 0x02, 0x09, 0x0e},
+        {0x73, 0x03, 0x13, 0x03}, {0x7d, 0x00, 0x83, 0x90},
+    };
+
+    for (const auto &test : cases) {
+        state.af.accum(test.input);
+        state.af.flags(test.initial_flags);
+        uint8_t result = test.input;
+        StorageElement dst(&result, 1);
+
+        daa.do_daa(state, dst, dst);
+
+        INFO("a=0x" << std::hex << static_cast<unsigned int>(test.input) << " initial_flags=0x"
+                    << static_cast<unsigned int>(test.initial_flags));
+        REQUIRE(result == test.result);
+        require_flags(state.af.flags(), test.flags);
+    }
 }
 
 TEST_CASE("BIT updates status but preserves carry", "[flags]") {
