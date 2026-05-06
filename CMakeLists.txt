@@ -65,6 +65,7 @@ add_executable(
   tests/test_decoder.cpp
   tests/test_control_flow.cpp
   tests/test_flags_misc.cpp
+  tests/test_flags_matrix.cpp
   tests/test_execution_control.cpp
   tests/test_execution_control_matrix.cpp
   tests/test_execution_alu.cpp
@@ -84,7 +85,8 @@ add_executable(
   tests/test_execution_indexed_cb_matrix.cpp
   tests/test_execution_bitsetres.cpp
   tests/test_execution_exchange_stack.cpp
-  tests/test_execution_index_halves.cpp)
+  tests/test_execution_index_halves.cpp
+  tests/test_execution_index_halves_matrix.cpp)
 target_link_libraries(
   run_tests
   z80_lib
