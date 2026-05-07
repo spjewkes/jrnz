@@ -98,7 +98,8 @@ target_link_libraries(
 
 catch_discover_tests(run_tests)
 
-add_executable(run_tests_undocumented tests/test_undocumented_opcodes.cpp)
+add_executable(run_tests_undocumented tests/test_undocumented_opcodes.cpp
+                                      tests/test_undocumented_matrix.cpp)
 target_link_libraries(
   run_tests_undocumented
   z80_lib
@@ -110,7 +111,9 @@ target_link_libraries(
 
 catch_discover_tests(run_tests_undocumented TEST_PREFIX "undocumented::")
 
-add_executable(run_tests_undocumented_flags tests/test_undocumented_flags.cpp)
+add_executable(
+  run_tests_undocumented_flags tests/test_undocumented_flags.cpp
+                               tests/test_undocumented_flags_matrix.cpp)
 target_link_libraries(
   run_tests_undocumented_flags
   z80_lib
