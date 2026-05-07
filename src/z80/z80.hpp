@@ -40,6 +40,7 @@ public:
     bool interrupt = {false};
     bool halted = {false};
     bool ei_pending = {false};
+    bool flags_modified_last_instruction = {false};
 
     uint32_t cycles_left = {0};
     uint64_t total_cycles = {0};

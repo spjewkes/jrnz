@@ -130,6 +130,7 @@ TEST_CASE("SCF CCF and CPL copy undocumented flag bits from A or the result", "[
         h.cpu.af.accum(0x28);
         h.cpu.af.flag(RegisterAF::Flags::AddSubtract, true);
         h.cpu.af.flag(RegisterAF::Flags::HalfCarry, true);
+        h.cpu.flags_modified_last_instruction = true;
         h.load({0x37});
 
         const StepResult step = h.step();
@@ -141,10 +142,45 @@ TEST_CASE("SCF CCF and CPL copy undocumented flag bits from A or the result", "[
         require_f3_f5(h, true, true);
     }
 
+    SECTION("SCF ORs in prior F3 and F5 when the previous instruction did not modify flags") {
+        CpuHarness h;
+        h.cpu.af.accum(0x20);
+        h.cpu.af.flags(0x08);
+        h.load({0x40, 0x37});
+
+        const StepResult first = h.step();
+        const StepResult second = h.step();
+
+        REQUIRE(first.cycle_delta() == 4);
+        REQUIRE(second.cycle_delta() == 4);
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Carry));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
+        require_f3_f5(h, true, true);
+    }
+
+    SECTION("SCF takes F3 and F5 directly from A when the previous instruction modified flags") {
+        CpuHarness h;
+        h.cpu.af.accum(0x20);
+        h.cpu.af.flags(0x08);
+        h.load({0xb7, 0x37});
+
+        const StepResult first = h.step();
+        const StepResult second = h.step();
+
+        REQUIRE(first.cycle_delta() == 4);
+        REQUIRE(second.cycle_delta() == 4);
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Carry));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
+        require_f3_f5(h, false, true);
+    }
+
     SECTION("CCF copies F3 and F5 from A while half-carry follows old carry") {
         CpuHarness h;
         h.cpu.af.accum(0x08);
-        h.cpu.af.flag(RegisterAF::Flags::Carry, true);
+        h.cpu.af.flags(0x01);
+        h.cpu.flags_modified_last_instruction = true;
         h.load({0x3f});
 
         const StepResult step = h.step();
@@ -153,6 +189,40 @@ TEST_CASE("SCF CCF and CPL copy undocumented flag bits from A or the result", "[
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Carry));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
+        require_f3_f5(h, true, false);
+    }
+
+    SECTION("CCF ORs in prior F3 and F5 when the previous instruction did not modify flags") {
+        CpuHarness h;
+        h.cpu.af.accum(0x08);
+        h.cpu.af.flags(0x20);
+        h.load({0x40, 0x3f});
+
+        const StepResult first = h.step();
+        const StepResult second = h.step();
+
+        REQUIRE(first.cycle_delta() == 4);
+        REQUIRE(second.cycle_delta() == 4);
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Carry));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
+        require_f3_f5(h, true, true);
+    }
+
+    SECTION("CCF takes F3 and F5 directly from A when the previous instruction modified flags") {
+        CpuHarness h;
+        h.cpu.af.accum(0x08);
+        h.cpu.af.flags(0x20);
+        h.load({0xb7, 0x3f});
+
+        const StepResult first = h.step();
+        const StepResult second = h.step();
+
+        REQUIRE(first.cycle_delta() == 4);
+        REQUIRE(second.cycle_delta() == 4);
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Carry));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
         require_f3_f5(h, true, false);
     }
 

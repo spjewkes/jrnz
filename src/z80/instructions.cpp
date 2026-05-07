@@ -290,6 +290,63 @@ size_t Instruction::execute(Z80 &state) {
     return 0;
 }
 
+bool Instruction::modifies_flags(uint32_t opcode) const {
+    switch (inst) {
+        case InstType::XOR:
+        case InstType::AND:
+        case InstType::OR:
+        case InstType::DEC:
+        case InstType::CP:
+        case InstType::SUB:
+        case InstType::SBC:
+        case InstType::ADD:
+        case InstType::ADC:
+        case InstType::INC:
+        case InstType::LDD:
+        case InstType::LDDR:
+        case InstType::LDI:
+        case InstType::LDIR:
+        case InstType::BIT:
+        case InstType::RLC:
+        case InstType::RL:
+        case InstType::RRC:
+        case InstType::RR:
+        case InstType::SLA:
+        case InstType::SLL:
+        case InstType::SRA:
+        case InstType::SRL:
+        case InstType::RLCA:
+        case InstType::RLA:
+        case InstType::RRCA:
+        case InstType::RRA:
+        case InstType::RLD:
+        case InstType::RRD:
+        case InstType::SCF:
+        case InstType::CCF:
+        case InstType::CPL:
+        case InstType::CPI:
+        case InstType::CPIR:
+        case InstType::CPD:
+        case InstType::CPDR:
+        case InstType::INI:
+        case InstType::INIR:
+        case InstType::IND:
+        case InstType::INDR:
+        case InstType::OUTI:
+        case InstType::OTIR:
+        case InstType::OUTD:
+        case InstType::OTDR:
+        case InstType::DAA:
+        case InstType::NEG:
+        case InstType::IN:
+            return true;
+        case InstType::LD:
+            return opcode == 0xed57 || opcode == 0xed5f;
+        default:
+            return false;
+    }
+}
+
 size_t Instruction::do_nop(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem) {
     UNUSED(state);
     UNUSED(dst_elem);
@@ -1060,10 +1117,16 @@ size_t Instruction::do_scf(Z80 &state, StorageElement &dst_elem, StorageElement 
     UNUSED(dst_elem);
     UNUSED(src_elem);
 
+    const uint8_t accum = state.af.accum();
+    const uint8_t prior_flags = state.af.flags();
     state.af.flag(RegisterAF::Flags::Carry, true);
     state.af.flag(RegisterAF::Flags::AddSubtract, false);
     state.af.flag(RegisterAF::Flags::HalfCarry, false);
-    set_f3_f5(state.af, state.af.accum());
+    if (state.flags_modified_last_instruction) {
+        set_f3_f5(state.af, accum);
+    } else {
+        set_f3_f5(state.af, static_cast<uint8_t>(prior_flags | accum));
+    }
 
     return cycles;
 }
@@ -1073,11 +1136,17 @@ size_t Instruction::do_ccf(Z80 &state, StorageElement &dst_elem, StorageElement 
     UNUSED(src_elem);
 
     bool old_carry = state.af.flag(RegisterAF::Flags::Carry);
+    const uint8_t accum = state.af.accum();
+    const uint8_t prior_flags = state.af.flags();
 
     state.af.inv_flag(RegisterAF::Flags::Carry);
     state.af.flag(RegisterAF::Flags::AddSubtract, false);
     state.af.flag(RegisterAF::Flags::HalfCarry, old_carry);
-    set_f3_f5(state.af, state.af.accum());
+    if (state.flags_modified_last_instruction) {
+        set_f3_f5(state.af, accum);
+    } else {
+        set_f3_f5(state.af, static_cast<uint8_t>(prior_flags | accum));
+    }
 
     return cycles;
 }

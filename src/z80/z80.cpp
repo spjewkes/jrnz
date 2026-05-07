@@ -29,6 +29,7 @@ bool Z80::clock(bool no_cycles) {
             Instruction inst{InstType::PUSH, "NMI", 1, 11, Operand::UNUSED, Operand::PC};
             update_r_reg();
             cycles = inst.execute(*this);
+            flags_modified_last_instruction = false;
             pc.set(0x66);
             iff2 = iff1;
             iff1 = false;
@@ -48,6 +49,7 @@ bool Z80::clock(bool no_cycles) {
                     Instruction inst{InstType::PUSH, "INT1", 1, 13, Operand::UNUSED, Operand::PC};
                     update_r_reg();
                     cycles = inst.execute(*this);
+                    flags_modified_last_instruction = false;
                     pc.set(0x38);
                     interrupt = false;
                     ei_pending = false;
@@ -58,6 +60,7 @@ bool Z80::clock(bool no_cycles) {
                     Instruction inst{InstType::PUSH, "INT2", 1, 13, Operand::UNUSED, Operand::PC};
                     update_r_reg();
                     cycles = inst.execute(*this);
+                    flags_modified_last_instruction = false;
                     // Assume data bus value is always 0xff. This seems to be the case for another emulator I looked at
                     // And I've seen Z80 snapshots that seem to assume this too
                     uint16_t read_addr = (ir.get() & 0xff00) + 0xff;
@@ -75,6 +78,7 @@ bool Z80::clock(bool no_cycles) {
             Instruction inst{InstType::NOP, "halt", 1, 4};
             update_r_reg();
             cycles = const_cast<Instruction &>(inst).execute(*this);
+            flags_modified_last_instruction = false;
             found = true;
         } else {
             curr_opcode_pc = pc.get();
@@ -89,6 +93,7 @@ bool Z80::clock(bool no_cycles) {
             if (inst.inst != InstType::INV) {
                 pc.set(curr_opcode_pc + inst.size + fetched.ignored_prefixes);
                 cycles = const_cast<Instruction &>(inst).execute(*this) + ignored_prefix_cycles(fetched);
+                flags_modified_last_instruction = inst.modifies_flags(curr_opcode);
                 if (ei_pending && inst.inst != InstType::EI) {
                     iff1 = true;
                     iff2 = true;
@@ -124,6 +129,7 @@ void Z80::reset() {
     iff2 = false;
     int_mode = 0;
     ei_pending = false;
+    flags_modified_last_instruction = false;
 }
 
 void Z80::update_r_reg(uint8_t inc) {

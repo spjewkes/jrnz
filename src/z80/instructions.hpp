@@ -57,6 +57,7 @@ public:
     Operand src;
 
     size_t execute(Z80 &state);
+    bool modifies_flags(uint32_t opcode) const;
 
     // TODO need to fix this (needs to be public for unit tests)
     // private:
