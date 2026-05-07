@@ -1,4 +1,4 @@
 #!/bin/zsh
 
 cd __build/ || exit 1
-ctest --output-on-failure
+time -p ctest --output-on-failure
