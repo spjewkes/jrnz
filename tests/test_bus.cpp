@@ -44,6 +44,48 @@ TEST_CASE("Port reads distinguish even keyboard ports from the floating bus path
     REQUIRE(bus.floating_counter == 2);
 }
 
+TEST_CASE("Floating bus reads advance through the 16K display region and wrap around", "[bus]") {
+    Bus bus(65536);
+    bus[0x4000] = 0x11;
+    bus[0x4001] = 0x22;
+    bus[0x7fff] = 0x33;
+
+    bus.floating_counter = 0x3fff;
+    REQUIRE(bus.read_port(0x00ff) == 0x33);
+    REQUIRE(bus.floating_counter == 0x4000);
+
+    REQUIRE(bus.read_port(0x00ff) == 0x11);
+    REQUIRE(bus.floating_counter == 0x4001);
+
+    REQUIRE(bus.read_port(0x00ff) == 0x22);
+    REQUIRE(bus.floating_counter == 0x4002);
+}
+
+TEST_CASE("Even keyboard-port reads preserve the upper three bits regardless of row selection", "[bus]") {
+    Bus bus(65536);
+
+    const uint8_t all_rows = bus.read_port(0x00fe);
+    const uint8_t middle_rows = bus.read_port(0xbffe);
+    const uint8_t high_rows = bus.read_port(0x7ffe);
+
+    REQUIRE((all_rows & 0xe0) == 0xe0);
+    REQUIRE((middle_rows & 0xe0) == 0xe0);
+    REQUIRE((high_rows & 0xe0) == 0xe0);
+}
+
+TEST_CASE("ROM writes remain blocked even when addressing through read-modify-write helpers", "[bus]") {
+    Bus bus(65536);
+    bus[0x3ffe] = 0x12;
+    bus[0x3fff] = 0x34;
+    bus[0x4000] = 0x56;
+
+    bus.write_addr_to_mem(0x3ffe, 0xabcd);
+
+    REQUIRE(bus.read_data(0x3ffe) == 0x12);
+    REQUIRE(bus.read_data(0x3fff) == 0x34);
+    REQUIRE(bus.read_data(0x4000) == 0x56);
+}
+
 TEST_CASE("Port writes only latch the Spectrum ULA port when the low byte is 0xfe", "[bus]") {
     Bus bus(65536);
 
