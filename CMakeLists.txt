@@ -87,6 +87,7 @@ add_executable(
   tests/test_execution_index_pairs_misc.cpp
   tests/test_execution_indexed_cb_matrix.cpp
   tests/test_execution_bitsetres.cpp
+  tests/test_execution_bit_matrix.cpp
   tests/test_execution_exchange_stack.cpp
   tests/test_execution_index_halves.cpp
   tests/test_execution_index_halves_matrix.cpp)
