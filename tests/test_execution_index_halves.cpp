@@ -35,6 +35,21 @@ TEST_CASE("IXH and IXL participate in load instructions as 8-bit registers", "[i
         REQUIRE(h.cpu.ix.get() == 0xabcd);
     }
 
+    SECTION("LD C,IXH decodes to the IX high byte rather than H") {
+        CpuHarness h;
+        h.cpu.ix.set(0xabcd);
+        h.cpu.hl.set(0x1234);
+        h.load({0xdd, 0x4c});
+
+        const StepResult step = h.step();
+
+        REQUIRE(step.cycle_delta() == 8);
+        REQUIRE(step.pc_after == 0x0002);
+        REQUIRE(h.cpu.bc.lo() == 0xab);
+        REQUIRE(h.cpu.hl.get() == 0x1234);
+        REQUIRE(h.cpu.ix.get() == 0xabcd);
+    }
+
     SECTION("LD IXH,B and LD IXL,A update only the targeted half") {
         CpuHarness h;
         h.cpu.ix.set(0x5555);
