@@ -4,6 +4,46 @@
 
 TEST_CASE("Block compare instructions derive undocumented flags from A minus value minus HF",
           "[undocumented][flags][compliance][block-cp-matrix]") {
+    SECTION("Single-step block compare forms follow the adjusted result rule across more boundary cases") {
+        struct CompareCase {
+            const char *name;
+            std::initializer_list<uint8_t> code;
+            uint16_t hl;
+            uint16_t bc;
+            uint8_t a;
+            uint8_t value;
+            uint16_t expected_hl;
+            uint16_t expected_bc;
+            uint8_t expected_flags;
+        };
+
+        const CompareCase cases[] = {
+            {"cpi borrow with half-borrow", {0xed, 0xa1}, 0x9400, 0x0002, 0x10, 0x01, 0x9401, 0x0001, 0x1a},
+            {"cpi equal keeps adjusted result zero", {0xed, 0xa1}, 0x9402, 0x0002, 0x40, 0x40, 0x9403, 0x0001, 0x46},
+            {"cpd signed overflow case", {0xed, 0xa9}, 0x9405, 0x0002, 0x80, 0x01, 0x9404, 0x0001, 0x3e},
+            {"cpd borrow from low nibble", {0xed, 0xa9}, 0x9407, 0x0002, 0x00, 0x01, 0x9406, 0x0001, 0xbb},
+        };
+
+        for (const auto &tc : cases) {
+            CpuHarness h;
+            INFO(tc.name);
+            h.cpu.af.accum(tc.a);
+            h.cpu.af.flags(0x00);
+            h.cpu.hl.set(tc.hl);
+            h.cpu.bc.set(tc.bc);
+            h.mem[tc.hl] = tc.value;
+            h.load(tc.code);
+
+            const StepResult step = h.step();
+
+            REQUIRE(step.cycle_delta() == 16);
+            REQUIRE(h.cpu.hl.get() == tc.expected_hl);
+            REQUIRE(h.cpu.bc.get() == tc.expected_bc);
+            REQUIRE(h.cpu.af.accum() == tc.a);
+            require_flags(h.cpu.af.flags(), tc.expected_flags);
+        }
+    }
+
     SECTION("CPI sets F3 from bit 3 and F5 from bit 1 of the adjusted result") {
         CpuHarness h;
         h.cpu.af.accum(0x09);
@@ -154,6 +194,91 @@ TEST_CASE("Block transfer instructions derive undocumented flags from A plus tra
 
 TEST_CASE("Block I/O instructions expose undocumented N and F3/F5 behaviour",
           "[undocumented][flags][compliance][block-io-matrix]") {
+    SECTION("Single-step block I/O forms cover more adjusted-sum combinations") {
+        struct IoCase {
+            const char *name;
+            std::initializer_list<uint8_t> code;
+            uint16_t bc;
+            uint16_t hl;
+            bool preload_port_data;
+            uint8_t value;
+            uint16_t expected_bc;
+            uint16_t expected_hl;
+            uint8_t expected_flags;
+        };
+
+        const IoCase cases[] = {
+            {"ini odd parity case", {0xed, 0xa2}, 0x03ff, 0x9800, true, 0x03, 0x02ff, 0x9801, 0x04},
+            {"ind carry and subtract case", {0xed, 0xaa}, 0x02fe, 0x9802, false, 0xff, 0x01fe, 0x9801, 0x17},
+            {"outi odd parity case", {0xed, 0xa3}, 0x03fe, 0x9804, false, 0x03, 0x02fe, 0x9805, 0x04},
+            {"outd carry and subtract case", {0xed, 0xab}, 0x02fe, 0x9806, false, 0xff, 0x01fe, 0x9805, 0x07},
+        };
+
+        for (const auto &tc : cases) {
+            CpuHarness h;
+            INFO(tc.name);
+            h.cpu.bc.set(tc.bc);
+            h.cpu.hl.set(tc.hl);
+            if (tc.preload_port_data) {
+                h.mem[0x4000] = tc.value;
+                h.mem.floating_counter = 0;
+            } else {
+                h.mem[tc.hl] = tc.value;
+            }
+            h.load(tc.code);
+
+            const StepResult step = h.step();
+
+            REQUIRE(step.cycle_delta() == 16);
+            REQUIRE(h.cpu.bc.get() == tc.expected_bc);
+            REQUIRE(h.cpu.hl.get() == tc.expected_hl);
+            require_flags(h.cpu.af.flags(), tc.expected_flags);
+        }
+    }
+
+    SECTION("Repeating block I/O forms preserve their undocumented flag shape on the first iteration") {
+        struct RepeatCase {
+            const char *name;
+            std::initializer_list<uint8_t> code;
+            uint16_t bc;
+            uint16_t hl;
+            bool preload_port_data;
+            uint8_t value;
+            uint16_t expected_bc;
+            uint16_t expected_hl;
+            uint8_t expected_flags;
+        };
+
+        const RepeatCase cases[] = {
+            {"inir repeat step", {0xed, 0xb2}, 0x02ff, 0x9900, true, 0x01, 0x01ff, 0x9901, 0x04},
+            {"indr repeat step", {0xed, 0xba}, 0x02ff, 0x9903, true, 0x01, 0x01ff, 0x9902, 0x04},
+            {"otir repeat step", {0xed, 0xb3}, 0x02fe, 0x9904, false, 0x01, 0x01fe, 0x9905, 0x04},
+            {"otdr repeat step", {0xed, 0xbb}, 0x02fe, 0x9907, false, 0x01, 0x01fe, 0x9906, 0x04},
+        };
+
+        for (const auto &tc : cases) {
+            CpuHarness h;
+            INFO(tc.name);
+            h.cpu.bc.set(tc.bc);
+            h.cpu.hl.set(tc.hl);
+            if (tc.preload_port_data) {
+                h.mem[0x4000] = tc.value;
+                h.mem.floating_counter = 0;
+            } else {
+                h.mem[tc.hl] = tc.value;
+            }
+            h.load(tc.code);
+
+            const StepResult step = h.step();
+
+            REQUIRE(step.cycle_delta() == 21);
+            REQUIRE(h.cpu.pc.get() == 0x0000);
+            REQUIRE(h.cpu.bc.get() == tc.expected_bc);
+            REQUIRE(h.cpu.hl.get() == tc.expected_hl);
+            require_flags(h.cpu.af.flags(), tc.expected_flags);
+        }
+    }
+
     SECTION("INI takes flags from the input byte, adjusted C, and decremented B") {
         CpuHarness h;
         h.cpu.bc.set(0x02ff);
