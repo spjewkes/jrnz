@@ -90,6 +90,7 @@ add_executable(
   tests/test_execution_bit_matrix.cpp
   tests/test_execution_exchange_stack.cpp
   tests/test_execution_index_halves.cpp
+  tests/test_execution_index_load_matrix.cpp
   tests/test_execution_index_halves_matrix.cpp)
 target_link_libraries(
   run_tests
