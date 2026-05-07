@@ -74,6 +74,7 @@ add_executable(
   tests/test_execution_arithmetic16.cpp
   tests/test_execution_loads.cpp
   tests/test_execution_extended.cpp
+  tests/test_execution_prefix_matrix.cpp
   tests/test_execution_blocks_ports.cpp
   tests/test_execution_block_io.cpp
   tests/test_execution_rotate_shift.cpp
