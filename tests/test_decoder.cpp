@@ -36,6 +36,7 @@ TEST_CASE("ED prefixed opcode table separates documented coverage from undocumen
 
     size_t documented_count = 0;
     size_t undocumented_count = 0;
+    size_t undefined_nop_count = 0;
     for (uint32_t opcode = 0x00; opcode <= 0xff; ++opcode) {
         const uint32_t full_opcode = 0xed00 | opcode;
         const Instruction &inst = decode_opcode(full_opcode);
@@ -45,6 +46,8 @@ TEST_CASE("ED prefixed opcode table separates documented coverage from undocumen
                                                    full_opcode) != undocumented_ed_opcodes.end();
             if (is_undocumented) {
                 ++undocumented_count;
+            } else if (inst.inst == InstType::NOP && inst.size == 2 && inst.cycles == 8) {
+                ++undefined_nop_count;
             } else {
                 ++documented_count;
             }
@@ -53,13 +56,16 @@ TEST_CASE("ED prefixed opcode table separates documented coverage from undocumen
 
     REQUIRE(documented_count == 58);
     REQUIRE(undocumented_count == undocumented_ed_opcodes.size());
+    REQUIRE(undefined_nop_count == 180);
     REQUIRE(decode_opcode(0xed44).inst == InstType::NEG);
     REQUIRE(decode_opcode(0xed4d).inst == InstType::RETI);
     REQUIRE(decode_opcode(0xed57).inst == InstType::LD);
     REQUIRE(decode_opcode(0xeda0).inst == InstType::LDI);
     REQUIRE(decode_opcode(0xed4e).inst == InstType::IM);
     REQUIRE(decode_opcode(0xed71).inst == InstType::OUT);
-    REQUIRE(decode_opcode(0xed04).inst == InstType::INV);
+    REQUIRE(decode_opcode(0xed04).inst == InstType::NOP);
+    REQUIRE(decode_opcode(0xed04).size == 2);
+    REQUIRE(decode_opcode(0xed04).cycles == 8);
 }
 
 TEST_CASE("Indexed prefix decoding handles both overrides and ignored prefixes", "[decoder]") {

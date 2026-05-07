@@ -9,6 +9,7 @@ static std::map<uint32_t, Instruction> map_inst;
 static std::map<uint32_t, std::string> map_rom;
 
 static Instruction inv_inst{InstType::INV, "INVALID", 0, 0};
+static Instruction ed_nop_inst{InstType::NOP, "nop", 2, 8};
 static std::string unk_rom_addr{""};
 
 namespace {
@@ -2118,6 +2119,10 @@ const Instruction& decode_opcode(uint32_t opcode) {
             prefixed_copy.size = base_it->second.size + 1;
             return prefixed_copy;
         }
+    }
+
+    if (prefix == 0xed00) {
+        return ed_nop_inst;
     }
 
     return inv_inst;

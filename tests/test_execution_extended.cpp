@@ -224,6 +224,58 @@ TEST_CASE("Block repeat instructions distinguish repeating and terminal iteratio
     }
 }
 
+TEST_CASE("Self-modifying LDIR and LDDR can turn into ED NOPs on the next iteration", "[extended][undocumented]") {
+    SECTION("LDIR re-fetches an overwritten ED second byte as an 8-cycle NOP") {
+        CpuHarness h;
+        h.cpu.hl.set(0x4000);
+        h.cpu.de.set(0x0001);
+        h.cpu.bc.set(0x0002);
+        h.mem[0x4000] = 0x00;
+        h.mem[0x4001] = 0x9a;
+        h.load({0xed, 0xb0, 0x00});
+
+        const StepResult first = h.step();
+        REQUIRE(first.cycle_delta() == 21);
+        REQUIRE(h.cpu.pc.get() == 0x0000);
+        REQUIRE(h.mem[0x0001] == 0x00);
+        REQUIRE(h.cpu.hl.get() == 0x4001);
+        REQUIRE(h.cpu.de.get() == 0x0002);
+        REQUIRE(h.cpu.bc.get() == 0x0001);
+
+        const StepResult second = h.step();
+        REQUIRE(second.cycle_delta() == 8);
+        REQUIRE(h.cpu.pc.get() == 0x0002);
+        REQUIRE(h.cpu.hl.get() == 0x4001);
+        REQUIRE(h.cpu.de.get() == 0x0002);
+        REQUIRE(h.cpu.bc.get() == 0x0001);
+    }
+
+    SECTION("LDDR re-fetches an overwritten ED second byte as an 8-cycle NOP") {
+        CpuHarness h;
+        h.cpu.hl.set(0x4101);
+        h.cpu.de.set(0x0001);
+        h.cpu.bc.set(0x0002);
+        h.mem[0x4101] = 0x00;
+        h.mem[0x4100] = 0x9a;
+        h.load({0xed, 0xb8, 0x00});
+
+        const StepResult first = h.step();
+        REQUIRE(first.cycle_delta() == 21);
+        REQUIRE(h.cpu.pc.get() == 0x0000);
+        REQUIRE(h.mem[0x0001] == 0x00);
+        REQUIRE(h.cpu.hl.get() == 0x4100);
+        REQUIRE(h.cpu.de.get() == 0x0000);
+        REQUIRE(h.cpu.bc.get() == 0x0001);
+
+        const StepResult second = h.step();
+        REQUIRE(second.cycle_delta() == 8);
+        REQUIRE(h.cpu.pc.get() == 0x0002);
+        REQUIRE(h.cpu.hl.get() == 0x4100);
+        REQUIRE(h.cpu.de.get() == 0x0000);
+        REQUIRE(h.cpu.bc.get() == 0x0001);
+    }
+}
+
 TEST_CASE("BIT on indexed memory updates flags from the fetched byte", "[indexed]") {
     CpuHarness h;
     h.cpu.ix.set(0x7200);

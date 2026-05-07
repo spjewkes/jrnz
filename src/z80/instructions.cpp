@@ -29,6 +29,11 @@ void set_block_cp_f3_f5(RegisterAF &af, uint8_t v) {
     af.flag(RegisterAF::Flags::F5, (v & 0x02) != 0);
 }
 
+void set_block_ld_f3_f5(RegisterAF &af, uint8_t v) {
+    af.flag(RegisterAF::Flags::F3, (v & 0x08) != 0);
+    af.flag(RegisterAF::Flags::F5, (v & 0x02) != 0);
+}
+
 bool even_parity(uint8_t v) { return (__builtin_popcount(static_cast<unsigned int>(v)) % 2) == 0; }
 
 Operand indexed_cb_copy_target(uint32_t opcode) {
@@ -439,6 +444,8 @@ size_t Instruction::do_ldir(Z80 &state, StorageElement &dst_elem, StorageElement
 
 size_t Instruction::impl_ld_block(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem, bool inc,
                                   bool repeat) {
+    uint32_t transferred = 0;
+    src_elem.get_value(transferred);
     dst_elem = src_elem;
 
     int adjust = (inc ? 1 : -1);
@@ -454,6 +461,7 @@ size_t Instruction::impl_ld_block(Z80 &state, StorageElement &dst_elem, StorageE
     state.af.flag(RegisterAF::Flags::AddSubtract, false);
     state.af.flag(RegisterAF::Flags::ParityOverflow, pv_new);
     state.af.flag(RegisterAF::Flags::HalfCarry, false);
+    set_block_ld_f3_f5(state.af, static_cast<uint8_t>(state.af.accum() + static_cast<uint8_t>(transferred)));
 
     if (repeat && state.bc.get() != 0) {
         state.pc.set(state.pc.get() - size);

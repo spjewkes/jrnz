@@ -147,6 +147,7 @@ TEST_CASE("Block transfer instructions derive undocumented flags from A plus tra
     SECTION("LDI sets F3 and F5 from A plus the copied byte and preserves SZC") {
         CpuHarness h;
         h.cpu.af.accum(0x01);
+        h.cpu.af.flags(0x00);
         h.cpu.af.flag(RegisterAF::Flags::Carry, true);
         h.cpu.af.flag(RegisterAF::Flags::Sign, true);
         h.cpu.af.flag(RegisterAF::Flags::Zero, true);
@@ -169,12 +170,13 @@ TEST_CASE("Block transfer instructions derive undocumented flags from A plus tra
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
-        require_f3_f5(h, true, true);
+        require_f3_f5(h, true, false);
     }
 
     SECTION("LDD uses the same F3 and F5 rule while decrementing HL and DE") {
         CpuHarness h;
         h.cpu.af.accum(0x01);
+        h.cpu.af.flags(0x00);
         h.cpu.hl.set(0x8a01);
         h.cpu.de.set(0x8b01);
         h.cpu.bc.set(0x0002);
@@ -188,7 +190,63 @@ TEST_CASE("Block transfer instructions derive undocumented flags from A plus tra
         REQUIRE(h.cpu.hl.get() == 0x8a00);
         REQUIRE(h.cpu.de.get() == 0x8b00);
         REQUIRE(h.cpu.bc.get() == 0x0001);
-        require_f3_f5(h, true, true);
+        require_f3_f5(h, true, false);
+    }
+
+    SECTION("LDIR applies the same F3 and F5 rule on both repeat and terminal iterations") {
+        CpuHarness h;
+        h.cpu.af.accum(0x20);
+        h.cpu.af.flags(0x00);
+        h.cpu.hl.set(0x8c00);
+        h.cpu.de.set(0x8d00);
+        h.cpu.bc.set(0x0002);
+        h.mem[0x8c00] = 0x08;
+        h.mem[0x8c01] = 0x01;
+        h.load({0xed, 0xb0});
+
+        const StepResult first = h.step();
+        REQUIRE(first.cycle_delta() == 21);
+        REQUIRE(h.cpu.pc.get() == 0x0000);
+        REQUIRE(h.mem[0x8d00] == 0x08);
+        REQUIRE(h.cpu.bc.get() == 0x0001);
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+        require_f3_f5(h, true, false);
+
+        const StepResult second = h.step();
+        REQUIRE(second.cycle_delta() == 16);
+        REQUIRE(h.cpu.pc.get() == 0x0002);
+        REQUIRE(h.mem[0x8d01] == 0x01);
+        REQUIRE(h.cpu.bc.get() == 0x0000);
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+        require_f3_f5(h, false, false);
+    }
+
+    SECTION("LDDR applies the same F3 and F5 rule while copying backwards") {
+        CpuHarness h;
+        h.cpu.af.accum(0x20);
+        h.cpu.af.flags(0x00);
+        h.cpu.hl.set(0x8e01);
+        h.cpu.de.set(0x8f01);
+        h.cpu.bc.set(0x0002);
+        h.mem[0x8e01] = 0x08;
+        h.mem[0x8e00] = 0x01;
+        h.load({0xed, 0xb8});
+
+        const StepResult first = h.step();
+        REQUIRE(first.cycle_delta() == 21);
+        REQUIRE(h.cpu.pc.get() == 0x0000);
+        REQUIRE(h.mem[0x8f01] == 0x08);
+        REQUIRE(h.cpu.bc.get() == 0x0001);
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+        require_f3_f5(h, true, false);
+
+        const StepResult second = h.step();
+        REQUIRE(second.cycle_delta() == 16);
+        REQUIRE(h.cpu.pc.get() == 0x0002);
+        REQUIRE(h.mem[0x8f00] == 0x01);
+        REQUIRE(h.cpu.bc.get() == 0x0000);
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+        require_f3_f5(h, false, false);
     }
 }
 
