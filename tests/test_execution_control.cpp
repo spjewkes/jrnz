@@ -217,6 +217,47 @@ TEST_CASE("RETI returns to the stacked address", "[interrupts]") {
     REQUIRE(h.cpu.iff2);
 }
 
+TEST_CASE("RETI and RETN family members preserve their distinct IFF behavior", "[interrupts][aliases]") {
+    SECTION("RETN family restores IFF1 from IFF2") {
+        const uint8_t retn_family[] = {0x45, 0x55, 0x5d, 0x65, 0x6d, 0x75, 0x7d};
+
+        for (uint8_t opcode : retn_family) {
+            CpuHarness h;
+            h.cpu.iff1 = false;
+            h.cpu.iff2 = true;
+            h.cpu.sp.set(0xfffc);
+            h.mem.write_addr_to_mem(0xfffc, 0x5a5a);
+            h.load({0xed, opcode});
+
+            const StepResult step = h.step();
+
+            INFO("opcode=0xed" << std::hex << static_cast<unsigned int>(opcode));
+            REQUIRE(step.cycle_delta() == 14);
+            REQUIRE(h.cpu.pc.get() == 0x5a5a);
+            REQUIRE(h.cpu.sp.get() == 0xfffe);
+            REQUIRE(h.cpu.iff1);
+            REQUIRE(h.cpu.iff2);
+        }
+    }
+
+    SECTION("RETI leaves IFF1 unchanged while returning from the stack") {
+        CpuHarness h;
+        h.cpu.iff1 = false;
+        h.cpu.iff2 = true;
+        h.cpu.sp.set(0xfffc);
+        h.mem.write_addr_to_mem(0xfffc, 0x6b6b);
+        h.load({0xed, 0x4d});
+
+        const StepResult step = h.step();
+
+        REQUIRE(step.cycle_delta() == 14);
+        REQUIRE(h.cpu.pc.get() == 0x6b6b);
+        REQUIRE(h.cpu.sp.get() == 0xfffe);
+        REQUIRE_FALSE(h.cpu.iff1);
+        REQUIRE(h.cpu.iff2);
+    }
+}
+
 TEST_CASE("Mode 2 interrupt pushes PC and vectors through the I register page", "[interrupts]") {
     CpuHarness h;
     h.cpu.pc.set(0x2000);
