@@ -206,10 +206,19 @@ StorageElement StorageElement::operator+(const StorageElement &rhs) {
 }
 
 StorageElement StorageElement::add_carry(const StorageElement &lhs, const StorageElement &rhs, bool carry) {
-    StorageElement result = StorageElement(lhs.to_u32() + rhs.to_u32() + (carry ? 1 : 0), lhs.count);
-    result.update_carry(lhs, rhs);
-    result.update_carry(lhs, rhs, true /* is_half */);
-    result.update_overflow(lhs, rhs, false /* is_sub */);
+    const uint32_t lhs_val = lhs.to_u32();
+    const uint32_t rhs_val = rhs.to_u32();
+    const uint32_t carry_val = carry ? 1u : 0u;
+    const uint32_t mask = lhs.is_8bit() ? 0xffu : 0xffffu;
+    const uint32_t half_mask = lhs.is_8bit() ? 0x0fu : 0x0fffu;
+    const uint32_t sign_mask = lhs.is_8bit() ? 0x80u : 0x8000u;
+    const uint32_t full_result = lhs_val + rhs_val + carry_val;
+    const uint32_t masked_result = full_result & mask;
+
+    StorageElement result = StorageElement(masked_result, lhs.count);
+    result.flag_carry = full_result > mask;
+    result.flag_half_carry = ((lhs_val & half_mask) + (rhs_val & half_mask) + carry_val) > half_mask;
+    result.flag_overflow = ((~(lhs_val ^ rhs_val) & (lhs_val ^ masked_result) & sign_mask) != 0);
     return result;
 }
 
@@ -222,10 +231,19 @@ StorageElement StorageElement::operator-(const StorageElement &rhs) {
 }
 
 StorageElement StorageElement::sub_carry(const StorageElement &lhs, const StorageElement &rhs, bool carry) {
-    StorageElement result = StorageElement(lhs.to_s32() - rhs.to_s32() - (carry ? 1 : 0), lhs.count);
-    result.update_borrow(lhs, rhs);
-    result.update_borrow(lhs, rhs, true /* is_half */);
-    result.update_overflow(lhs, rhs, true /* is_sub */);
+    const uint32_t lhs_val = lhs.to_u32();
+    const uint32_t rhs_val = rhs.to_u32();
+    const uint32_t carry_val = carry ? 1u : 0u;
+    const uint32_t mask = lhs.is_8bit() ? 0xffu : 0xffffu;
+    const uint32_t half_mask = lhs.is_8bit() ? 0x0fu : 0x0fffu;
+    const uint32_t sign_mask = lhs.is_8bit() ? 0x80u : 0x8000u;
+    const uint32_t subtrahend = rhs_val + carry_val;
+    const uint32_t masked_result = (lhs_val - subtrahend) & mask;
+
+    StorageElement result = StorageElement(masked_result, lhs.count);
+    result.flag_carry = lhs_val < subtrahend;
+    result.flag_half_carry = (lhs_val & half_mask) < ((rhs_val & half_mask) + carry_val);
+    result.flag_overflow = (((lhs_val ^ rhs_val) & (lhs_val ^ masked_result) & sign_mask) != 0);
     return result;
 }
 
@@ -462,8 +480,12 @@ void StorageElement::from_u32(uint32_t v) {
 }
 
 bool StorageElement::significant_bit(bool ishalf) const {
-    uint32_t div = (ishalf ? 2 : 1);
-    uint32_t mask = 0x1 << ((8 * count / div) - 1);
+    uint32_t mask = 0;
+    if (ishalf) {
+        mask = (count == 1 ? 0x08u : 0x0800u);
+    } else {
+        mask = (count == 1 ? 0x80u : 0x8000u);
+    }
     return (to_u32() & mask) != 0;
 }
 

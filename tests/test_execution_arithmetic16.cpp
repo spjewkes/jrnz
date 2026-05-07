@@ -143,6 +143,26 @@ TEST_CASE("16-bit arithmetic instructions follow documented carry and overflow r
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
     }
 
+    SECTION("ADC HL,DE uses bit 11 for half-carry and includes incoming carry") {
+        CpuHarness h;
+        h.cpu.hl.set(0x0f00);
+        h.cpu.de.set(0x00ff);
+        h.cpu.af.flag(RegisterAF::Flags::Carry, true);
+        h.load({0xed, 0x5a});
+
+        const StepResult step = h.step();
+
+        REQUIRE(step.cycle_delta() == 15);
+        REQUIRE(step.pc_after == 0x0002);
+        REQUIRE(h.cpu.hl.get() == 0x1000);
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Carry));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Sign));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Zero));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+    }
+
     SECTION("SBC HL,SP uses incoming carry and sets zero") {
         CpuHarness h;
         h.cpu.hl.set(0x1001);
@@ -160,6 +180,26 @@ TEST_CASE("16-bit arithmetic instructions follow documented carry and overflow r
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Sign));
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Zero));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+    }
+
+    SECTION("SBC HL,BC includes incoming carry in half-borrow") {
+        CpuHarness h;
+        h.cpu.hl.set(0x1000);
+        h.cpu.bc.set(0x00ff);
+        h.cpu.af.flag(RegisterAF::Flags::Carry, true);
+        h.load({0xed, 0x42});
+
+        const StepResult step = h.step();
+
+        REQUIRE(step.cycle_delta() == 15);
+        REQUIRE(step.pc_after == 0x0002);
+        REQUIRE(h.cpu.hl.get() == 0x0f00);
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Carry));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Sign));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Zero));
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
     }
 
