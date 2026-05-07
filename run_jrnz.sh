@@ -1,1 +1,1 @@
-time -p __build/run_jrnz $*
+time __build/run_jrnz $*
