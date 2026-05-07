@@ -351,3 +351,86 @@ TEST_CASE("Rotate and shift families copy undocumented F3 and F5 bits from the r
         require_f3_f5(h, false, false);
     }
 }
+
+TEST_CASE("CCF after selected instructions uses the authentic previous-instruction latch behavior",
+          "[undocumented][flags][ccf-after]") {
+    SECTION("BIT (HL) then CCF takes F3 and F5 from A rather than BIT's MEMPTR-derived flags") {
+        CpuHarness h;
+        h.cpu.af.accum(0x28);
+        h.cpu.af.flags(0x01);
+        h.cpu.hl.set(0x8800);
+        h.cpu.memptr.set(0x1200);
+        h.mem[0x8800] = 0x01;
+        h.load({0xcb, 0x46, 0x3f});
+
+        const StepResult first = h.step();
+        const StepResult second = h.step();
+
+        REQUIRE(first.cycle_delta() == 12);
+        REQUIRE(second.cycle_delta() == 4);
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Carry));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
+        require_f3_f5(h, true, true);
+    }
+
+    SECTION("BIT (IX+d) then CCF takes F3 and F5 from A rather than the indexed address high byte") {
+        CpuHarness h;
+        h.cpu.af.accum(0x08);
+        h.cpu.af.flags(0x01);
+        h.cpu.ix.set(0x2401);
+        h.mem[0x2400] = 0x01;
+        h.load({0xdd, 0xcb, 0xff, 0x46, 0x3f});
+
+        const StepResult first = h.step();
+        const StepResult second = h.step();
+
+        REQUIRE(first.cycle_delta() == 20);
+        REQUIRE(second.cycle_delta() == 4);
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Carry));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
+        require_f3_f5(h, true, false);
+    }
+
+    SECTION("LD A,I then CCF takes F3 and F5 from the loaded A value") {
+        CpuHarness h;
+        h.cpu.ir.hi(0x28);
+        h.cpu.iff2 = true;
+        h.cpu.af.flag(RegisterAF::Flags::Carry, true);
+        h.load({0xed, 0x57, 0x3f});
+
+        const StepResult first = h.step();
+        const StepResult second = h.step();
+
+        REQUIRE(first.cycle_delta() == 9);
+        REQUIRE(second.cycle_delta() == 4);
+        REQUIRE(h.cpu.af.accum() == 0x28);
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Carry));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
+        require_f3_f5(h, true, true);
+    }
+
+    SECTION("LDI then CCF uses direct A bits after the block-transfer flag update") {
+        CpuHarness h;
+        h.cpu.af.accum(0x20);
+        h.cpu.af.flags(0x01);
+        h.cpu.hl.set(0x8a00);
+        h.cpu.de.set(0x8b00);
+        h.cpu.bc.set(0x0001);
+        h.mem[0x8a00] = 0x08;
+        h.load({0xed, 0xa0, 0x3f});
+
+        const StepResult first = h.step();
+        const StepResult second = h.step();
+
+        REQUIRE(first.cycle_delta() == 16);
+        REQUIRE(second.cycle_delta() == 4);
+        REQUIRE(h.mem[0x8b00] == 0x08);
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Carry));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
+        require_f3_f5(h, false, true);
+    }
+}
