@@ -108,6 +108,30 @@ TEST_CASE("PUSH and POP round-trip register pairs through the stack", "[exchange
     }
 }
 
+TEST_CASE("POP then PUSH AF preserves the packed flag byte and stack ordering", "[exchange-stack]") {
+    CpuHarness h;
+    h.cpu.af.set(0x1234);
+    h.cpu.sp.set(0xfffc);
+    h.mem.write_addr_to_mem(0xfffc, 0xa55a);
+    h.load({0xf1, 0xf5});
+
+    const StepResult pop = h.step();
+    REQUIRE(pop.cycle_delta() == 10);
+    REQUIRE(h.cpu.af.get() == 0xa55a);
+    REQUIRE(h.cpu.sp.get() == 0xfffe);
+
+    h.mem.write_addr_to_mem(0xfffc, 0x0000);
+
+    const StepResult push = h.step();
+    REQUIRE(push.cycle_delta() == 11);
+    REQUIRE(h.cpu.af.get() == 0xa55a);
+    REQUIRE(h.cpu.sp.get() == 0xfffc);
+    REQUIRE(h.mem.read_addr_from_mem(0xfffc) == 0xa55a);
+    REQUIRE(h.mem[0xfffc] == 0x5a);
+    REQUIRE(h.mem[0xfffd] == 0xa5);
+    REQUIRE(h.cpu.pc.get() == 0x0002);
+}
+
 TEST_CASE("Exchange instructions swap the documented registers", "[exchange-stack]") {
     SECTION("EX DE,HL swaps DE and HL") {
         CpuHarness h;
