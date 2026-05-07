@@ -96,6 +96,40 @@ TEST_CASE("BIT copies undocumented flag bits from the tested source", "[undocume
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
         require_f3_f5(h, true, true);
     }
+
+    SECTION("BIT (HL) copies F3 and F5 from MEMPTR rather than the tested value") {
+        CpuHarness h;
+        h.cpu.hl.set(0x4000);
+        h.cpu.memptr.set(0x2801);
+        h.mem[0x4000] = 0x00;
+        h.load({0xcb, 0x46});
+
+        const StepResult step = h.step();
+
+        REQUIRE(step.cycle_delta() == 12);
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Zero));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+        require_f3_f5(h, true, true);
+    }
+
+    SECTION("BIT (HL) observes MEMPTR seeded by LD SP,(nn)") {
+        CpuHarness h;
+        h.cpu.hl.set(0x4000);
+        h.mem[0x2000] = 0x00;
+        h.mem[0x2001] = 0x40;
+        h.mem[0x4000] = 0x00;
+        h.load({0xed, 0x7b, 0x00, 0x20, 0xcb, 0x46});
+
+        const StepResult load_sp = h.step();
+        const StepResult bit_hl = h.step();
+
+        REQUIRE(load_sp.cycle_delta() == 20);
+        REQUIRE(h.cpu.sp.get() == 0x4000);
+        REQUIRE(bit_hl.cycle_delta() == 12);
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Zero));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+        require_f3_f5(h, false, true);
+    }
 }
 
 TEST_CASE("LD A,I and LD A,R copy undocumented flag bits from the loaded value", "[undocumented][flags][ir]") {

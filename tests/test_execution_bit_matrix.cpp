@@ -5,7 +5,7 @@
 #include "test_support.hpp"
 
 namespace {
-uint8_t expected_bit_flags(uint8_t value, uint8_t bit_index, bool carry_in) {
+uint8_t expected_bit_flags(uint8_t value, uint8_t bit_index, bool carry_in, uint8_t f3_f5_source) {
     const bool bit_set = (value & static_cast<uint8_t>(1u << bit_index)) != 0;
     uint8_t flags = carry_in ? 0x01 : 0x00;
     flags |= 0x10;  // H
@@ -16,7 +16,7 @@ uint8_t expected_bit_flags(uint8_t value, uint8_t bit_index, bool carry_in) {
     if (bit_index == 7 && bit_set) {
         flags |= 0x80;
     }
-    flags |= value & 0x28;  // F3/F5 from tested source for non-indexed forms
+    flags |= f3_f5_source & 0x28;
     return flags;
 }
 }  // namespace
@@ -78,7 +78,7 @@ TEST_CASE("BIT register and HL forms match documented and undocumented flag form
 
                         REQUIRE(step.cycle_delta() == 8);
                         REQUIRE(step.pc_after == 0x0002);
-                        require_flags(h.cpu.af.flags(), expected_bit_flags(value, bit, carry_in));
+                        require_flags(h.cpu.af.flags(), expected_bit_flags(value, bit, carry_in, value));
                     }
                 }
             }
@@ -96,6 +96,7 @@ TEST_CASE("BIT register and HL forms match documented and undocumented flag form
                                 << static_cast<unsigned int>(value) << " carry_in=" << carry_in);
 
                     h.cpu.hl.set(0x9800);
+                    h.cpu.memptr.set(0x2800);
                     h.mem[0x9800] = value;
                     h.cpu.af.flags(0x00);
                     h.cpu.af.flag(RegisterAF::Flags::Carry, carry_in);
@@ -106,7 +107,7 @@ TEST_CASE("BIT register and HL forms match documented and undocumented flag form
                     REQUIRE(step.cycle_delta() == 12);
                     REQUIRE(step.pc_after == 0x0002);
                     REQUIRE(h.mem[0x9800] == value);
-                    require_flags(h.cpu.af.flags(), expected_bit_flags(value, bit, carry_in));
+                    require_flags(h.cpu.af.flags(), expected_bit_flags(value, bit, carry_in, 0x28));
                 }
             }
         }

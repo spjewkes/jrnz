@@ -74,6 +74,23 @@ void copy_indexed_cb_result(Z80 &state, const StorageElement &mem_elem) {
     StorageElement reg_elem = StorageElement::create_element(state, reg);
     reg_elem = mem_elem;
 }
+
+void set_memptr(Z80 &state, uint16_t value) { state.memptr.set(value); }
+
+void set_memptr_addr_plus_one(Z80 &state, uint16_t value) { set_memptr(state, static_cast<uint16_t>(value + 1)); }
+
+void set_memptr_low_plus_one_high_from_a(Z80 &state, uint16_t value) {
+    const uint16_t next = static_cast<uint16_t>(value + 1);
+    set_memptr(state, static_cast<uint16_t>((static_cast<uint16_t>(state.af.accum()) << 8) | (next & 0x00ff)));
+}
+
+bool is_indexed_memory_operand(Operand operand) { return operand == Operand::indIXN || operand == Operand::indIYN; }
+
+uint16_t indexed_effective_addr(Z80 &state, Operand operand) {
+    const int8_t displacement = static_cast<int8_t>(state.bus.read_data(state.curr_operand_pc - 1));
+    const uint16_t base = (operand == Operand::indIXN) ? state.ix.get() : state.iy.get();
+    return static_cast<uint16_t>(base + displacement);
+}
 }  // namespace
 
 size_t Instruction::execute(Z80 &state) {
@@ -366,6 +383,30 @@ size_t Instruction::do_ld(Z80 &state, StorageElement &dst_elem, StorageElement &
     }
     dst_elem = src_elem;
 
+    if (is_indexed_memory_operand(dst)) {
+        set_memptr(state, indexed_effective_addr(state, dst));
+    } else if (is_indexed_memory_operand(src)) {
+        set_memptr(state, indexed_effective_addr(state, src));
+    } else if (dst == Operand::A) {
+        if (src == Operand::indBC) {
+            set_memptr_addr_plus_one(state, state.bc.get());
+        } else if (src == Operand::indDE) {
+            set_memptr_addr_plus_one(state, state.de.get());
+        } else if (src == Operand::indNN) {
+            set_memptr_addr_plus_one(state, state.bus.read_addr_from_mem(state.curr_operand_start_pc));
+        }
+    } else if (src == Operand::A) {
+        if (dst == Operand::indBC) {
+            set_memptr_low_plus_one_high_from_a(state, state.bc.get());
+        } else if (dst == Operand::indDE) {
+            set_memptr_low_plus_one_high_from_a(state, state.de.get());
+        } else if (dst == Operand::indNN) {
+            set_memptr_low_plus_one_high_from_a(state, state.bus.read_addr_from_mem(state.curr_operand_start_pc));
+        }
+    } else if (dst == Operand::indNN || src == Operand::indNN) {
+        set_memptr_addr_plus_one(state, state.bus.read_addr_from_mem(state.curr_operand_start_pc));
+    }
+
     if (Operand::A == dst && (Operand::I == src || Operand::R == src)) {
         bool carry = state.af.flag(RegisterAF::Flags::Carry);
         state.af.flag(RegisterAF::Flags::AddSubtract, false);
@@ -470,6 +511,12 @@ size_t Instruction::do_or(Z80 &state, StorageElement &dst_elem, StorageElement &
 
 size_t Instruction::do_jp(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem) {
     assert(Operand::PC == dst);
+
+    if (src == Operand::NN) {
+        uint32_t target = 0;
+        src_elem.get_value(target);
+        set_memptr(state, static_cast<uint16_t>(target));
+    }
 
     if (is_cond_set(cond, state)) {
         dst_elem = src_elem;
@@ -589,6 +636,9 @@ size_t Instruction::do_jr(Z80 &state, StorageElement &dst_elem, StorageElement &
 
     if (is_cond_set(cond, state)) {
         dst_elem = dst_elem + src_elem;
+        uint32_t target = 0;
+        dst_elem.get_value(target);
+        set_memptr(state, static_cast<uint16_t>(target));
         return cycles;
     }
 
@@ -602,6 +652,9 @@ size_t Instruction::do_djnz(Z80 &state, StorageElement &dst_elem, StorageElement
     state.bc.hi(state.bc.hi() - 1);
     if (state.bc.hi() != 0) {
         dst_elem = dst_elem + src_elem;
+        uint32_t target = 0;
+        dst_elem.get_value(target);
+        set_memptr(state, static_cast<uint16_t>(target));
         return cycles;
     }
 
@@ -610,6 +663,12 @@ size_t Instruction::do_djnz(Z80 &state, StorageElement &dst_elem, StorageElement
 
 size_t Instruction::do_call(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem) {
     assert(Operand::PC == dst);
+
+    if (src == Operand::NN) {
+        uint32_t target = 0;
+        src_elem.get_value(target);
+        set_memptr(state, static_cast<uint16_t>(target));
+    }
 
     if (is_cond_set(cond, state)) {
         uint16_t new_sp = dst_elem.push(state.bus, state.sp.get());
@@ -656,6 +715,9 @@ size_t Instruction::do_reti(Z80 &state, StorageElement &dst_elem, StorageElement
 size_t Instruction::impl_ret(Z80 &state, StorageElement &pc) {
     uint16_t new_sp = pc.pop(state.bus, state.sp.get());
     state.sp.set(new_sp);
+    uint32_t target = 0;
+    pc.get_value(target);
+    set_memptr(state, static_cast<uint16_t>(target));
 
     return cycles;
 }
@@ -670,10 +732,11 @@ size_t Instruction::do_bit(Z80 &state, StorageElement &dst_elem, StorageElement 
     state.af.flag(RegisterAF::Flags::ParityOverflow, !is_set);
     state.af.flag(RegisterAF::Flags::Sign, (bit_index == 7) && is_set);
     if (dst == Operand::indIXN || dst == Operand::indIYN) {
-        const int8_t displacement = static_cast<int8_t>(state.bus.read_data(state.curr_operand_pc - 1));
-        const uint16_t base = (dst == Operand::indIXN) ? state.ix.get() : state.iy.get();
-        const uint16_t effective_addr = static_cast<uint16_t>(base + displacement);
+        const uint16_t effective_addr = indexed_effective_addr(state, dst);
+        set_memptr(state, effective_addr);
         set_f3_f5(state.af, static_cast<uint8_t>(effective_addr >> 8));
+    } else if (dst == Operand::indHL) {
+        set_f3_f5(state.af, state.memptr.hi());
     } else {
         set_f3_f5(state.af, flag_value(dst_elem, false));
     }

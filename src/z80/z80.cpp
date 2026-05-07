@@ -87,6 +87,7 @@ bool Z80::clock(bool no_cycles) {
             curr_opcode = fetched.opcode;
             assert(fetched.operand_offset != 0);
             curr_operand_pc = curr_opcode_pc + fetched.operand_offset;
+            curr_operand_start_pc = curr_operand_pc;
 
             const Instruction &inst = decode_opcode(curr_opcode);
             update_r_reg(fetched.fetch_len);
@@ -119,6 +120,7 @@ void Z80::reset() {
     pc.reset();
     af.reset();
     sp.reset();
+    memptr.reset();
 
     af.set(0xffff);
     sp.set(0xffff);
