@@ -255,3 +255,47 @@ TEST_CASE("OTDR repeats while decrementing HL until B becomes zero", "[block-io]
     REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Zero));
     REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
 }
+
+TEST_CASE("Self-modifying INIR and INDR can turn into ED NOPs on the next iteration", "[block-io][undocumented]") {
+    SECTION("INIR re-fetches an overwritten ED second byte as an 8-cycle NOP") {
+        CpuHarness h;
+        h.cpu.bc.set(0x02fe);
+        h.cpu.hl.set(0x4001);
+        h.mem.port_254 = 0x9a;
+        h.load({0xed, 0xb2, 0x00}, 0x4000);
+
+        const StepResult first = h.step();
+        REQUIRE(first.cycle_delta() == 21);
+        REQUIRE(h.cpu.pc.get() == 0x4000);
+        REQUIRE(h.mem[0x4001] == 0xff);
+        REQUIRE(h.cpu.hl.get() == 0x4002);
+        REQUIRE(h.cpu.bc.get() == 0x01fe);
+
+        const StepResult second = h.step();
+        REQUIRE(second.cycle_delta() == 8);
+        REQUIRE(h.cpu.pc.get() == 0x4002);
+        REQUIRE(h.cpu.hl.get() == 0x4002);
+        REQUIRE(h.cpu.bc.get() == 0x01fe);
+    }
+
+    SECTION("INDR re-fetches an overwritten ED second byte as an 8-cycle NOP") {
+        CpuHarness h;
+        h.cpu.bc.set(0x02fe);
+        h.cpu.hl.set(0x4001);
+        h.mem.port_254 = 0x9a;
+        h.load({0xed, 0xba, 0x00}, 0x4000);
+
+        const StepResult first = h.step();
+        REQUIRE(first.cycle_delta() == 21);
+        REQUIRE(h.cpu.pc.get() == 0x4000);
+        REQUIRE(h.mem[0x4001] == 0xff);
+        REQUIRE(h.cpu.hl.get() == 0x4000);
+        REQUIRE(h.cpu.bc.get() == 0x01fe);
+
+        const StepResult second = h.step();
+        REQUIRE(second.cycle_delta() == 8);
+        REQUIRE(h.cpu.pc.get() == 0x4002);
+        REQUIRE(h.cpu.hl.get() == 0x4000);
+        REQUIRE(h.cpu.bc.get() == 0x01fe);
+    }
+}
