@@ -67,6 +67,7 @@ add_executable(
   tests/test_flags_misc.cpp
   tests/test_flags_matrix.cpp
   tests/test_execution_control.cpp
+  tests/test_interrupt_matrix.cpp
   tests/test_execution_control_matrix.cpp
   tests/test_execution_alu.cpp
   tests/test_execution_alu_source_matrix.cpp
