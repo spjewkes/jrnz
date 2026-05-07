@@ -54,7 +54,7 @@ TEST_CASE("Undocumented IN (C) discards the byte but updates flags from the port
     }
 }
 
-TEST_CASE("CP follows undocumented F3 and F5 result bits", "[undocumented][flags][cp]") {
+TEST_CASE("CP follows undocumented F3 and F5 operand bits", "[undocumented][flags][cp]") {
     CpuHarness h;
     h.cpu.af.accum(0x30);
     h.load({0xfe, 0x08});
@@ -65,7 +65,7 @@ TEST_CASE("CP follows undocumented F3 and F5 result bits", "[undocumented][flags
     REQUIRE(h.cpu.af.accum() == 0x30);
     REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Carry));
     REQUIRE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
-    require_f3_f5(h, true, true);
+    require_f3_f5(h, true, false);
 }
 
 TEST_CASE("BIT copies undocumented flag bits from the tested source", "[undocumented][flags][bit]") {

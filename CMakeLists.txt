@@ -71,6 +71,7 @@ add_executable(
   tests/test_execution_control_matrix.cpp
   tests/test_execution_alu.cpp
   tests/test_execution_alu_source_matrix.cpp
+  tests/test_execution_alu_immediate_matrix.cpp
   tests/test_execution_arithmetic16.cpp
   tests/test_execution_loads.cpp
   tests/test_execution_extended.cpp

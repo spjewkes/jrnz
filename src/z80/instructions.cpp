@@ -521,7 +521,10 @@ size_t Instruction::do_dec(Z80 &state, StorageElement &dst_elem, StorageElement 
 }
 
 size_t Instruction::do_cp(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem) {
-    return impl_sub(state, dst_elem, src_elem, false /* store */, false /* use_carry */, false /* is_dec */);
+    const size_t executed_cycles =
+        impl_sub(state, dst_elem, src_elem, false /* store */, false /* use_carry */, false /* is_dec */);
+    set_f3_f5(state.af, flag_value(src_elem, false));
+    return executed_cycles;
 }
 
 size_t Instruction::do_jr(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem) {
