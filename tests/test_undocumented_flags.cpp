@@ -273,6 +273,40 @@ TEST_CASE("SCF CCF and CPL copy undocumented flag bits from A or the result", "[
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
         require_f3_f5(h, true, true);
     }
+
+    SECTION("SCF followed by CCF uses direct A bits on the second step because SCF modified flags") {
+        CpuHarness h;
+        h.cpu.af.accum(0x28);
+        h.cpu.af.flags(0x00);
+        h.load({0x37, 0x3f});
+
+        const StepResult first = h.step();
+        const StepResult second = h.step();
+
+        REQUIRE(first.cycle_delta() == 4);
+        REQUIRE(second.cycle_delta() == 4);
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Carry));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
+        require_f3_f5(h, true, true);
+    }
+
+    SECTION("CCF followed by SCF uses direct A bits on the second step because CCF modified flags") {
+        CpuHarness h;
+        h.cpu.af.accum(0x08);
+        h.cpu.af.flags(0x01);
+        h.load({0x3f, 0x37});
+
+        const StepResult first = h.step();
+        const StepResult second = h.step();
+
+        REQUIRE(first.cycle_delta() == 4);
+        REQUIRE(second.cycle_delta() == 4);
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Carry));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
+        require_f3_f5(h, true, false);
+    }
 }
 
 TEST_CASE("Rotate and shift families copy undocumented F3 and F5 bits from the result",
