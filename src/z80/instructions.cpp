@@ -397,6 +397,8 @@ size_t Instruction::do_ld(Z80 &state, StorageElement &dst_elem, StorageElement &
             set_memptr_addr_plus_one(state, state.bc.get());
         } else if (src == Operand::indDE) {
             set_memptr_addr_plus_one(state, state.de.get());
+        } else if (src == Operand::indN) {
+            set_memptr_addr_plus_one(state, state.bus.read_addr_from_mem(state.curr_operand_start_pc));
         } else if (src == Operand::indNN) {
             set_memptr_addr_plus_one(state, state.bus.read_addr_from_mem(state.curr_operand_start_pc));
         }
@@ -405,6 +407,8 @@ size_t Instruction::do_ld(Z80 &state, StorageElement &dst_elem, StorageElement &
             set_memptr_low_plus_one_high_from_a(state, state.bc.get());
         } else if (dst == Operand::indDE) {
             set_memptr_low_plus_one_high_from_a(state, state.de.get());
+        } else if (dst == Operand::indN) {
+            set_memptr_low_plus_one_high_from_a(state, state.bus.read_addr_from_mem(state.curr_operand_start_pc));
         } else if (dst == Operand::indNN) {
             set_memptr_low_plus_one_high_from_a(state, state.bus.read_addr_from_mem(state.curr_operand_start_pc));
         }

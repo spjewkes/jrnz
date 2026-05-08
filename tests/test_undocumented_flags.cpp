@@ -132,6 +132,175 @@ TEST_CASE("BIT copies undocumented flag bits from the tested source", "[undocume
     }
 }
 
+TEST_CASE("MEMPTR seed instructions are visible through a following BIT (HL) probe", "[undocumented][flags][memptr]") {
+    auto require_probe = [](CpuHarness &h, uint16_t expected_memptr) {
+        REQUIRE(h.cpu.memptr.get() == expected_memptr);
+        const StepResult bit_hl = h.step();
+        REQUIRE(bit_hl.cycle_delta() == 12);
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Zero));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+        require_f3_f5(h, (expected_memptr & 0x0800) != 0, (expected_memptr & 0x2000) != 0);
+    };
+
+    SECTION("LD A,(BC) seeds MEMPTR with BC+1") {
+        CpuHarness h;
+        h.cpu.hl.set(0x5000);
+        h.cpu.bc.set(0x2800);
+        h.mem[0x2800] = 0x12;
+        h.mem[0x5000] = 0x00;
+        h.load({0x0a, 0xcb, 0x46});
+
+        const StepResult seed = h.step();
+        REQUIRE(seed.cycle_delta() == 7);
+        REQUIRE(h.cpu.af.accum() == 0x12);
+        require_probe(h, 0x2801);
+    }
+
+    SECTION("LD (DE),A seeds MEMPTR with A in the high byte and DE+1 low byte") {
+        CpuHarness h;
+        h.cpu.hl.set(0x5000);
+        h.cpu.af.accum(0x28);
+        h.cpu.de.set(0x3401);
+        h.mem[0x5000] = 0x00;
+        h.load({0x12, 0xcb, 0x46});
+
+        const StepResult seed = h.step();
+        REQUIRE(seed.cycle_delta() == 7);
+        REQUIRE(h.mem[0x3401] == 0x28);
+        require_probe(h, 0x2802);
+    }
+
+    SECTION("LD A,(nn) seeds MEMPTR with nn+1") {
+        CpuHarness h;
+        h.cpu.hl.set(0x5000);
+        h.mem[0x3456] = 0x99;
+        h.mem[0x5000] = 0x00;
+        h.load({0x3a, 0x56, 0x34, 0xcb, 0x46});
+
+        const StepResult seed = h.step();
+        REQUIRE(seed.cycle_delta() == 13);
+        REQUIRE(h.cpu.af.accum() == 0x99);
+        require_probe(h, 0x3457);
+    }
+
+    SECTION("LD (nn),A seeds MEMPTR with A in the high byte and nn+1 low byte") {
+        CpuHarness h;
+        h.cpu.hl.set(0x5000);
+        h.cpu.af.accum(0x20);
+        h.mem[0x5000] = 0x00;
+        h.load({0x32, 0x56, 0x34, 0xcb, 0x46});
+
+        const StepResult seed = h.step();
+        REQUIRE(seed.cycle_delta() == 13);
+        REQUIRE(h.mem[0x3456] == 0x20);
+        require_probe(h, 0x2057);
+    }
+
+    SECTION("JP nn seeds MEMPTR with the jump target even before BIT (HL)") {
+        CpuHarness h;
+        h.cpu.hl.set(0x5000);
+        h.mem[0x5000] = 0x00;
+        h.mem[0x2860] = 0xcb;
+        h.mem[0x2861] = 0x46;
+        h.load({0xc3, 0x60, 0x28});
+
+        const StepResult seed = h.step();
+        REQUIRE(seed.cycle_delta() == 10);
+        REQUIRE(h.cpu.pc.get() == 0x2860);
+        require_probe(h, 0x2860);
+    }
+
+    SECTION("Taken JR seeds MEMPTR with the branch destination") {
+        CpuHarness h;
+        h.cpu.hl.set(0x5000);
+        h.mem[0x5000] = 0x00;
+        h.mem[0x0004] = 0xcb;
+        h.mem[0x0005] = 0x46;
+        h.load({0x18, 0x02});
+
+        const StepResult seed = h.step();
+        REQUIRE(seed.cycle_delta() == 12);
+        REQUIRE(h.cpu.pc.get() == 0x0004);
+        require_probe(h, 0x0004);
+    }
+
+    SECTION("Taken DJNZ seeds MEMPTR with the branch destination") {
+        CpuHarness h;
+        h.cpu.hl.set(0x5000);
+        h.cpu.bc.hi(0x02);
+        h.mem[0x5000] = 0x00;
+        h.mem[0x0004] = 0xcb;
+        h.mem[0x0005] = 0x46;
+        h.load({0x10, 0x02});
+
+        const StepResult seed = h.step();
+        REQUIRE(seed.cycle_delta() == 13);
+        REQUIRE(h.cpu.pc.get() == 0x0004);
+        REQUIRE(h.cpu.bc.hi() == 0x01);
+        require_probe(h, 0x0004);
+    }
+
+    SECTION("CALL nn seeds MEMPTR with the call target") {
+        CpuHarness h;
+        h.cpu.hl.set(0x5000);
+        h.cpu.sp.set(0xfffe);
+        h.mem[0x5000] = 0x00;
+        h.mem[0x2860] = 0xcb;
+        h.mem[0x2861] = 0x46;
+        h.load({0xcd, 0x60, 0x28});
+
+        const StepResult seed = h.step();
+        REQUIRE(seed.cycle_delta() == 17);
+        REQUIRE(h.cpu.pc.get() == 0x2860);
+        REQUIRE(h.mem.read_addr_from_mem(0xfffc) == 0x0003);
+        require_probe(h, 0x2860);
+    }
+
+    SECTION("RET seeds MEMPTR with the popped return address") {
+        CpuHarness h;
+        h.cpu.hl.set(0x5000);
+        h.cpu.sp.set(0xfffc);
+        h.mem.write_addr_to_mem(0xfffc, 0x2860);
+        h.mem[0x5000] = 0x00;
+        h.mem[0x2860] = 0xcb;
+        h.mem[0x2861] = 0x46;
+        h.load({0xc9});
+
+        const StepResult seed = h.step();
+        REQUIRE(seed.cycle_delta() == 10);
+        REQUIRE(h.cpu.pc.get() == 0x2860);
+        require_probe(h, 0x2860);
+    }
+
+    SECTION("Indexed memory loads seed MEMPTR with the effective address") {
+        CpuHarness h;
+        h.cpu.hl.set(0x5000);
+        h.cpu.ix.set(0x2804);
+        h.mem[0x2802] = 0x44;
+        h.mem[0x5000] = 0x00;
+        h.load({0xdd, 0x7e, 0xfe, 0xcb, 0x46});
+
+        const StepResult seed = h.step();
+        REQUIRE(seed.cycle_delta() == 19);
+        REQUIRE(h.cpu.af.accum() == 0x44);
+        require_probe(h, 0x2802);
+    }
+
+    SECTION("Indexed memory stores seed MEMPTR with the effective address") {
+        CpuHarness h;
+        h.cpu.hl.set(0x5000);
+        h.cpu.iy.set(0x2003);
+        h.cpu.af.accum(0x77);
+        h.mem[0x5000] = 0x00;
+        h.load({0xfd, 0x77, 0xff, 0xcb, 0x46});
+
+        const StepResult seed = h.step();
+        REQUIRE(seed.cycle_delta() == 19);
+        REQUIRE(h.mem[0x2002] == 0x77);
+        require_probe(h, 0x2002);
+    }
+}
+
 TEST_CASE("LD A,I and LD A,R copy undocumented flag bits from the loaded value", "[undocumented][flags][ir]") {
     SECTION("LD A,I copies F3 and F5 from I") {
         CpuHarness h;
