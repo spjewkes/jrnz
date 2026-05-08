@@ -581,6 +581,24 @@ TEST_CASE("CCF after selected instructions uses the authentic previous-instructi
         require_f3_f5(h, true, true);
     }
 
+    SECTION("LD A,R then CCF takes F3 and F5 from the incremented R value now in A") {
+        CpuHarness h;
+        h.cpu.ir.lo(0x26);
+        h.cpu.af.flag(RegisterAF::Flags::Carry, true);
+        h.load({0xed, 0x5f, 0x3f});
+
+        const StepResult first = h.step();
+        const StepResult second = h.step();
+
+        REQUIRE(first.cycle_delta() == 9);
+        REQUIRE(second.cycle_delta() == 4);
+        REQUIRE(h.cpu.af.accum() == 0x28);
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Carry));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
+        require_f3_f5(h, true, true);
+    }
+
     SECTION("LDI then CCF uses direct A bits after the block-transfer flag update") {
         CpuHarness h;
         h.cpu.af.accum(0x20);
@@ -601,5 +619,63 @@ TEST_CASE("CCF after selected instructions uses the authentic previous-instructi
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
         require_f3_f5(h, false, true);
+    }
+
+    SECTION("CPIR then CCF uses direct A bits after the block-compare flag update") {
+        CpuHarness h;
+        h.cpu.af.accum(0x08);
+        h.cpu.af.flags(0x01);
+        h.cpu.hl.set(0x8c00);
+        h.cpu.bc.set(0x0001);
+        h.mem[0x8c00] = 0x07;
+        h.load({0xed, 0xb1, 0x3f});
+
+        const StepResult first = h.step();
+        const StepResult second = h.step();
+
+        REQUIRE(first.cycle_delta() == 16);
+        REQUIRE(second.cycle_delta() == 4);
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Carry));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
+        require_f3_f5(h, true, false);
+    }
+
+    SECTION("OUTI then CCF uses direct A bits after block I/O updated flags") {
+        CpuHarness h;
+        h.cpu.af.accum(0x20);
+        h.cpu.af.flags(0x01);
+        h.cpu.bc.set(0x01fe);
+        h.cpu.hl.set(0x8d00);
+        h.mem[0x8d00] = 0x08;
+        h.load({0xed, 0xa3, 0x3f});
+
+        const StepResult first = h.step();
+        const StepResult second = h.step();
+
+        REQUIRE(first.cycle_delta() == 16);
+        REQUIRE(second.cycle_delta() == 4);
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Carry));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
+        require_f3_f5(h, false, true);
+    }
+
+    SECTION("RLCA then CCF uses direct A bits after the rotate updated flags") {
+        CpuHarness h;
+        h.cpu.af.accum(0x84);
+        h.cpu.af.flags(0x01);
+        h.load({0x07, 0x3f});
+
+        const StepResult first = h.step();
+        const StepResult second = h.step();
+
+        REQUIRE(first.cycle_delta() == 4);
+        REQUIRE(second.cycle_delta() == 4);
+        REQUIRE(h.cpu.af.accum() == 0x09);
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Carry));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
+        require_f3_f5(h, true, false);
     }
 }
