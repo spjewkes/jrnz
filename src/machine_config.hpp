@@ -18,6 +18,8 @@ struct MachineModel {
     uint16_t floating_bus_mask;
 
     uint16_t ula_port;
+    uint8_t ula_read_high_mask;
+    uint8_t ula_ear_bit_mask;
     uint8_t interrupt_hold_tstates;
 
     uint32_t cpu_frequency_hz;
@@ -56,6 +58,8 @@ constexpr MachineModel spectrum_48k_model() {
         .screen_attr_base = 0x5800,
         .floating_bus_mask = 0x3fff,
         .ula_port = 0x00fe,
+        .ula_read_high_mask = 0xa0,
+        .ula_ear_bit_mask = 0x40,
         .interrupt_hold_tstates = 32,
         .cpu_frequency_hz = 3500000,
         .frame_rate_hz = 50,

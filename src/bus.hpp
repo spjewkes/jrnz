@@ -75,7 +75,11 @@ public:
     }
 
     FetchedOpcode read_opcode_from_mem(uint16_t addr) const;
-    void set_frame_tstate(uint64_t tstate) { current_frame_tstate = tstate; }
+    void set_frame_tstate(uint64_t tstate) {
+        current_frame_tstate = tstate;
+        frame_tstate_valid = true;
+    }
+    void set_ear_input(bool active) { ear_input_active = active; }
     void begin_instruction_timing() {
         contention_active = true;
         contention_wait_states = 0;
@@ -96,6 +100,35 @@ public:
     const MachineModel &model() const { return machine; }
 
 private:
+    uint16_t floating_bus_addr_for_tstate(uint64_t tstate) const {
+        const uint64_t frame_pos = tstate % machine.frame_tstates;
+        const uint64_t visible_span = static_cast<uint64_t>(machine.contention_lines) * machine.contention_line_tstates;
+
+        if (frame_pos < machine.contention_first_tstate ||
+            frame_pos >= static_cast<uint64_t>(machine.contention_first_tstate) + visible_span) {
+            return 0xffff;
+        }
+
+        const uint64_t visible_pos = frame_pos - machine.contention_first_tstate;
+        const uint64_t line = visible_pos / machine.contention_line_tstates;
+        const uint64_t line_pos = visible_pos % machine.contention_line_tstates;
+
+        if (line_pos >= machine.contention_visible_tstates) {
+            return 0xffff;
+        }
+
+        const uint16_t y = static_cast<uint16_t>(line);
+        uint16_t screen_y = static_cast<uint16_t>(0xc0 & y);
+        screen_y |= static_cast<uint16_t>((y & 0x7) << 3);
+        screen_y |= static_cast<uint16_t>((y >> 3) & 0x7);
+
+        const uint16_t column = static_cast<uint16_t>(line_pos / 4);
+        const uint16_t bitmap_addr = static_cast<uint16_t>(machine.screen_bitmap_base + (screen_y * 32) + column);
+        const uint16_t attr_addr = static_cast<uint16_t>(machine.screen_attr_base + ((screen_y >> 3) * 32) + column);
+
+        return ((line_pos & 0x2) == 0) ? bitmap_addr : attr_addr;
+    }
+
     void account_contention(uint16_t addr) const {
         if (!contention_active) {
             return;
@@ -129,7 +162,9 @@ private:
     MachineModel machine;
     std::vector<uint8_t> mem;
     uint16_t ram_start = {0};
+    mutable bool ear_input_active = {true};
     mutable uint64_t current_frame_tstate = {0};
+    mutable bool frame_tstate_valid = {false};
     mutable uint32_t contention_wait_states = {0};
     mutable uint32_t contention_access_phase = {0};
     mutable bool contention_active = {false};

@@ -23,16 +23,28 @@ void Bus::load_rom(std::string &rom_file) {
 uint8_t Bus::read_port(uint16_t addr) const {
     // The only port we care about is 0xfe. More specifically for now we just
     // check that the lowest bit is not set. The bits are set as follows: 0-4 :
-    // keyboard 5   : unused 6   : ear 7   : unused
-    //! ear is currently not handled
+    // keyboard 5   : unused/high 6   : ear input 7   : unused/high
 
     if (addr % 2 == 0) {
         uint8_t half_rows = (addr & 0xff00) >> 8;
-        return static_cast<uint8_t>(0xe0 | get_keyboard_state(half_rows));
+        uint8_t value = static_cast<uint8_t>(machine.ula_read_high_mask | get_keyboard_state(half_rows));
+        if (ear_input_active) {
+            value = static_cast<uint8_t>(value | machine.ula_ear_bit_mask);
+        }
+        return value;
     }
 
-    // Floating bus: return a byte from screen/attribute memory that changes over time.
-    uint16_t fb_addr = machine.screen_bitmap_base + (floating_counter++ & machine.floating_bus_mask);
+    // Floating bus: when the current beam phase is known, expose the byte the ULA
+    // is likely fetching; otherwise keep the older sequential approximation.
+    if (frame_tstate_valid) {
+        const uint16_t fb_addr = floating_bus_addr_for_tstate(current_frame_tstate);
+        if (fb_addr != 0xffff) {
+            return mem[fb_addr];
+        }
+        return 0xff;
+    }
+
+    const uint16_t fb_addr = machine.screen_bitmap_base + (floating_counter++ & machine.floating_bus_mask);
     return mem[fb_addr];
 }
 

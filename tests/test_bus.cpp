@@ -61,6 +61,28 @@ TEST_CASE("Floating bus reads advance through the 16K display region and wrap ar
     REQUIRE(bus.floating_counter == 0x4002);
 }
 
+TEST_CASE("Floating bus returns 0xff outside the active display window when beam timing is known", "[bus]") {
+    Bus bus(65536);
+
+    bus.set_frame_tstate(0);
+    REQUIRE(bus.read_port(0x00ff) == 0xff);
+}
+
+TEST_CASE("Floating bus follows bitmap and attribute fetch phases during the display window", "[bus]") {
+    Bus bus(65536);
+    const uint16_t bitmap = bus.model().screen_bitmap_base;
+    const uint16_t attr = bus.model().screen_attr_base;
+
+    bus[bitmap] = 0x12;
+    bus[attr] = 0x34;
+
+    bus.set_frame_tstate(bus.model().contention_first_tstate);
+    REQUIRE(bus.read_port(0x00ff) == 0x12);
+
+    bus.set_frame_tstate(static_cast<uint64_t>(bus.model().contention_first_tstate + 2));
+    REQUIRE(bus.read_port(0x00ff) == 0x34);
+}
+
 TEST_CASE("Even keyboard-port reads preserve the upper three bits regardless of row selection", "[bus]") {
     Bus bus(65536);
 
@@ -71,6 +93,16 @@ TEST_CASE("Even keyboard-port reads preserve the upper three bits regardless of 
     REQUIRE((all_rows & 0xe0) == 0xe0);
     REQUIRE((middle_rows & 0xe0) == 0xe0);
     REQUIRE((high_rows & 0xe0) == 0xe0);
+}
+
+TEST_CASE("Port 0xfe exposes the EAR input on bit 6 while keeping the fixed high bits set", "[bus]") {
+    Bus bus(65536);
+
+    bus.set_ear_input(true);
+    REQUIRE((bus.read_port(0x00fe) & 0xe0) == 0xe0);
+
+    bus.set_ear_input(false);
+    REQUIRE((bus.read_port(0x00fe) & 0xe0) == 0xa0);
 }
 
 TEST_CASE("ROM writes remain blocked even when addressing through read-modify-write helpers", "[bus]") {
