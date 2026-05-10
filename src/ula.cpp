@@ -8,6 +8,7 @@
 #include <SDL2/SDL_surface.h>
 #include <SDL2/SDL_timer.h>
 
+#include <algorithm>
 #include <cstdint>
 
 #include "common.hpp"
@@ -77,11 +78,93 @@ static void set_rendercolor(SDL_Renderer *renderer, uint8_t color, bool bright) 
 }
 #endif
 
+void ULA::record_border_tstate(uint64_t frame_pos) {
+    const uint64_t visible_span = static_cast<uint64_t>(machine.visible_height()) * machine.contention_line_tstates;
+    if (frame_pos < visible_frame_start_tstate ||
+        frame_pos >= static_cast<uint64_t>(visible_frame_start_tstate) + visible_span) {
+        return;
+    }
+
+    const uint64_t visible_pos = frame_pos - visible_frame_start_tstate;
+    const uint64_t line = visible_pos / machine.contention_line_tstates;
+    const uint64_t line_pos = visible_pos % machine.contention_line_tstates;
+    border_timeline[(line * machine.contention_line_tstates) + line_pos] = static_cast<uint8_t>(_bus.port_254 & 0x07);
+}
+
+void ULA::render_frame() const {
+#ifdef HAVE_DISPLAY
+    set_rendercolor(renderer, 0, false);
+    SDL_RenderClear(renderer);
+
+    const int visible_width = machine.visible_width();
+    const int visible_height = machine.visible_height();
+    const int line_tstates = machine.contention_line_tstates;
+
+    for (int y = 0; y < visible_height; ++y) {
+        const std::size_t line_offset = static_cast<std::size_t>(y) * line_tstates;
+        for (int bucket = 0; bucket < line_tstates; ++bucket) {
+            const int x0 = (bucket * visible_width) / line_tstates;
+            const int x1 = ((bucket + 1) * visible_width) / line_tstates;
+            if (x1 <= x0) {
+                continue;
+            }
+
+            set_rendercolor(renderer, border_timeline[line_offset + bucket], false);
+            SDL_RenderDrawLine(renderer, x0, y, x1 - 1, y);
+        }
+    }
+
+    uint8_t *data = &_bus[machine.screen_bitmap_base];
+    uint8_t *col_data = &_bus[machine.screen_attr_base];
+    for (int y = 0; y < machine.screen_height; y++) {
+        int new_y = 0xc0 & y;
+        new_y |= (y & 0x7) << 3;
+        new_y |= (y >> 3) & 0x7;
+        int col_y = new_y >> 3;
+        for (int x = 0; x < machine.screen_width; x += machine.attr_cell_size) {
+            uint8_t color = col_data[col_y * (machine.screen_width / machine.attr_cell_size) + (x >> 3)];
+            bool flash = get_bit(color, 7);
+            bool bright = get_bit(color, 6);
+            uint8_t paper_color = (color >> 3) & 0x07;
+            uint8_t ink_color = color & 0x07;
+
+            if ((new_y & 0x7) == 0 && (x & 0x7) == 0) {
+                SDL_Rect rect = {x + machine.border_left, new_y + machine.border_top, machine.attr_cell_size,
+                                 machine.attr_cell_size};
+                set_rendercolor(renderer, ((flash & invert) ? ink_color : paper_color), bright);
+                SDL_RenderFillRect(renderer, &rect);
+            }
+
+            set_rendercolor(renderer, ((flash & invert) ? paper_color : ink_color), bright);
+            uint8_t pixels = *data;
+            if (pixels != 0) {
+                if (pixels == 255) {
+                    SDL_RenderDrawLine(renderer, x + machine.border_left, new_y + machine.border_top,
+                                       x + machine.border_left + (machine.attr_cell_size - 1),
+                                       new_y + machine.border_top);
+                } else {
+                    for (int p = 0; p < machine.attr_cell_size; p++) {
+                        if (get_bit(*data, 7 - p)) {
+                            SDL_RenderDrawPoint(renderer, x + p + machine.border_left, new_y + machine.border_top);
+                        }
+                    }
+                }
+            }
+            data++;
+        }
+    }
+
+    SDL_RenderPresent(renderer);
+#endif
+}
+
 void ULA::clock(bool &do_exit, bool &do_break) {
     if (perf_freq == 0) {
         perf_freq = SDL_GetPerformanceFrequency();
         next_frame_deadline = SDL_GetPerformanceCounter() + (perf_freq / machine.frame_rate_hz);
     }
+
+    record_border_tstate(counter % machine.frame_tstates);
 
     if (counter == 0) {
         SDL_PumpEvents();
@@ -104,63 +187,7 @@ void ULA::clock(bool &do_exit, bool &do_break) {
         //! reset the counter to start everything again.
         counter = UINT64_MAX;  // will wrap on increment
 
-#ifdef HAVE_DISPLAY
-        {
-            // The draw routine at the moment is not very sophisticated and will not
-            // show any clever tricks with changing attributes midway through the
-            // frame. This will need and overhaul at some point in the future but is
-            // sufficient for the time being.
-
-            // Clear screen
-            set_rendercolor(renderer, _bus.port_254 & 0x7, false);
-            SDL_RenderClear(renderer);
-
-            uint8_t *data = &_bus[machine.screen_bitmap_base];
-            uint8_t *col_data = &_bus[machine.screen_attr_base];
-            for (int y = 0; y < machine.screen_height; y++) {
-                int new_y = 0xc0 & y;
-                new_y |= (y & 0x7) << 3;
-                new_y |= (y >> 3) & 0x7;
-                int col_y = new_y >> 3;
-                for (int x = 0; x < machine.screen_width; x += machine.attr_cell_size) {
-                    uint8_t color = col_data[col_y * (machine.screen_width / machine.attr_cell_size) + (x >> 3)];
-                    bool flash = get_bit(color, 7);
-                    bool bright = get_bit(color, 6);
-                    uint8_t paper_color = (color >> 3) & 0x07;
-                    uint8_t ink_color = color & 0x07;
-
-                    // Draw paper color as 8x8 pixel block
-                    if ((new_y & 0x7) == 0 && (x & 0x7) == 0) {
-                        SDL_Rect rect = {x + machine.border_left, new_y + machine.border_top, machine.attr_cell_size,
-                                         machine.attr_cell_size};
-                        set_rendercolor(renderer, ((flash & invert) ? ink_color : paper_color), bright);
-                        SDL_RenderFillRect(renderer, &rect);
-                    }
-
-                    // Draw horizontal byte in ink color
-                    set_rendercolor(renderer, ((flash & invert) ? paper_color : ink_color), bright);
-                    uint8_t pixels = *data;
-                    if (pixels != 0) {
-                        if (pixels == 255) {
-                            SDL_RenderDrawLine(renderer, x + machine.border_left, new_y + machine.border_top,
-                                               x + machine.border_left + (machine.attr_cell_size - 1),
-                                               new_y + machine.border_top);
-                        } else {
-                            for (int p = 0; p < machine.attr_cell_size; p++) {
-                                if (get_bit(*data, 7 - p)) {
-                                    SDL_RenderDrawPoint(renderer, x + p + machine.border_left,
-                                                        new_y + machine.border_top);
-                                }
-                            }
-                        }
-                    }
-                    data++;
-                }
-            }
-
-            SDL_RenderPresent(renderer);
-        }
-#endif
+        render_frame();
 
         frame_counter++;
         if (frame_counter % 16 == 0) {
