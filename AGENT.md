@@ -24,15 +24,18 @@ The project is no longer at the “barely boots” stage. It can load ROMs and s
 - 48K ROM loading works.
 - 48K `SNA` loading works.
 - `Z80` snapshot loading works for version 1, 2, and 3 in 48K mode.
+- The 48K machine model is now centralized and passed around explicitly rather than being spread across hardcoded literals.
+- Bus timing has model-driven floating-bus and RAM-contention support, with direct tests around both.
+- Port `0xFE` EAR input is explicit and can be driven through a generic machine input-line API.
 - Basic display, keyboard, and beeper support are present.
 - A number of real programs and games are known to run.
 
 ### What is still limited
 
 - The emulator is still 48K-oriented rather than a general full-family Spectrum emulator.
-- ULA/video timing is still simplified.
+- ULA/video timing is still simplified overall.
 - Mid-frame and mid-scanline display effects are not rendered accurately.
-- Memory contention is not fully modeled in a production-ready way.
+- Memory contention is present but should still be treated as an evolving 48K-model feature rather than finished hardware-accuracy work.
 - Port contention and broader timing realism are incomplete.
 - Snapshot support is intentionally limited to 48K-compatible cases.
 - Peripheral support is minimal.
@@ -47,9 +50,9 @@ The project is no longer at the “barely boots” stage. It can load ROMs and s
 - `src/system.cpp`, `src/system.hpp`
   - Per-tstate coordination between Z80, ULA, bus, debugger, and beeper.
 - `src/bus.cpp`, `src/bus.hpp`
-  - Memory, port I/O, ROM write protection, snapshot loading entry points, floating bus behavior, opcode fetch logic.
+  - Memory, port I/O, ROM write protection, snapshot loading entry points, floating bus behavior, machine input lines, opcode fetch logic, contention timing.
 - `src/ula.cpp`, `src/ula.hpp`
-  - Frame timing, interrupt triggering, SDL rendering, frame pacing.
+  - Frame timing, interrupt triggering, SDL rendering, beam-aware border history, frame pacing.
 - `src/keyboard.cpp`, `src/keyboard.hpp`
   - Spectrum keyboard matrix mapping onto SDL keyboard state.
 - `src/beeper.hpp`
@@ -58,6 +61,8 @@ The project is no longer at the “barely boots” stage. It can load ROMs and s
   - Interactive debugger and disassembly/memory dump helpers.
 - `src/options.cpp`, `src/options.hpp`
   - CLI argument handling.
+- `src/machine_config.hpp`
+  - Runtime machine-model definition for the 48K Spectrum, including timing, display, and contention constants.
 
 ### Z80 core
 
@@ -145,6 +150,7 @@ Current machine assumptions are centered on the 48K Spectrum:
 - ROM at low memory, RAM above ROM
 - ULA port handling centered on `0xFE`
 - 50 Hz frame cadence
+- model-driven contention fields and display timing constants
 - 48K memory layout assumptions in snapshots and display code
 
 ### CPU support
@@ -175,12 +181,14 @@ Current display support includes:
 - 256x192 bitmap rendering with 32-pixel border padding
 - attributes, bright, and flash
 - border color from ULA port state
+- border rendering that now records colour history across the visible frame and can show at least coarse mid-frame border changes
 - frame pacing to approximately 50 Hz unless `--fast` is used
 
 Important limitation:
 
 - Rendering is still effectively frame-snapshot based.
-- The current draw routine does not render mid-frame or mid-scanline changes correctly.
+- The border is more beam-aware than the bitmap area, but the main screen pixels are still rendered from an end-of-frame memory snapshot.
+- The current draw routine still does not render mid-frame or mid-scanline bitmap/attribute changes correctly.
 - This means color bars, border effects, and timing-sensitive raster tricks are not faithfully represented.
 
 ### Keyboard
@@ -205,8 +213,19 @@ The beeper exists and is audible, but it is simple:
 - SDL audio device
 - mono sample stream
 - simple accumulation based on EAR/MIC state
+- adjustable software gain
 
 It should be treated as functional rather than highly accurate.
+
+### Port input lines
+
+The bus now exposes a small machine-input-line API:
+
+- `MachineInputLine::Ear`
+- `Bus::set_input_line(...)`
+- `Bus::input_line_active(...)`
+
+`Bus::set_ear_input(...)` still exists as a compatibility wrapper, but new code should prefer the generic input-line API when possible.
 
 ### Snapshots
 
@@ -230,9 +249,8 @@ This section is intentionally blunt. Agents should assume these are real constra
 ### Timing and ULA realism
 
 - Rendering is not beam-accurate.
-- Mid-frame display changes are flattened into end-of-frame output.
-- RAM contention is incomplete and should not be treated as hardware-accurate 48K behavior yet.
-- Any contention work currently in progress should be treated as experimental until it is backed by both tests and real-software validation.
+- Mid-frame display changes are only partially represented: border colour history is tracked across the visible frame, but bitmap and attribute rendering are still frame-snapshot based.
+- RAM contention exists and is tested, but should not yet be treated as fully hardware-accurate 48K behavior.
 - Port contention is incomplete.
 - Some real software may run but still show timing artifacts, especially sprite flicker or border-effect inaccuracies.
 - Passing CPU-focused diagnostics such as `z80doc` and `z80all` does not imply accurate machine-level video timing.
@@ -247,7 +265,7 @@ This section is intentionally blunt. Agents should assume these are real constra
 
 - The emulator is fundamentally 48K-centric.
 - 128K paging and AY sound are not supported.
-- Tape loading is not implemented as a full tape subsystem.
+- Tape loading is not implemented as a full tape subsystem, though the EAR input path now exists at the bus level.
 - Peripheral support is minimal.
 
 ### Debugger ergonomics
@@ -269,13 +287,7 @@ This section is intentionally blunt. Agents should assume these are real constra
 
 ## Testing Overview
 
-The repository currently has a strong automated test base.
-
-As of the current debug build, `ctest -N` reports **120 registered tests** across:
-
-- `run_tests`
-- `run_tests_undocumented`
-- `run_tests_undocumented_flags`
+The repository currently has a strong automated test base spanning the documented core, undocumented behavior, machine plumbing, and compliance-style matrices.
 
 The suite is intentionally split between:
 
@@ -406,7 +418,10 @@ Coverage includes:
 - RAM visibility
 - word writes across the ROM/RAM boundary
 - keyboard vs floating bus reads
+- machine input-line / EAR-bit behavior on `0xFE`
 - floating bus wraparound
+- floating bus beam-phase behavior
+- contention timing and delay-pattern coverage
 - `0xFE` port write latching
 - snapshot header restoration
 
@@ -511,7 +526,7 @@ These are the areas most likely to matter next.
 - proper ULA contention
 - more accurate port contention
 - scanline-progress or beam-based rendering
-- mid-scanline border and attribute changes
+- mid-scanline border and attribute changes beyond the current coarse border-history pass
 - better frame presentation/vsync handling
 
 ### Performance
