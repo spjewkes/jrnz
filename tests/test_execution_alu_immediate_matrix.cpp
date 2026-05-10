@@ -180,47 +180,73 @@ uint8_t expected_accum_for(ImmOp op, uint8_t a, uint8_t operand, bool carry_in) 
     }
     return a;
 }
-}  // namespace
 
-TEST_CASE("Immediate ALU opcodes match full-byte flag formulas", "[alu][compliance][alu-immediate-matrix]") {
-    struct OpCase {
-        const char *name;
-        ImmOp op;
-        bool uses_carry_in;
-    };
+struct OpCase {
+    const char *name;
+    ImmOp op;
+    bool uses_carry_in;
+};
 
-    const OpCase ops[] = {
-        {"add a,n", ImmOp::Add, false}, {"adc a,n", ImmOp::Adc, true}, {"sub n", ImmOp::Sub, false},
-        {"sbc a,n", ImmOp::Sbc, true},  {"and n", ImmOp::And, false},  {"xor n", ImmOp::Xor, false},
-        {"or n", ImmOp::Or, false},     {"cp n", ImmOp::Cp, false},
-    };
+void run_immediate_alu_matrix_case(const OpCase &op) {
+    const uint8_t opcode = opcode_for(op.op);
 
-    for (const auto &op : ops) {
-        for (unsigned int a_raw = 0; a_raw <= 0xff; ++a_raw) {
-            const uint8_t a = static_cast<uint8_t>(a_raw);
-            for (unsigned int operand_raw = 0; operand_raw <= 0xff; ++operand_raw) {
-                const uint8_t operand = static_cast<uint8_t>(operand_raw);
-                for (bool carry_in : {false, true}) {
-                    if (!op.uses_carry_in && carry_in) {
-                        continue;
-                    }
-
-                    CpuHarness h;
-                    INFO(op.name << " a=0x" << std::hex << static_cast<unsigned int>(a) << " operand=0x"
-                                 << static_cast<unsigned int>(operand) << " carry_in=" << carry_in);
-                    h.cpu.af.accum(a);
-                    h.cpu.af.flags(0x00);
-                    h.cpu.af.flag(RegisterAF::Flags::Carry, carry_in);
-                    h.load({opcode_for(op.op), operand});
-
-                    const StepResult step = h.step();
-
-                    REQUIRE(step.cycle_delta() == 7);
-                    REQUIRE(step.pc_after == 0x0002);
-                    REQUIRE(h.cpu.af.accum() == expected_accum_for(op.op, a, operand, carry_in));
-                    require_flags(h.cpu.af.flags(), expected_flags_for(op.op, a, operand, carry_in));
+    for (unsigned int a_raw = 0; a_raw <= 0xff; ++a_raw) {
+        const uint8_t a = static_cast<uint8_t>(a_raw);
+        for (unsigned int operand_raw = 0; operand_raw <= 0xff; ++operand_raw) {
+            const uint8_t operand = static_cast<uint8_t>(operand_raw);
+            for (bool carry_in : {false, true}) {
+                if (!op.uses_carry_in && carry_in) {
+                    continue;
                 }
+
+                CpuHarness h;
+                INFO(op.name << " a=0x" << std::hex << static_cast<unsigned int>(a) << " operand=0x"
+                             << static_cast<unsigned int>(operand) << " carry_in=" << carry_in);
+                h.cpu.af.accum(a);
+                h.cpu.af.flags(0x00);
+                h.cpu.af.flag(RegisterAF::Flags::Carry, carry_in);
+                h.load({opcode, operand});
+
+                const StepResult step = h.step();
+
+                REQUIRE(step.cycle_delta() == 7);
+                REQUIRE(step.pc_after == 0x0002);
+                REQUIRE(h.cpu.af.accum() == expected_accum_for(op.op, a, operand, carry_in));
+                require_flags(h.cpu.af.flags(), expected_flags_for(op.op, a, operand, carry_in));
             }
         }
     }
+}
+}  // namespace
+
+TEST_CASE("Immediate ADD opcode matches full-byte flag formulas", "[alu][compliance][alu-immediate-matrix]") {
+    run_immediate_alu_matrix_case({"add a,n", ImmOp::Add, false});
+}
+
+TEST_CASE("Immediate ADC opcode matches full-byte flag formulas", "[alu][compliance][alu-immediate-matrix]") {
+    run_immediate_alu_matrix_case({"adc a,n", ImmOp::Adc, true});
+}
+
+TEST_CASE("Immediate SUB opcode matches full-byte flag formulas", "[alu][compliance][alu-immediate-matrix]") {
+    run_immediate_alu_matrix_case({"sub n", ImmOp::Sub, false});
+}
+
+TEST_CASE("Immediate SBC opcode matches full-byte flag formulas", "[alu][compliance][alu-immediate-matrix]") {
+    run_immediate_alu_matrix_case({"sbc a,n", ImmOp::Sbc, true});
+}
+
+TEST_CASE("Immediate AND opcode matches full-byte flag formulas", "[alu][compliance][alu-immediate-matrix]") {
+    run_immediate_alu_matrix_case({"and n", ImmOp::And, false});
+}
+
+TEST_CASE("Immediate XOR opcode matches full-byte flag formulas", "[alu][compliance][alu-immediate-matrix]") {
+    run_immediate_alu_matrix_case({"xor n", ImmOp::Xor, false});
+}
+
+TEST_CASE("Immediate OR opcode matches full-byte flag formulas", "[alu][compliance][alu-immediate-matrix]") {
+    run_immediate_alu_matrix_case({"or n", ImmOp::Or, false});
+}
+
+TEST_CASE("Immediate CP opcode matches full-byte flag formulas", "[alu][compliance][alu-immediate-matrix]") {
+    run_immediate_alu_matrix_case({"cp n", ImmOp::Cp, false});
 }
