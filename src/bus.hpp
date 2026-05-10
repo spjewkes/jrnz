@@ -22,6 +22,10 @@
  */
 class Z80;
 
+enum class MachineInputLine : uint8_t {
+    Ear = 0,
+};
+
 struct FetchedOpcode {
     uint32_t opcode = {0};
     uint16_t operand_offset = {0};
@@ -79,7 +83,21 @@ public:
         current_frame_tstate = tstate;
         frame_tstate_valid = true;
     }
-    void set_ear_input(bool active) { ear_input_active = active; }
+    void set_input_line(MachineInputLine line, bool active) {
+        switch (line) {
+            case MachineInputLine::Ear:
+                ear_input_active = active;
+                break;
+        }
+    }
+    bool input_line_active(MachineInputLine line) const {
+        switch (line) {
+            case MachineInputLine::Ear:
+                return ear_input_active;
+        }
+        return false;
+    }
+    void set_ear_input(bool active) { set_input_line(MachineInputLine::Ear, active); }
     void begin_instruction_timing() {
         contention_active = true;
         contention_wait_states = 0;

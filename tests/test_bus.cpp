@@ -98,10 +98,12 @@ TEST_CASE("Even keyboard-port reads preserve the upper three bits regardless of 
 TEST_CASE("Port 0xfe exposes the EAR input on bit 6 while keeping the fixed high bits set", "[bus]") {
     Bus bus(65536);
 
-    bus.set_ear_input(true);
+    bus.set_input_line(MachineInputLine::Ear, true);
+    REQUIRE(bus.input_line_active(MachineInputLine::Ear));
     REQUIRE((bus.read_port(0x00fe) & 0xe0) == 0xe0);
 
-    bus.set_ear_input(false);
+    bus.set_input_line(MachineInputLine::Ear, false);
+    REQUIRE_FALSE(bus.input_line_active(MachineInputLine::Ear));
     REQUIRE((bus.read_port(0x00fe) & 0xe0) == 0xa0);
 }
 
