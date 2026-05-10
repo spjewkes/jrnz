@@ -80,119 +80,110 @@ static void set_rendercolor(SDL_Renderer *renderer, uint8_t color, bool bright) 
 void ULA::clock(bool &do_exit, bool &do_break) {
     if (perf_freq == 0) {
         perf_freq = SDL_GetPerformanceFrequency();
-        next_frame_deadline = SDL_GetPerformanceCounter() + (perf_freq / MachineConfig48K::frame_rate_hz);
+        next_frame_deadline = SDL_GetPerformanceCounter() + (perf_freq / machine.frame_rate_hz);
     }
 
-    switch (counter) {
-        case 0: {
-            SDL_PumpEvents();
-            const uint8_t *key_state = static_cast<const uint8_t *>(SDL_GetKeyboardState(NULL));
+    if (counter == 0) {
+        SDL_PumpEvents();
+        const uint8_t *key_state = static_cast<const uint8_t *>(SDL_GetKeyboardState(NULL));
 
-            if (key_state[SDL_SCANCODE_TAB]) {
-                do_break = true;
-            } else if (key_state[SDL_SCANCODE_ESCAPE]) {
-                do_exit = true;
-            }
+        if (key_state[SDL_SCANCODE_TAB]) {
+            do_break = true;
+        } else if (key_state[SDL_SCANCODE_ESCAPE]) {
+            do_exit = true;
         }
 
-            // Trigger interupt on Z80
-            _z80.interrupt = true;
-            break;
-
-        case MachineConfig48K::interrupt_hold_tstates:
-            // Turn off interrupt
-            _z80.interrupt = false;
-            break;
-
-        case MachineConfig48K::frame_tstates:
-            //! TODO - a bit of a hack, but every 50th of a second (running at 3.5
-            //! Mhz on a 48K)
-            //! reset the counter to start everything again.
-            counter = UINT64_MAX;  // will wrap on increment
+        // Trigger interupt on Z80
+        _z80.interrupt = true;
+    } else if (counter == machine.interrupt_hold_tstates) {
+        // Turn off interrupt
+        _z80.interrupt = false;
+    } else if (counter == machine.frame_tstates) {
+        //! TODO - a bit of a hack, but every 50th of a second (running at 3.5
+        //! Mhz on a 48K)
+        //! reset the counter to start everything again.
+        counter = UINT64_MAX;  // will wrap on increment
 
 #ifdef HAVE_DISPLAY
-            {
-                // The draw routine at the moment is not very sophisticated and will not
-                // show any clever tricks with changing attributes midway through the
-                // frame. This will need and overhaul at some point in the future but is
-                // sufficient for the time being.
+        {
+            // The draw routine at the moment is not very sophisticated and will not
+            // show any clever tricks with changing attributes midway through the
+            // frame. This will need and overhaul at some point in the future but is
+            // sufficient for the time being.
 
-                // Clear screen
-                set_rendercolor(renderer, _bus.port_254 & 0x7, false);
-                SDL_RenderClear(renderer);
+            // Clear screen
+            set_rendercolor(renderer, _bus.port_254 & 0x7, false);
+            SDL_RenderClear(renderer);
 
-                uint8_t *data = &_bus[MachineConfig48K::screen_bitmap_base];
-                uint8_t *col_data = &_bus[MachineConfig48K::screen_attr_base];
-                for (int y = 0; y < MachineConfig48K::screen_height; y++) {
-                    int new_y = 0xc0 & y;
-                    new_y |= (y & 0x7) << 3;
-                    new_y |= (y >> 3) & 0x7;
-                    int col_y = new_y >> 3;
-                    for (int x = 0; x < MachineConfig48K::screen_width; x += MachineConfig48K::attr_cell_size) {
-                        uint8_t color =
-                            col_data[col_y * (MachineConfig48K::screen_width / MachineConfig48K::attr_cell_size) +
-                                     (x >> 3)];
-                        bool flash = get_bit(color, 7);
-                        bool bright = get_bit(color, 6);
-                        uint8_t paper_color = (color >> 3) & 0x07;
-                        uint8_t ink_color = color & 0x07;
+            uint8_t *data = &_bus[machine.screen_bitmap_base];
+            uint8_t *col_data = &_bus[machine.screen_attr_base];
+            for (int y = 0; y < machine.screen_height; y++) {
+                int new_y = 0xc0 & y;
+                new_y |= (y & 0x7) << 3;
+                new_y |= (y >> 3) & 0x7;
+                int col_y = new_y >> 3;
+                for (int x = 0; x < machine.screen_width; x += machine.attr_cell_size) {
+                    uint8_t color = col_data[col_y * (machine.screen_width / machine.attr_cell_size) + (x >> 3)];
+                    bool flash = get_bit(color, 7);
+                    bool bright = get_bit(color, 6);
+                    uint8_t paper_color = (color >> 3) & 0x07;
+                    uint8_t ink_color = color & 0x07;
 
-                        // Draw paper color as 8x8 pixel block
-                        if ((new_y & 0x7) == 0 && (x & 0x7) == 0) {
-                            SDL_Rect rect = {x + MachineConfig48K::border_left, new_y + MachineConfig48K::border_top,
-                                             MachineConfig48K::attr_cell_size, MachineConfig48K::attr_cell_size};
-                            set_rendercolor(renderer, ((flash & invert) ? ink_color : paper_color), bright);
-                            SDL_RenderFillRect(renderer, &rect);
-                        }
+                    // Draw paper color as 8x8 pixel block
+                    if ((new_y & 0x7) == 0 && (x & 0x7) == 0) {
+                        SDL_Rect rect = {x + machine.border_left, new_y + machine.border_top, machine.attr_cell_size,
+                                         machine.attr_cell_size};
+                        set_rendercolor(renderer, ((flash & invert) ? ink_color : paper_color), bright);
+                        SDL_RenderFillRect(renderer, &rect);
+                    }
 
-                        // Draw horizontal byte in ink color
-                        set_rendercolor(renderer, ((flash & invert) ? paper_color : ink_color), bright);
-                        uint8_t pixels = *data;
-                        if (pixels != 0) {
-                            if (pixels == 255) {
-                                SDL_RenderDrawLine(
-                                    renderer, x + MachineConfig48K::border_left, new_y + MachineConfig48K::border_top,
-                                    x + MachineConfig48K::border_left + (MachineConfig48K::attr_cell_size - 1),
-                                    new_y + MachineConfig48K::border_top);
-                            } else {
-                                for (int p = 0; p < MachineConfig48K::attr_cell_size; p++) {
-                                    if (get_bit(*data, 7 - p)) {
-                                        SDL_RenderDrawPoint(renderer, x + p + MachineConfig48K::border_left,
-                                                            new_y + MachineConfig48K::border_top);
-                                    }
+                    // Draw horizontal byte in ink color
+                    set_rendercolor(renderer, ((flash & invert) ? paper_color : ink_color), bright);
+                    uint8_t pixels = *data;
+                    if (pixels != 0) {
+                        if (pixels == 255) {
+                            SDL_RenderDrawLine(renderer, x + machine.border_left, new_y + machine.border_top,
+                                               x + machine.border_left + (machine.attr_cell_size - 1),
+                                               new_y + machine.border_top);
+                        } else {
+                            for (int p = 0; p < machine.attr_cell_size; p++) {
+                                if (get_bit(*data, 7 - p)) {
+                                    SDL_RenderDrawPoint(renderer, x + p + machine.border_left,
+                                                        new_y + machine.border_top);
                                 }
                             }
                         }
-                        data++;
                     }
+                    data++;
                 }
-
-                SDL_RenderPresent(renderer);
             }
+
+            SDL_RenderPresent(renderer);
+        }
 #endif
 
-            frame_counter++;
-            if (frame_counter % 16 == 0) {
-                if (invert)
-                    invert = false;
-                else
-                    invert = true;
-            }
+        frame_counter++;
+        if (frame_counter % 16 == 0) {
+            if (invert)
+                invert = false;
+            else
+                invert = true;
+        }
 
-            if (!fast_mode) {
-                uint64_t now = SDL_GetPerformanceCounter();
-                if (now < next_frame_deadline) {
-                    uint64_t remaining = next_frame_deadline - now;
-                    uint32_t ms = static_cast<uint32_t>((remaining * 1000) / perf_freq);
-                    if (ms > 0) {
-                        SDL_Delay(ms);
-                    }
-                    // Busy-wait the remainder for finer granularity
-                    while (SDL_GetPerformanceCounter() < next_frame_deadline) {
-                    }
+        if (!fast_mode) {
+            uint64_t now = SDL_GetPerformanceCounter();
+            if (now < next_frame_deadline) {
+                uint64_t remaining = next_frame_deadline - now;
+                uint32_t ms = static_cast<uint32_t>((remaining * 1000) / perf_freq);
+                if (ms > 0) {
+                    SDL_Delay(ms);
                 }
-                next_frame_deadline += (perf_freq / MachineConfig48K::frame_rate_hz);
+                // Busy-wait the remainder for finer granularity
+                while (SDL_GetPerformanceCounter() < next_frame_deadline) {
+                }
             }
+            next_frame_deadline += (perf_freq / machine.frame_rate_hz);
+        }
     }
 
     counter++;

@@ -10,6 +10,7 @@
 #include <cmath>
 #include <fstream>
 #include <string>
+#include <vector>
 
 #include "common.hpp"
 #include "machine_config.hpp"
@@ -18,8 +19,6 @@
 // output
 constexpr uint32_t num_buffers = 4;
 constexpr uint16_t frequency = 22050;
-constexpr uint32_t num_clocks_per_sample = static_cast<int>(MachineConfig48K::cpu_frequency_hz / frequency) + 1;
-constexpr uint16_t samples = num_clocks_per_sample * 4;
 constexpr float beeper_gain = 0.10f;
 
 /**
@@ -28,7 +27,14 @@ constexpr float beeper_gain = 0.10f;
  */
 class Beeper {
 public:
-    Beeper() {
+    explicit Beeper(const MachineModel &_machine)
+        : machine(_machine),
+          num_clocks_per_sample(static_cast<uint32_t>(machine.cpu_frequency_hz / frequency) + 1),
+          samples(static_cast<uint16_t>(num_clocks_per_sample * 4)) {
+        for (auto &buffer : data) {
+            buffer.resize(samples);
+        }
+
         SDL_zero(audiospec);
         audiospec.freq = frequency;
         audiospec.format = AUDIO_S8;
@@ -54,10 +60,10 @@ public:
     static void audio_callback(void *userdata, Uint8 *stream, int len) {
         Beeper *bpr = reinterpret_cast<Beeper *>(userdata);
         if (bpr->buffer_read_ready) {
-            if (len != samples) {
-                fprintf(stderr, "Reading just %d bytes instead of %d\n", len, samples);
+            if (len != bpr->samples) {
+                fprintf(stderr, "Reading just %d bytes instead of %d\n", len, bpr->samples);
             }
-            std::memcpy(reinterpret_cast<void *>(stream), reinterpret_cast<void *>(&bpr->data[bpr->buffer_read][0]),
+            std::memcpy(reinterpret_cast<void *>(stream), reinterpret_cast<void *>(bpr->data[bpr->buffer_read].data()),
                         len);
             bpr->buffer_read = (bpr->buffer_read + 1) % num_buffers;
             if (bpr->buffer_read == bpr->buffer_write) {
@@ -115,10 +121,13 @@ public:
     uint32_t index = {0};
     uint32_t value = {0};
 
-    std::array<std::array<char, samples>, num_buffers> data;
+    std::array<std::vector<char>, num_buffers> data;
 
 private:
+    MachineModel machine;
     uint64_t num_clocks = {0};
+    uint32_t num_clocks_per_sample = {0};
+    uint16_t samples = {0};
 
     SDL_AudioSpec audiospec;
     SDL_AudioDeviceID device;

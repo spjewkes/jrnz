@@ -15,12 +15,14 @@
  */
 class ULA {
 public:
-    ULA(Z80 &_z80, Bus &_bus, bool fast_mode = false) : _z80(_z80), _bus(_bus), fast_mode(fast_mode) {}
+    ULA(const MachineModel &_machine, Z80 &_z80, Bus &_bus, bool fast_mode = false)
+        : machine(_machine), _z80(_z80), _bus(_bus), fast_mode(fast_mode) {}
     virtual ~ULA() {}
 
     void clock(bool &do_exit, bool &do_break);
 
 private:
+    MachineModel machine;
     Z80 &_z80;
     Bus &_bus;
 

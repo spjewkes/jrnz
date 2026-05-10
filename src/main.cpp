@@ -31,6 +31,7 @@ void wait_keypress() {
  */
 int main(int argc, char **argv) {
     std::cout << "Running jrnz..." << std::endl;
+    static constexpr MachineModel machine = spectrum_48k_model();
 
 #ifdef HAVE_DISPLAY
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
@@ -38,14 +39,14 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
-    window = SDL_CreateWindow("JRNZ", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, MachineConfig48K::window_width,
-                              MachineConfig48K::window_height, 0);
+    window = SDL_CreateWindow("JRNZ", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, machine.window_width(),
+                              machine.window_height(), 0);
     if (!window) {
         std::cerr << "Could not create window: " << SDL_GetError() << std::endl;
         return EXIT_FAILURE;
     }
     renderer = SDL_CreateRenderer(window, -1, 0);
-    SDL_RenderSetScale(renderer, MachineConfig48K::render_scale, MachineConfig48K::render_scale);
+    SDL_RenderSetScale(renderer, machine.render_scale, machine.render_scale);
 #else
     if (SDL_Init(SDL_INIT_EVENTS) != 0) {
         std::cerr << "Unable to initialize SDL: " << SDL_GetError() << std::endl;
@@ -55,11 +56,11 @@ int main(int argc, char **argv) {
 
     Options options(argc, argv);
 
-    Bus mem(MachineConfig48K::memory_size);
+    Bus mem(machine);
     Z80 state(mem, options.fast_mode);
-    ULA ula(state, mem, options.fast_mode);
+    ULA ula(machine, state, mem, options.fast_mode);
     Debugger debug(state, mem);
-    Beeper beeper = {};
+    Beeper beeper(machine);
 
     System sys(state, ula, mem, debug, beeper);
 

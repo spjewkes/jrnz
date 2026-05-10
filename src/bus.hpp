@@ -34,7 +34,9 @@ struct FetchedOpcode {
  */
 class Bus {
 public:
-    Bus(size_t size) : mem(size) {}
+    explicit Bus(const MachineModel &_machine)
+        : machine(_machine), mem(_machine.memory_size), ram_start(machine.ram_base) {}
+    explicit Bus(size_t size) : machine(spectrum_48k_model()), mem(size), ram_start(machine.ram_base) {}
     virtual ~Bus() {}
 
     void load_rom(std::string &rom_file);
@@ -77,8 +79,10 @@ public:
     // TODO - this needs to be dealt with better at some point
     uint8_t port_254 = {0};
     mutable uint16_t floating_counter = {0};
+    const MachineModel &model() const { return machine; }
 
 private:
+    MachineModel machine;
     std::vector<uint8_t> mem;
-    uint16_t ram_start = {MachineConfig48K::ram_base};
+    uint16_t ram_start = {0};
 };

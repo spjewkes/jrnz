@@ -16,7 +16,7 @@ void Bus::load_rom(std::string &rom_file) {
     } else {
         std::cerr << "No ROM file found called " << rom_file << std::endl;
         std::cerr << "ROM uninitialized" << std::endl;
-        ram_start = MachineConfig48K::ram_base;
+        ram_start = machine.ram_base;
     }
 }
 
@@ -32,13 +32,12 @@ uint8_t Bus::read_port(uint16_t addr) const {
     }
 
     // Floating bus: return a byte from screen/attribute memory that changes over time.
-    uint16_t fb_addr =
-        MachineConfig48K::screen_bitmap_base + (floating_counter++ & MachineConfig48K::floating_bus_mask);
+    uint16_t fb_addr = machine.screen_bitmap_base + (floating_counter++ & machine.floating_bus_mask);
     return mem[fb_addr];
 }
 
 void Bus::write_port(uint16_t addr, uint8_t v) {
-    if ((addr & 0xff) == static_cast<uint8_t>(MachineConfig48K::ula_port & 0xff)) {
+    if ((addr & 0xff) == static_cast<uint8_t>(machine.ula_port & 0xff)) {
         port_254 = v;
     }
 }
