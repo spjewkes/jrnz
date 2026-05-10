@@ -63,6 +63,7 @@ add_executable(
   tests/test_snapshot_sna.cpp
   tests/test_snapshot_z80.cpp
   tests/test_decoder.cpp
+  tests/test_bus.cpp
   tests/test_control_flow.cpp
   tests/test_flags_misc.cpp
   tests/test_flags_matrix.cpp

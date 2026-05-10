@@ -120,3 +120,45 @@ TEST_CASE("Contention does not add wait states outside contended RAM or outside 
     (void)bus.read_data(static_cast<uint16_t>(bus.model().contention_ram_base - 1));
     REQUIRE(bus.end_instruction_timing() == 0);
 }
+
+TEST_CASE("Contention follows the 8-tstate ULA delay pattern across successive accesses", "[bus]") {
+    Bus bus(65536);
+
+    bus.set_frame_tstate(bus.model().contention_first_tstate);
+    bus.begin_instruction_timing();
+    for (int i = 0; i < 8; ++i) {
+        (void)bus.read_data(static_cast<uint16_t>(bus.model().contention_ram_base + i));
+    }
+
+    REQUIRE(bus.end_instruction_timing() == 21);
+}
+
+TEST_CASE("Contention uses the frame phase of each successive memory access within one instruction", "[bus]") {
+    Bus bus(65536);
+
+    bus.set_frame_tstate(static_cast<uint64_t>(bus.model().contention_first_tstate + 6));
+    bus.begin_instruction_timing();
+    (void)bus.read_data(bus.model().contention_ram_base);
+    (void)bus.read_data(static_cast<uint16_t>(bus.model().contention_ram_base + 1));
+    (void)bus.read_data(static_cast<uint16_t>(bus.model().contention_ram_base + 2));
+
+    REQUIRE(bus.end_instruction_timing() == 6);
+}
+
+TEST_CASE("Opcode fetch and operand reads both contribute to contention timing", "[bus]") {
+    Bus bus(65536);
+
+    const uint16_t base = bus.model().contention_ram_base;
+    bus[base] = 0xdd;
+    bus[static_cast<uint16_t>(base + 1)] = 0xcb;
+    bus[static_cast<uint16_t>(base + 2)] = 0x05;
+    bus[static_cast<uint16_t>(base + 3)] = 0x46;
+
+    bus.set_frame_tstate(bus.model().contention_first_tstate);
+    bus.begin_instruction_timing();
+    const FetchedOpcode fetched = bus.read_opcode_from_mem(base);
+
+    REQUIRE(fetched.opcode == 0xddcb46);
+    REQUIRE(fetched.fetch_len == 3);
+    REQUIRE(bus.end_instruction_timing() == 15);
+}
