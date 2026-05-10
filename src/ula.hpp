@@ -7,6 +7,7 @@
 #include <cstdint>
 
 #include "bus.hpp"
+#include "machine_config.hpp"
 #include "z80.hpp"
 
 /**

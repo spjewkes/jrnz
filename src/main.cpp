@@ -6,6 +6,7 @@
 #include "beeper.hpp"
 #include "bus.hpp"
 #include "debugger.hpp"
+#include "machine_config.hpp"
 #include "options.hpp"
 #include "system.hpp"
 #include "ula.hpp"
@@ -37,13 +38,14 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
-    window = SDL_CreateWindow("JRNZ", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 960, 768, 0);
+    window = SDL_CreateWindow("JRNZ", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, MachineConfig48K::window_width,
+                              MachineConfig48K::window_height, 0);
     if (!window) {
         std::cerr << "Could not create window: " << SDL_GetError() << std::endl;
         return EXIT_FAILURE;
     }
     renderer = SDL_CreateRenderer(window, -1, 0);
-    SDL_RenderSetScale(renderer, 3.0f, 3.0f);
+    SDL_RenderSetScale(renderer, MachineConfig48K::render_scale, MachineConfig48K::render_scale);
 #else
     if (SDL_Init(SDL_INIT_EVENTS) != 0) {
         std::cerr << "Unable to initialize SDL: " << SDL_GetError() << std::endl;
@@ -53,7 +55,7 @@ int main(int argc, char **argv) {
 
     Options options(argc, argv);
 
-    Bus mem(65536);
+    Bus mem(MachineConfig48K::memory_size);
     Z80 state(mem, options.fast_mode);
     ULA ula(state, mem, options.fast_mode);
     Debugger debug(state, mem);

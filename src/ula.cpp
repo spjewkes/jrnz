@@ -80,7 +80,7 @@ static void set_rendercolor(SDL_Renderer *renderer, uint8_t color, bool bright) 
 void ULA::clock(bool &do_exit, bool &do_break) {
     if (perf_freq == 0) {
         perf_freq = SDL_GetPerformanceFrequency();
-        next_frame_deadline = SDL_GetPerformanceCounter() + (perf_freq / 50);
+        next_frame_deadline = SDL_GetPerformanceCounter() + (perf_freq / MachineConfig48K::frame_rate_hz);
     }
 
     switch (counter) {
@@ -99,12 +99,12 @@ void ULA::clock(bool &do_exit, bool &do_break) {
             _z80.interrupt = true;
             break;
 
-        case 32:
+        case MachineConfig48K::interrupt_hold_tstates:
             // Turn off interrupt
             _z80.interrupt = false;
             break;
 
-        case 69888:
+        case MachineConfig48K::frame_tstates:
             //! TODO - a bit of a hack, but every 50th of a second (running at 3.5
             //! Mhz on a 48K)
             //! reset the counter to start everything again.
@@ -121,15 +121,17 @@ void ULA::clock(bool &do_exit, bool &do_break) {
                 set_rendercolor(renderer, _bus.port_254 & 0x7, false);
                 SDL_RenderClear(renderer);
 
-                uint8_t *data = &_bus[0x4000];
-                uint8_t *col_data = &_bus[0x5800];
-                for (int y = 0; y < 192; y++) {
+                uint8_t *data = &_bus[MachineConfig48K::screen_bitmap_base];
+                uint8_t *col_data = &_bus[MachineConfig48K::screen_attr_base];
+                for (int y = 0; y < MachineConfig48K::screen_height; y++) {
                     int new_y = 0xc0 & y;
                     new_y |= (y & 0x7) << 3;
                     new_y |= (y >> 3) & 0x7;
                     int col_y = new_y >> 3;
-                    for (int x = 0; x < 256; x += 8) {
-                        uint8_t color = col_data[col_y * 32 + (x >> 3)];
+                    for (int x = 0; x < MachineConfig48K::screen_width; x += MachineConfig48K::attr_cell_size) {
+                        uint8_t color =
+                            col_data[col_y * (MachineConfig48K::screen_width / MachineConfig48K::attr_cell_size) +
+                                     (x >> 3)];
                         bool flash = get_bit(color, 7);
                         bool bright = get_bit(color, 6);
                         uint8_t paper_color = (color >> 3) & 0x07;
@@ -137,7 +139,8 @@ void ULA::clock(bool &do_exit, bool &do_break) {
 
                         // Draw paper color as 8x8 pixel block
                         if ((new_y & 0x7) == 0 && (x & 0x7) == 0) {
-                            SDL_Rect rect = {x + 32, new_y + 32, 8, 8};
+                            SDL_Rect rect = {x + MachineConfig48K::border_left, new_y + MachineConfig48K::border_top,
+                                             MachineConfig48K::attr_cell_size, MachineConfig48K::attr_cell_size};
                             set_rendercolor(renderer, ((flash & invert) ? ink_color : paper_color), bright);
                             SDL_RenderFillRect(renderer, &rect);
                         }
@@ -147,11 +150,15 @@ void ULA::clock(bool &do_exit, bool &do_break) {
                         uint8_t pixels = *data;
                         if (pixels != 0) {
                             if (pixels == 255) {
-                                SDL_RenderDrawLine(renderer, x + 32, new_y + 32, x + 39, new_y + 32);
+                                SDL_RenderDrawLine(
+                                    renderer, x + MachineConfig48K::border_left, new_y + MachineConfig48K::border_top,
+                                    x + MachineConfig48K::border_left + (MachineConfig48K::attr_cell_size - 1),
+                                    new_y + MachineConfig48K::border_top);
                             } else {
-                                for (int p = 0; p < 8; p++) {
+                                for (int p = 0; p < MachineConfig48K::attr_cell_size; p++) {
                                     if (get_bit(*data, 7 - p)) {
-                                        SDL_RenderDrawPoint(renderer, x + p + 32, new_y + 32);
+                                        SDL_RenderDrawPoint(renderer, x + p + MachineConfig48K::border_left,
+                                                            new_y + MachineConfig48K::border_top);
                                     }
                                 }
                             }
@@ -184,7 +191,7 @@ void ULA::clock(bool &do_exit, bool &do_break) {
                     while (SDL_GetPerformanceCounter() < next_frame_deadline) {
                     }
                 }
-                next_frame_deadline += (perf_freq / 50);
+                next_frame_deadline += (perf_freq / MachineConfig48K::frame_rate_hz);
             }
     }
 

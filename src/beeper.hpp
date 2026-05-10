@@ -12,12 +12,13 @@
 #include <string>
 
 #include "common.hpp"
+#include "machine_config.hpp"
 
 // Varying the number of buffers is a balance between improving the quality of the output but increasing the delay in
 // output
 constexpr uint32_t num_buffers = 4;
 constexpr uint16_t frequency = 22050;
-constexpr uint32_t num_clocks_per_sample = static_cast<int>(3500000 / frequency) + 1;
+constexpr uint32_t num_clocks_per_sample = static_cast<int>(MachineConfig48K::cpu_frequency_hz / frequency) + 1;
 constexpr uint16_t samples = num_clocks_per_sample * 4;
 constexpr float beeper_gain = 0.10f;
 

@@ -14,6 +14,7 @@
 
 #include "common.hpp"
 #include "keyboard.hpp"
+#include "machine_config.hpp"
 #include "storage_element.hpp"
 
 /**
@@ -79,5 +80,5 @@ public:
 
 private:
     std::vector<uint8_t> mem;
-    uint16_t ram_start = {0x4000};
+    uint16_t ram_start = {MachineConfig48K::ram_base};
 };
