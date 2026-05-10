@@ -170,6 +170,19 @@ TEST_CASE("Documented port instructions use the expected ports and flag rules", 
         REQUIRE(h.cpu.af.accum() == 0x7e);
     }
 
+    SECTION("IN A,(n) observes the EAR input bit on port 0xfe") {
+        CpuHarness h;
+        h.cpu.af.set(0x12c3);
+        h.mem.set_ear_input(false);
+        h.load({0xdb, 0xfe});
+
+        const StepResult step = h.step();
+
+        REQUIRE(step.cycle_delta() == 11);
+        REQUIRE(step.pc_after == 0x0002);
+        REQUIRE(h.cpu.af.accum() == 0xa0);
+    }
+
     SECTION("IN B,(C) updates B and the documented flags from the port value") {
         CpuHarness h;
         h.cpu.bc.set(0x00fe);
@@ -181,6 +194,26 @@ TEST_CASE("Documented port instructions use the expected ports and flag rules", 
         REQUIRE(step.cycle_delta() == 12);
         REQUIRE(step.pc_after == 0x0002);
         REQUIRE(h.cpu.bc.hi() == 0xff);
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Carry));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
+        REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Zero));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Sign));
+        REQUIRE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
+    }
+
+    SECTION("IN B,(C) reflects a low EAR input and derives flags from the value read") {
+        CpuHarness h;
+        h.cpu.bc.set(0x00fe);
+        h.mem.set_ear_input(false);
+        h.cpu.af.flag(RegisterAF::Flags::Carry, true);
+        h.load({0xed, 0x40});
+
+        const StepResult step = h.step();
+
+        REQUIRE(step.cycle_delta() == 12);
+        REQUIRE(step.pc_after == 0x0002);
+        REQUIRE(h.cpu.bc.hi() == 0xa0);
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Carry));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::AddSubtract));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry));
