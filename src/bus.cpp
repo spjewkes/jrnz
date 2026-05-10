@@ -47,12 +47,12 @@ FetchedOpcode Bus::read_opcode_from_mem(uint16_t addr) const {
     uint16_t curr_addr = addr;
 
     while (true) {
-        const uint8_t opcode = mem[curr_addr];
+        const uint8_t opcode = read_data(curr_addr);
 
         switch (opcode) {
             case 0xdd:
             case 0xfd: {
-                const uint8_t next = mem[curr_addr + 1];
+                const uint8_t next = read_data(curr_addr + 1);
 
                 if (next == 0xdd || next == 0xfd || next == 0xed) {
                     fetched.ignored_prefixes++;
@@ -65,7 +65,7 @@ FetchedOpcode Bus::read_opcode_from_mem(uint16_t addr) const {
                 fetched.fetch_len = static_cast<uint8_t>(fetched.ignored_prefixes + 2);
 
                 if (next == 0xcb) {
-                    fetched.opcode = (fetched.opcode << 8) | mem[curr_addr + 3];
+                    fetched.opcode = (fetched.opcode << 8) | read_data(curr_addr + 3);
                     // The displacement byte is an operand and does not contribute to the R increment.
                     fetched.fetch_len = static_cast<uint8_t>(fetched.ignored_prefixes + 3);
                 }
@@ -73,7 +73,7 @@ FetchedOpcode Bus::read_opcode_from_mem(uint16_t addr) const {
             }
             case 0xed:
             case 0xcb:
-                fetched.opcode = (static_cast<uint32_t>(opcode) << 8) | mem[curr_addr + 1];
+                fetched.opcode = (static_cast<uint32_t>(opcode) << 8) | read_data(curr_addr + 1);
                 fetched.operand_offset = static_cast<uint16_t>((curr_addr - addr) + 2);
                 fetched.fetch_len = static_cast<uint8_t>((curr_addr - addr) + 2);
                 return fetched;

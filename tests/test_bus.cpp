@@ -96,3 +96,27 @@ TEST_CASE("Port writes only latch the Spectrum ULA port when the low byte is 0xf
     bus.write_port(0x12ff, 0x33);
     REQUIRE(bus.port_254 == 0x77);
 }
+
+TEST_CASE("Contention adds wait states for accesses in contended RAM during the active display window", "[bus]") {
+    Bus bus(65536);
+
+    bus.set_frame_tstate(bus.model().contention_first_tstate);
+    bus.begin_instruction_timing();
+    (void)bus.read_data(bus.model().contention_ram_base);
+
+    REQUIRE(bus.end_instruction_timing() == 6);
+}
+
+TEST_CASE("Contention does not add wait states outside contended RAM or outside the display window", "[bus]") {
+    Bus bus(65536);
+
+    bus.set_frame_tstate(0);
+    bus.begin_instruction_timing();
+    (void)bus.read_data(bus.model().contention_ram_base);
+    REQUIRE(bus.end_instruction_timing() == 0);
+
+    bus.set_frame_tstate(bus.model().contention_first_tstate);
+    bus.begin_instruction_timing();
+    (void)bus.read_data(static_cast<uint16_t>(bus.model().contention_ram_base - 1));
+    REQUIRE(bus.end_instruction_timing() == 0);
+}

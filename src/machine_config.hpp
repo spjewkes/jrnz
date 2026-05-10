@@ -23,6 +23,13 @@ struct MachineModel {
     uint32_t cpu_frequency_hz;
     uint32_t frame_rate_hz;
     uint32_t frame_tstates;
+    uint32_t contention_first_tstate;
+    uint16_t contention_line_tstates;
+    uint8_t contention_visible_tstates;
+    uint16_t contention_lines;
+    uint16_t contention_ram_base;
+    uint16_t contention_ram_end;
+    std::array<uint8_t, 8> contention_pattern;
 
     int screen_width;
     int screen_height;
@@ -53,6 +60,13 @@ constexpr MachineModel spectrum_48k_model() {
         .cpu_frequency_hz = 3500000,
         .frame_rate_hz = 50,
         .frame_tstates = 69888,
+        .contention_first_tstate = 14336,
+        .contention_line_tstates = 224,
+        .contention_visible_tstates = 128,
+        .contention_lines = 192,
+        .contention_ram_base = 0x4000,
+        .contention_ram_end = 0x8000,
+        .contention_pattern = {6, 5, 4, 3, 2, 1, 0, 0},
         .screen_width = 256,
         .screen_height = 192,
         .attr_cell_size = 8,

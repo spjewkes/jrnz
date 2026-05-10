@@ -20,6 +20,7 @@ bool System::clock() {
 
         _bus.clock();
         _ula.clock(do_exit, do_break);
+        _bus.set_frame_tstate(_ula.frame_tstate());
         // _beeper.clock(false, false, 0);
         return _z80.clock(_debugger.is_break_enabled()) && !do_exit;
     }

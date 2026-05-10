@@ -20,6 +20,7 @@ public:
     virtual ~ULA() {}
 
     void clock(bool &do_exit, bool &do_break);
+    uint64_t frame_tstate() const { return counter % machine.frame_tstates; }
 
 private:
     MachineModel machine;

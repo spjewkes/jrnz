@@ -48,17 +48,21 @@ public:
     uint8_t read_port(uint16_t addr) const;
     void write_port(uint16_t addr, uint8_t v);
 
-    uint8_t read_data(uint16_t addr) const { return mem[addr]; }
+    uint8_t read_data(uint16_t addr) const {
+        account_contention(addr);
+        return mem[addr];
+    }
 
     void write_data(uint16_t addr, uint8_t v) {
+        account_contention(addr);
         if (addr >= ram_start) {
             mem[addr] = v;
         }
     }
 
     uint16_t read_addr_from_mem(uint16_t addr) const {
-        uint16_t ret_addr = mem[addr];
-        ret_addr |= mem[addr + 1] << 8;
+        uint16_t ret_addr = read_data(addr);
+        ret_addr |= read_data(addr + 1) << 8;
         return ret_addr;
     }
     void write_addr_to_mem(uint16_t addr, uint16_t addr_to_write) {
@@ -71,6 +75,16 @@ public:
     }
 
     FetchedOpcode read_opcode_from_mem(uint16_t addr) const;
+    void set_frame_tstate(uint64_t tstate) { current_frame_tstate = tstate; }
+    void begin_instruction_timing() {
+        contention_active = true;
+        contention_wait_states = 0;
+        contention_access_phase = 0;
+    }
+    uint32_t end_instruction_timing() {
+        contention_active = false;
+        return contention_wait_states;
+    }
 
     void clock() {
         // Not actively used at the moment but may be useful for debugging
@@ -82,7 +96,41 @@ public:
     const MachineModel &model() const { return machine; }
 
 private:
+    void account_contention(uint16_t addr) const {
+        if (!contention_active) {
+            return;
+        }
+        if (addr < machine.contention_ram_base || addr >= machine.contention_ram_end) {
+            return;
+        }
+
+        contention_wait_states += contention_delay(current_frame_tstate + contention_access_phase);
+        contention_access_phase += 1;
+    }
+
+    uint8_t contention_delay(uint64_t tstate) const {
+        const uint64_t frame_pos = tstate % machine.frame_tstates;
+        const uint64_t contention_span =
+            static_cast<uint64_t>(machine.contention_lines) * machine.contention_line_tstates;
+
+        if (frame_pos < machine.contention_first_tstate ||
+            frame_pos >= static_cast<uint64_t>(machine.contention_first_tstate) + contention_span) {
+            return 0;
+        }
+
+        const uint64_t line_pos = (frame_pos - machine.contention_first_tstate) % machine.contention_line_tstates;
+        if (line_pos >= machine.contention_visible_tstates) {
+            return 0;
+        }
+
+        return machine.contention_pattern[line_pos & 0x7];
+    }
+
     MachineModel machine;
     std::vector<uint8_t> mem;
     uint16_t ram_start = {0};
+    mutable uint64_t current_frame_tstate = {0};
+    mutable uint32_t contention_wait_states = {0};
+    mutable uint32_t contention_access_phase = {0};
+    mutable bool contention_active = {false};
 };

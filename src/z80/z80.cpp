@@ -83,6 +83,7 @@ bool Z80::clock(bool no_cycles) {
         } else {
             curr_opcode_pc = pc.get();
 
+            bus.begin_instruction_timing();
             const FetchedOpcode fetched = bus.read_opcode_from_mem(curr_opcode_pc);
             curr_opcode = fetched.opcode;
             assert(fetched.operand_offset != 0);
@@ -94,6 +95,7 @@ bool Z80::clock(bool no_cycles) {
             if (inst.inst != InstType::INV) {
                 pc.set(curr_opcode_pc + inst.size + fetched.ignored_prefixes);
                 cycles = const_cast<Instruction &>(inst).execute(*this) + ignored_prefix_cycles(fetched);
+                cycles += bus.end_instruction_timing();
                 flags_modified_last_instruction = inst.modifies_flags(curr_opcode);
                 if (ei_pending && inst.inst != InstType::EI) {
                     iff1 = true;
@@ -102,6 +104,7 @@ bool Z80::clock(bool no_cycles) {
                 }
                 found = true;
             } else {
+                bus.end_instruction_timing();
                 std::cerr << "UNKNOWN OPCODE: 0x" << std::hex << std::setw(8) << std::setfill('0') << fetched.opcode;
                 std::cerr << " at 0x" << curr_opcode_pc << std::endl;
             }
