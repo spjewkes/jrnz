@@ -19,6 +19,7 @@ constexpr uint32_t num_buffers = 4;
 constexpr uint16_t frequency = 22050;
 constexpr uint32_t num_clocks_per_sample = static_cast<int>(3500000 / frequency) + 1;
 constexpr uint16_t samples = num_clocks_per_sample * 4;
+constexpr float beeper_gain = 0.10f;
 
 /**
  * @brief Class describing the beeper
@@ -79,12 +80,11 @@ public:
             }
 
             if (num_clocks > num_clocks_per_sample) {
-                if (value > 0x7f) {
-                    value = 0x7f;
-                }
+                const uint32_t clamped_value = (value > 0x7f) ? 0x7f : value;
+                const uint32_t scaled_value = static_cast<uint32_t>(clamped_value * beeper_gain);
                 SDL_LockAudioDevice(device);
 
-                data[buffer_write][index++] = value;
+                data[buffer_write][index++] = static_cast<char>(scaled_value);
                 if (index >= samples) {
                     // Reached the end of the current data buffer
                     // Move on to next buffer and mark previous buffer as ready to read
