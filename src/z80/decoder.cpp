@@ -1,16 +1,90 @@
 #include "decoder.hpp"
 
+#include <array>
 #include <iomanip>
 #include <map>
+#include <optional>
+#include <unordered_map>
 
 #include "common.hpp"
 
-static std::map<uint32_t, Instruction> map_inst;
 static std::map<uint32_t, std::string> map_rom;
 
 static Instruction inv_inst{InstType::INV, "INVALID", 0, 0};
 static Instruction ed_nop_inst{InstType::NOP, "nop", 2, 8};
 static std::string unk_rom_addr{""};
+
+namespace {
+using InstructionSlot = std::optional<Instruction>;
+using InstructionTable = std::array<InstructionSlot, 256>;
+
+struct OpcodeTables {
+    void emplace(uint32_t opcode, Instruction inst) {
+        if (InstructionSlot *slot = slot_for(opcode)) {
+            *slot = std::move(inst);
+            return;
+        }
+
+        extra.emplace(opcode, std::move(inst));
+    }
+
+    const Instruction *lookup_exact(uint32_t opcode) const {
+        if (const InstructionSlot *slot = slot_for(opcode)) {
+            return slot->has_value() ? &slot->value() : nullptr;
+        }
+
+        auto it = extra.find(opcode);
+        return (it != extra.end()) ? &it->second : nullptr;
+    }
+
+private:
+    static constexpr uint8_t table_index(uint32_t opcode) { return static_cast<uint8_t>(opcode & 0xff); }
+
+    InstructionSlot *slot_for(uint32_t opcode) {
+        return const_cast<InstructionSlot *>(std::as_const(*this).slot_for(opcode));
+    }
+
+    const InstructionSlot *slot_for(uint32_t opcode) const {
+        const uint32_t prefix24 = opcode & 0xffff00;
+        const uint32_t prefix16 = opcode & 0xff00;
+        const uint8_t idx = table_index(opcode);
+
+        if (opcode <= 0xff) {
+            return &base[idx];
+        }
+        if (prefix24 == 0xddcb00) {
+            return &ddcb[idx];
+        }
+        if (prefix24 == 0xfdcb00) {
+            return &fdcb[idx];
+        }
+        switch (prefix16) {
+            case 0xcb00:
+                return &cb[idx];
+            case 0xed00:
+                return &ed[idx];
+            case 0xdd00:
+                return &dd[idx];
+            case 0xfd00:
+                return &fd[idx];
+            default:
+                return nullptr;
+        }
+    }
+
+    InstructionTable base{};
+    InstructionTable cb{};
+    InstructionTable ed{};
+    InstructionTable dd{};
+    InstructionTable fd{};
+    InstructionTable ddcb{};
+    InstructionTable fdcb{};
+    std::unordered_map<uint32_t, Instruction> extra{};
+};
+
+OpcodeTables map_inst;
+bool map_inst_initialized = false;
+}  // namespace
 
 namespace {
 Operand indexed_cb_bit_operand(uint8_t opcode) {
@@ -46,15 +120,16 @@ void add_indexed_cb_copy_forms(uint32_t prefix, Operand mem_operand) {
             continue;
         }
 
-        const Instruction& base_inst = decode_opcode(0xcb00 | opcode);
-        if (base_inst.inst == InstType::INV) {
+        const Instruction *base_inst = map_inst.lookup_exact(0xcb00 | opcode);
+        if (base_inst == nullptr || base_inst->inst == InstType::INV) {
             continue;
         }
 
-        if (base_inst.src == Operand::UNUSED) {
-            map_inst.emplace(prefix | opcode, Instruction{base_inst.inst, base_inst.name.c_str(), 4, 23, mem_operand});
+        if (base_inst->src == Operand::UNUSED) {
+            map_inst.emplace(prefix | opcode,
+                             Instruction{base_inst->inst, base_inst->name.c_str(), 4, 23, mem_operand});
         } else {
-            map_inst.emplace(prefix | opcode, Instruction{base_inst.inst, base_inst.name.c_str(), 4, 23, mem_operand,
+            map_inst.emplace(prefix | opcode, Instruction{base_inst->inst, base_inst->name.c_str(), 4, 23, mem_operand,
                                                           indexed_cb_bit_operand(static_cast<uint8_t>(opcode))});
         }
     }
@@ -2098,25 +2173,24 @@ void init_map_rom() {
     map_rom.emplace(0x386c, "LAST");
 }
 
-const Instruction& decode_opcode(uint32_t opcode) {
-    if (map_inst.empty()) {
+const Instruction &decode_opcode(uint32_t opcode) {
+    if (!map_inst_initialized) {
         init_map_inst();
+        map_inst_initialized = true;
     }
 
-    auto search_op = map_inst.find(opcode);
-    if (search_op != map_inst.end()) {
-        return search_op->second;
+    if (const Instruction *inst = map_inst.lookup_exact(opcode)) {
+        return *inst;
     }
 
     uint32_t prefix = opcode & 0xff00;
     if (prefix == 0xdd00 || prefix == 0xfd00) {
         uint32_t base_op = opcode & 0xff;
-        auto base_it = map_inst.find(base_op);
-        if (base_it != map_inst.end()) {
+        if (const Instruction *base_inst = map_inst.lookup_exact(base_op)) {
             // For unused IX/IY prefixes, the prefix is ignored but still consumes a byte.
-            static thread_local Instruction prefixed_copy = base_it->second;
-            prefixed_copy = base_it->second;
-            prefixed_copy.size = base_it->second.size + 1;
+            static thread_local Instruction prefixed_copy = *base_inst;
+            prefixed_copy = *base_inst;
+            prefixed_copy.size = base_inst->size + 1;
             return prefixed_copy;
         }
     }
@@ -2136,7 +2210,7 @@ bool has_rom_label(uint32_t address) {
     return map_rom.find(address) != map_rom.end();
 }
 
-const std::string& decode_rom_label(uint32_t address) {
+const std::string &decode_rom_label(uint32_t address) {
     if (map_rom.empty()) {
         init_map_rom();
     }
