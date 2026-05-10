@@ -1,7 +1,9 @@
 #include <SDL2/SDL.h>
 
 #include <cstdlib>
+#include <filesystem>
 #include <iostream>
+#include <string>
 
 #include "beeper.hpp"
 #include "bus.hpp"
@@ -14,6 +16,27 @@
 
 SDL_Window *window = nullptr;
 SDL_Renderer *renderer = nullptr;
+
+namespace {
+std::string find_default_rom_path(const MachineModel &machine) {
+    namespace fs = std::filesystem;
+
+    for (std::size_t i = 0; i < machine.default_rom_filename_count; ++i) {
+        const fs::path filename = machine.default_rom_filenames[i];
+        const fs::path root_candidate = filename;
+        if (fs::exists(root_candidate)) {
+            return root_candidate.string();
+        }
+
+        const fs::path roms_candidate = fs::path("roms") / filename;
+        if (fs::exists(roms_candidate)) {
+            return roms_candidate.string();
+        }
+    }
+
+    return "";
+}
+}  // namespace
 
 void wait_keypress() {
     SDL_Event event;
@@ -65,8 +88,12 @@ int main(int argc, char **argv) {
     System sys(state, ula, mem, debug, beeper);
 
     // Use options to set up system
-    if (options.rom_on) {
-        mem.load_rom(options.rom_file);
+    std::string rom_file = options.rom_file;
+    if (!options.rom_on) {
+        rom_file = find_default_rom_path(machine);
+    }
+    if (!rom_file.empty()) {
+        mem.load_rom(rom_file);
     }
     if (options.sna_on) {
         mem.load_snapshot(options.sna_file, state);

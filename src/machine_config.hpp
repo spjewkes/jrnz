@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 
@@ -30,6 +31,8 @@ struct MachineModel {
     int border_top;
 
     float render_scale;
+    std::array<const char *, 4> default_rom_filenames;
+    std::size_t default_rom_filename_count;
 
     constexpr int visible_width() const { return screen_width + (border_left * 2); }
     constexpr int visible_height() const { return screen_height + (border_top * 2); }
@@ -56,5 +59,7 @@ constexpr MachineModel spectrum_48k_model() {
         .border_left = 32,
         .border_top = 32,
         .render_scale = 3.0f,
+        .default_rom_filenames = {"48.rom", "spectrum48.rom", "48k.rom", ""},
+        .default_rom_filename_count = 3,
     };
 }
