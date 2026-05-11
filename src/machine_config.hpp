@@ -28,6 +28,7 @@ struct MachineModel {
     uint32_t contention_first_tstate;
     uint16_t contention_line_tstates;
     uint8_t contention_visible_tstates;
+    uint8_t horizontal_blank_left_tstates;
     uint8_t horizontal_border_left_tstates;
     uint8_t horizontal_border_right_tstates;
     uint16_t contention_lines;
@@ -69,6 +70,11 @@ constexpr MachineModel spectrum_48k_model() {
         .contention_first_tstate = 14336,
         .contention_line_tstates = 224,
         .contention_visible_tstates = 128,
+        // The visible window does not begin at the left edge of the 224T
+        // scanline. This models the horizontal porch ahead of the left border
+        // and is the main knob for small left/right viewport alignment tweaks
+        // against reference emulators and hardware captures.
+        .horizontal_blank_left_tstates = 24,
         .horizontal_border_left_tstates = 24,
         .horizontal_border_right_tstates = 24,
         .contention_lines = 192,
@@ -78,7 +84,7 @@ constexpr MachineModel spectrum_48k_model() {
         .screen_width = 256,
         .screen_height = 192,
         .attr_cell_size = 8,
-        .border_left = 32,
+        .border_left = 48,
         .border_top = 32,
         .render_scale = 3.0f,
         .default_rom_filenames = {"48.rom", "spectrum48.rom", "48k.rom", ""},
