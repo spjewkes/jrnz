@@ -78,6 +78,13 @@ static void set_rendercolor(SDL_Renderer *renderer, uint8_t color, bool bright) 
 }
 #endif
 
+uint8_t ULA::remap_spectrum_y(uint8_t y) {
+    uint8_t remapped = static_cast<uint8_t>(0xc0 & y);
+    remapped |= static_cast<uint8_t>((y & 0x7) << 3);
+    remapped |= static_cast<uint8_t>((y >> 3) & 0x7);
+    return remapped;
+}
+
 void ULA::record_border_tstate(uint64_t frame_pos) {
     const uint64_t visible_span = static_cast<uint64_t>(machine.visible_height()) * machine.contention_line_tstates;
     if (frame_pos < visible_frame_start_tstate ||
@@ -89,6 +96,34 @@ void ULA::record_border_tstate(uint64_t frame_pos) {
     const uint64_t line = visible_pos / machine.contention_line_tstates;
     const uint64_t line_pos = visible_pos % machine.contention_line_tstates;
     border_timeline[(line * machine.contention_line_tstates) + line_pos] = static_cast<uint8_t>(_bus.port_254 & 0x07);
+}
+
+void ULA::record_screen_tstate(uint64_t frame_pos) {
+    const uint64_t visible_span =
+        static_cast<uint64_t>(machine.contention_lines) * static_cast<uint64_t>(machine.contention_line_tstates);
+    if (frame_pos < machine.contention_first_tstate ||
+        frame_pos >= static_cast<uint64_t>(machine.contention_first_tstate) + visible_span) {
+        return;
+    }
+
+    const uint64_t visible_pos = frame_pos - machine.contention_first_tstate;
+    const uint64_t line = visible_pos / machine.contention_line_tstates;
+    const uint64_t line_pos = visible_pos % machine.contention_line_tstates;
+    if (line_pos != static_cast<uint64_t>(machine.contention_visible_tstates - 1)) {
+        return;
+    }
+
+    const std::size_t bytes_per_line = static_cast<std::size_t>(machine.screen_width / machine.attr_cell_size);
+    const uint8_t display_y = static_cast<uint8_t>(line);
+    const uint8_t memory_y = remap_spectrum_y(display_y);
+    const uint16_t bitmap_addr = static_cast<uint16_t>(machine.screen_bitmap_base + (memory_y * bytes_per_line));
+    const uint16_t attr_addr = static_cast<uint16_t>(machine.screen_attr_base + ((display_y >> 3) * bytes_per_line));
+    const std::size_t line_offset = static_cast<std::size_t>(display_y) * bytes_per_line;
+
+    for (std::size_t x = 0; x < bytes_per_line; ++x) {
+        screen_bitmap_snapshot[line_offset + x] = _bus[static_cast<uint16_t>(bitmap_addr + x)];
+        screen_attr_snapshot[line_offset + x] = _bus[static_cast<uint16_t>(attr_addr + x)];
+    }
 }
 
 void ULA::render_frame() const {
@@ -114,43 +149,37 @@ void ULA::render_frame() const {
         }
     }
 
-    uint8_t *data = &_bus[machine.screen_bitmap_base];
-    uint8_t *col_data = &_bus[machine.screen_attr_base];
+    const std::size_t bytes_per_line = static_cast<std::size_t>(machine.screen_width / machine.attr_cell_size);
     for (int y = 0; y < machine.screen_height; y++) {
-        int new_y = 0xc0 & y;
-        new_y |= (y & 0x7) << 3;
-        new_y |= (y >> 3) & 0x7;
-        int col_y = new_y >> 3;
+        const std::size_t line_offset = static_cast<std::size_t>(y) * bytes_per_line;
         for (int x = 0; x < machine.screen_width; x += machine.attr_cell_size) {
-            uint8_t color = col_data[col_y * (machine.screen_width / machine.attr_cell_size) + (x >> 3)];
+            uint8_t color = screen_attr_snapshot[line_offset + static_cast<std::size_t>(x >> 3)];
             bool flash = get_bit(color, 7);
             bool bright = get_bit(color, 6);
             uint8_t paper_color = (color >> 3) & 0x07;
             uint8_t ink_color = color & 0x07;
 
-            if ((new_y & 0x7) == 0 && (x & 0x7) == 0) {
-                SDL_Rect rect = {x + machine.border_left, new_y + machine.border_top, machine.attr_cell_size,
+            if ((y & 0x7) == 0 && (x & 0x7) == 0) {
+                SDL_Rect rect = {x + machine.border_left, y + machine.border_top, machine.attr_cell_size,
                                  machine.attr_cell_size};
                 set_rendercolor(renderer, ((flash & invert) ? ink_color : paper_color), bright);
                 SDL_RenderFillRect(renderer, &rect);
             }
 
             set_rendercolor(renderer, ((flash & invert) ? paper_color : ink_color), bright);
-            uint8_t pixels = *data;
+            uint8_t pixels = screen_bitmap_snapshot[line_offset + static_cast<std::size_t>(x >> 3)];
             if (pixels != 0) {
                 if (pixels == 255) {
-                    SDL_RenderDrawLine(renderer, x + machine.border_left, new_y + machine.border_top,
-                                       x + machine.border_left + (machine.attr_cell_size - 1),
-                                       new_y + machine.border_top);
+                    SDL_RenderDrawLine(renderer, x + machine.border_left, y + machine.border_top,
+                                       x + machine.border_left + (machine.attr_cell_size - 1), y + machine.border_top);
                 } else {
                     for (int p = 0; p < machine.attr_cell_size; p++) {
-                        if (get_bit(*data, 7 - p)) {
-                            SDL_RenderDrawPoint(renderer, x + p + machine.border_left, new_y + machine.border_top);
+                        if (get_bit(pixels, 7 - p)) {
+                            SDL_RenderDrawPoint(renderer, x + p + machine.border_left, y + machine.border_top);
                         }
                     }
                 }
             }
-            data++;
         }
     }
 
@@ -164,7 +193,9 @@ void ULA::clock(bool &do_exit, bool &do_break) {
         next_frame_deadline = SDL_GetPerformanceCounter() + (perf_freq / machine.frame_rate_hz);
     }
 
-    record_border_tstate(counter % machine.frame_tstates);
+    const uint64_t frame_pos = counter % machine.frame_tstates;
+    record_border_tstate(frame_pos);
+    record_screen_tstate(frame_pos);
 
     if (counter == 0) {
         SDL_PumpEvents();

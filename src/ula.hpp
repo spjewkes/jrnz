@@ -23,6 +23,12 @@ public:
           visible_frame_start_tstate(machine.contention_first_tstate -
                                      (machine.border_top * machine.contention_line_tstates)),
           border_timeline(static_cast<std::size_t>(machine.visible_height()) * machine.contention_line_tstates, 0),
+          screen_bitmap_snapshot(static_cast<std::size_t>(machine.screen_width / machine.attr_cell_size) *
+                                     static_cast<std::size_t>(machine.screen_height),
+                                 0),
+          screen_attr_snapshot(static_cast<std::size_t>(machine.screen_width / machine.attr_cell_size) *
+                                   static_cast<std::size_t>(machine.screen_height),
+                               0),
           fast_mode(fast_mode) {}
     virtual ~ULA() {}
 
@@ -31,7 +37,9 @@ public:
 
 private:
     void record_border_tstate(uint64_t frame_pos);
+    void record_screen_tstate(uint64_t frame_pos);
     void render_frame() const;
+    static uint8_t remap_spectrum_y(uint8_t y);
 
     MachineModel machine;
     Z80 &_z80;
@@ -42,6 +50,8 @@ private:
     uint64_t frame_counter = {0};
     uint32_t visible_frame_start_tstate = {0};
     std::vector<uint8_t> border_timeline;
+    std::vector<uint8_t> screen_bitmap_snapshot;
+    std::vector<uint8_t> screen_attr_snapshot;
     bool invert = {false};
     bool fast_mode = {false};
     uint64_t perf_freq = {0};
