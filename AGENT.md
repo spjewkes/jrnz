@@ -179,7 +179,7 @@ The instruction implementation has been exercised heavily by:
 Current display support includes:
 
 - SDL window creation
-- 256x192 bitmap rendering with 32-pixel border padding
+- 256x192 bitmap rendering with explicit horizontal and vertical viewport tuning around the border area
 - attributes, bright, and flash
 - border color from ULA port state
 - border rendering that now records colour history across the visible frame and can show at least coarse mid-frame border changes
@@ -198,6 +198,8 @@ Important limitation:
 - The system publishes the current ULA frame t-state to the bus before advancing the ULA for the next tick. Moving that ordering can shift contention and interrupt phase by one t-state.
 - Z80 instruction scheduling assumes the current `clock()` call already consumes the first T-state of the decoded instruction. Future cycle-accounting changes need to preserve that convention.
 - `HALT` should wake as soon as an interrupt becomes visible, even if the core is part-way through the synthetic halt wait. Delaying that wake can cause stable two-position frame jitter in timing-sensitive software.
+- Horizontal border placement is calibrated with `horizontal_blank_left_tstates` and `border_left` in `src/machine_config.hpp`. Treat those as viewport-tuning knobs, not arbitrary constants.
+- Vertical border placement is calibrated with `vertical_blank_top_lines` in `src/machine_config.hpp`. Screen scanline snapshots are anchored separately to the active display area, so avoid re-coupling those two concerns.
 
 ### Keyboard
 
@@ -257,7 +259,7 @@ This section is intentionally blunt. Agents should assume these are real constra
 ### Timing and ULA realism
 
 - Rendering is not beam-accurate.
-- Mid-frame display changes are only partially represented: border colour history is tracked across the visible frame, but bitmap and attribute rendering are still frame-snapshot based.
+- Mid-frame display changes are only partially represented: border colour history is tracked across the visible frame, and bitmap/attribute data is snapshotted per scanline rather than per pixel or per beam position.
 - RAM contention exists and is tested, but should not yet be treated as fully hardware-accurate 48K behavior.
 - Port contention is incomplete.
 - Some real software may run but still show timing artifacts, especially sprite flicker or border-effect inaccuracies.
