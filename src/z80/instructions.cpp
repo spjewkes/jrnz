@@ -96,6 +96,19 @@ uint16_t indexed_effective_addr(Z80 &state, Operand operand) {
     const uint16_t base = (operand == Operand::indIXN) ? state.ix.get() : state.iy.get();
     return static_cast<uint16_t>(base + displacement);
 }
+
+void advance_to_simple_io_cycle(Z80 &state, Operand port_operand) {
+    // Operand fetches already contribute to the simplified instruction phase. For
+    // I/O instructions we still need to advance to the start of the actual port
+    // machine cycle so bus-visible effects line up with the beam more closely.
+    state.bus.advance_instruction_timing((port_operand == Operand::PORTN) ? 5 : 6);
+}
+
+void advance_to_block_io_cycle(Z80 &state, bool input) {
+    // Block I/O reaches the port cycle later than the simple IN/OUT forms. For
+    // OUTI/OUTD a memory read from (HL) has already advanced the phase once.
+    state.bus.advance_instruction_timing(input ? 8 : 7);
+}
 }  // namespace
 
 size_t Instruction::execute(Z80 &state) {
@@ -580,6 +593,7 @@ size_t Instruction::do_in(Z80 &state, StorageElement &dst_elem, StorageElement &
     uint32_t port = 0;
     src_elem.get_value(port);
 
+    advance_to_simple_io_cycle(state, src);
     uint8_t value = state.bus.read_port(port);
     dst_elem = value;
 
@@ -612,6 +626,7 @@ size_t Instruction::do_out(Z80 &state, StorageElement &dst_elem, StorageElement 
     uint32_t src = 0;
     src_elem.get_value(src);
 
+    advance_to_simple_io_cycle(state, dst);
     state.bus.write_port(port, src);
 
     return cycles;
@@ -1369,6 +1384,7 @@ size_t Instruction::impl_cp_inc_dec(Z80 &state, bool do_inc, bool loop) {
 
 size_t Instruction::impl_in_block(Z80 &state, bool inc, bool repeat) {
     uint16_t port = state.bc.get();
+    advance_to_block_io_cycle(state, true /* input */);
     uint8_t value = state.bus.read_port(port);
     state.bus.write_data(state.hl.get(), value);
 
@@ -1403,6 +1419,7 @@ size_t Instruction::impl_in_block(Z80 &state, bool inc, bool repeat) {
 
 size_t Instruction::impl_out_block(Z80 &state, bool inc, bool repeat) {
     uint8_t value = state.bus.read_data(state.hl.get());
+    advance_to_block_io_cycle(state, false /* input */);
     state.bus.write_port(state.bc.get(), value);
 
     int adjust = (inc ? 1 : -1);

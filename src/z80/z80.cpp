@@ -21,6 +21,14 @@ bool Z80::clock(bool no_cycles) {
         cycles_left = 0;
     }
 
+    // HALT effectively waits for an interrupt edge. If one arrives while we are
+    // part-way through the synthetic 4T halt/NOP cycle, break out immediately so
+    // the interrupt is observed on the next scheduler step instead of drifting by
+    // up to a few T-states.
+    if (halted && cycles_left > 0 && (int_nmi || (iff1 && interrupt))) {
+        cycles_left = 0;
+    }
+
     // Cycles left means that repeated clocking of the Z80 waits the number of cycles on each instruction
     // executed. This gives the emulation roughly the right behaviour for each instruction.
     if (cycles_left == 0) {
@@ -94,8 +102,10 @@ bool Z80::clock(bool no_cycles) {
             update_r_reg(fetched.fetch_len);
             if (inst.inst != InstType::INV) {
                 pc.set(curr_opcode_pc + inst.size + fetched.ignored_prefixes);
-                cycles = const_cast<Instruction &>(inst).execute(*this) + ignored_prefix_cycles(fetched);
-                cycles += bus.end_instruction_timing();
+                const size_t base_cycles =
+                    const_cast<Instruction &>(inst).execute(*this) + ignored_prefix_cycles(fetched);
+                const uint32_t contention_cycles = bus.end_instruction_timing();
+                cycles = base_cycles + contention_cycles;
                 flags_modified_last_instruction = inst.modifies_flags(curr_opcode);
                 if (ei_pending && inst.inst != InstType::EI) {
                     iff1 = true;
@@ -109,7 +119,9 @@ bool Z80::clock(bool no_cycles) {
                 std::cerr << " at 0x" << curr_opcode_pc << std::endl;
             }
         }
-        cycles_left = cycles;
+        // The current clock tick accounts for the first T-state of the decoded
+        // instruction, so only the remaining T-states should be deferred.
+        cycles_left = (cycles > 0) ? (cycles - 1) : 0;
         total_cycles += cycles;
     } else {
         cycles_left--;

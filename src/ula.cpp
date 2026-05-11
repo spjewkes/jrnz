@@ -95,26 +95,34 @@ void ULA::record_border_tstate(uint64_t frame_pos) {
     const uint64_t visible_pos = frame_pos - visible_frame_start_tstate;
     const uint64_t line = visible_pos / machine.contention_line_tstates;
     const uint64_t line_pos = visible_pos % machine.contention_line_tstates;
-    border_timeline[(line * machine.contention_line_tstates) + line_pos] = static_cast<uint8_t>(_bus.port_254 & 0x07);
-}
-
-void ULA::record_screen_tstate(uint64_t frame_pos) {
-    const uint64_t visible_span =
-        static_cast<uint64_t>(machine.contention_lines) * static_cast<uint64_t>(machine.contention_line_tstates);
-    if (frame_pos < machine.contention_first_tstate ||
-        frame_pos >= static_cast<uint64_t>(machine.contention_first_tstate) + visible_span) {
+    if (line_pos >= horizontal_visible_tstates()) {
         return;
     }
 
-    const uint64_t visible_pos = frame_pos - machine.contention_first_tstate;
+    border_timeline[(line * horizontal_visible_tstates()) + line_pos] = static_cast<uint8_t>(_bus.port_254 & 0x07);
+}
+
+void ULA::record_screen_tstate(uint64_t frame_pos) {
+    const uint64_t visible_span = static_cast<uint64_t>(machine.visible_height()) * machine.contention_line_tstates;
+    if (frame_pos < machine.contention_first_tstate ||
+        frame_pos >= static_cast<uint64_t>(visible_frame_start_tstate) + visible_span) {
+        return;
+    }
+
+    const uint64_t visible_pos = frame_pos - visible_frame_start_tstate;
     const uint64_t line = visible_pos / machine.contention_line_tstates;
     const uint64_t line_pos = visible_pos % machine.contention_line_tstates;
-    if (line_pos != static_cast<uint64_t>(machine.contention_visible_tstates - 1)) {
+    if (line < static_cast<uint64_t>(machine.border_top) ||
+        line >= static_cast<uint64_t>(machine.border_top + machine.screen_height)) {
+        return;
+    }
+    if (line_pos !=
+        static_cast<uint64_t>(machine.horizontal_border_left_tstates + machine.contention_visible_tstates - 1)) {
         return;
     }
 
     const std::size_t bytes_per_line = static_cast<std::size_t>(machine.screen_width / machine.attr_cell_size);
-    const uint8_t display_y = static_cast<uint8_t>(line);
+    const uint8_t display_y = static_cast<uint8_t>(line - machine.border_top);
     const uint8_t memory_y = remap_spectrum_y(display_y);
     const uint16_t bitmap_addr = static_cast<uint16_t>(machine.screen_bitmap_base + (memory_y * bytes_per_line));
     const uint16_t attr_addr = static_cast<uint16_t>(machine.screen_attr_base + ((display_y >> 3) * bytes_per_line));
@@ -131,15 +139,33 @@ void ULA::render_frame() const {
     set_rendercolor(renderer, 0, false);
     SDL_RenderClear(renderer);
 
-    const int visible_width = machine.visible_width();
     const int visible_height = machine.visible_height();
-    const int line_tstates = machine.contention_line_tstates;
+    const int horizontal_visible_tstates = static_cast<int>(this->horizontal_visible_tstates());
 
     for (int y = 0; y < visible_height; ++y) {
-        const std::size_t line_offset = static_cast<std::size_t>(y) * line_tstates;
-        for (int bucket = 0; bucket < line_tstates; ++bucket) {
-            const int x0 = (bucket * visible_width) / line_tstates;
-            const int x1 = ((bucket + 1) * visible_width) / line_tstates;
+        const std::size_t line_offset =
+            static_cast<std::size_t>(y) * static_cast<std::size_t>(horizontal_visible_tstates);
+        for (int bucket = 0; bucket < horizontal_visible_tstates; ++bucket) {
+            int x0 = 0;
+            int x1 = 0;
+
+            if (bucket < machine.horizontal_border_left_tstates) {
+                x0 = (bucket * machine.border_left) / machine.horizontal_border_left_tstates;
+                x1 = ((bucket + 1) * machine.border_left) / machine.horizontal_border_left_tstates;
+            } else if (bucket < machine.horizontal_border_left_tstates + machine.contention_visible_tstates) {
+                const int display_bucket = bucket - machine.horizontal_border_left_tstates;
+                x0 = machine.border_left + (display_bucket * machine.screen_width) / machine.contention_visible_tstates;
+                x1 = machine.border_left +
+                     ((display_bucket + 1) * machine.screen_width) / machine.contention_visible_tstates;
+            } else {
+                const int right_bucket = bucket - static_cast<int>(machine.horizontal_border_left_tstates +
+                                                                   machine.contention_visible_tstates);
+                x0 = machine.border_left + machine.screen_width +
+                     (right_bucket * machine.border_left) / machine.horizontal_border_right_tstates;
+                x1 = machine.border_left + machine.screen_width +
+                     ((right_bucket + 1) * machine.border_left) / machine.horizontal_border_right_tstates;
+            }
+
             if (x1 <= x0) {
                 continue;
             }
@@ -197,7 +223,9 @@ void ULA::clock(bool &do_exit, bool &do_break) {
     record_border_tstate(frame_pos);
     record_screen_tstate(frame_pos);
 
-    if (counter == 0) {
+    // Frame-start side effects are keyed off the wrapped frame position rather
+    // than the raw counter so they stay aligned across counter rollover.
+    if (frame_pos == machine.frame_tstates - 1) {
         SDL_PumpEvents();
         const uint8_t *key_state = static_cast<const uint8_t *>(SDL_GetKeyboardState(NULL));
 
@@ -209,15 +237,12 @@ void ULA::clock(bool &do_exit, bool &do_break) {
 
         // Trigger interupt on Z80
         _z80.interrupt = true;
-    } else if (counter == machine.interrupt_hold_tstates) {
+    } else if (frame_pos == machine.interrupt_hold_tstates - 1) {
         // Turn off interrupt
         _z80.interrupt = false;
-    } else if (counter == machine.frame_tstates) {
-        //! TODO - a bit of a hack, but every 50th of a second (running at 3.5
-        //! Mhz on a 48K)
-        //! reset the counter to start everything again.
-        counter = UINT64_MAX;  // will wrap on increment
+    }
 
+    if (frame_pos == machine.frame_tstates - 1) {
         render_frame();
 
         frame_counter++;

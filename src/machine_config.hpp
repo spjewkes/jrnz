@@ -28,6 +28,8 @@ struct MachineModel {
     uint32_t contention_first_tstate;
     uint16_t contention_line_tstates;
     uint8_t contention_visible_tstates;
+    uint8_t horizontal_border_left_tstates;
+    uint8_t horizontal_border_right_tstates;
     uint16_t contention_lines;
     uint16_t contention_ram_base;
     uint16_t contention_ram_end;
@@ -67,6 +69,8 @@ constexpr MachineModel spectrum_48k_model() {
         .contention_first_tstate = 14336,
         .contention_line_tstates = 224,
         .contention_visible_tstates = 128,
+        .horizontal_border_left_tstates = 24,
+        .horizontal_border_right_tstates = 24,
         .contention_lines = 192,
         .contention_ram_base = 0x4000,
         .contention_ram_end = 0x8000,

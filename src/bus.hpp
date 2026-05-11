@@ -107,6 +107,12 @@ public:
         contention_active = false;
         return contention_wait_states;
     }
+    void advance_instruction_timing(uint32_t tstates) const {
+        if (!contention_active) {
+            return;
+        }
+        contention_access_phase += tstates;
+    }
 
     void clock() {
         // Not actively used at the moment but may be useful for debugging
@@ -145,6 +151,50 @@ private:
         const uint16_t attr_addr = static_cast<uint16_t>(machine.screen_attr_base + ((screen_y >> 3) * 32) + column);
 
         return ((line_pos & 0x2) == 0) ? bitmap_addr : attr_addr;
+    }
+
+    void account_port_contention(uint16_t addr) const {
+        if (!contention_active) {
+            return;
+        }
+
+        const bool ula_port_selected = (addr & 0x1) == 0;
+        const uint8_t high_byte = static_cast<uint8_t>(addr >> 8);
+        const bool high_byte_contended = high_byte >= 0x40 && high_byte <= 0x7f;
+
+        if (!ula_port_selected && !high_byte_contended) {
+            contention_access_phase += 4;
+            return;
+        }
+
+        auto contended_segment = [&](uint32_t duration) {
+            const uint64_t sample_tstate = current_frame_tstate + contention_access_phase;
+            const uint8_t delay = contention_delay(sample_tstate);
+            contention_wait_states += delay;
+            contention_access_phase += duration;
+        };
+
+        auto normal_segment = [&](uint32_t duration) { contention_access_phase += duration; };
+
+        if (!high_byte_contended && ula_port_selected) {
+            // N:1, C:3
+            normal_segment(1);
+            contended_segment(3);
+            return;
+        }
+
+        if (high_byte_contended && ula_port_selected) {
+            // C:1, C:3
+            contended_segment(1);
+            contended_segment(3);
+            return;
+        }
+
+        // C:1, C:1, C:1, C:1
+        contended_segment(1);
+        contended_segment(1);
+        contended_segment(1);
+        contended_segment(1);
     }
 
     void account_contention(uint16_t addr) const {

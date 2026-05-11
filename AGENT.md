@@ -26,6 +26,7 @@ The project is no longer at the “barely boots” stage. It can load ROMs and s
 - `Z80` snapshot loading works for version 1, 2, and 3 in 48K mode.
 - The 48K machine model is now centralized and passed around explicitly rather than being spread across hardcoded literals.
 - Bus timing has model-driven floating-bus and RAM-contention support, with direct tests around both.
+- Port I/O contention is now modelled for the key 48K ULA-port access patterns, with direct tests around the current behaviour.
 - Port `0xFE` EAR input is explicit and can be driven through a generic machine input-line API.
 - Basic display, keyboard, and beeper support are present.
 - A number of real programs and games are known to run.
@@ -34,9 +35,9 @@ The project is no longer at the “barely boots” stage. It can load ROMs and s
 
 - The emulator is still 48K-oriented rather than a general full-family Spectrum emulator.
 - ULA/video timing is still simplified overall.
-- Mid-frame and mid-scanline display effects are not rendered accurately.
+- Mid-scanline display effects are still not rendered accurately.
 - Memory contention is present but should still be treated as an evolving 48K-model feature rather than finished hardware-accuracy work.
-- Port contention and broader timing realism are incomplete.
+- Broader timing realism is still incomplete even though several contention-sensitive cases now work correctly.
 - Snapshot support is intentionally limited to 48K-compatible cases.
 - Peripheral support is minimal.
 - The debugger exists, but it is basic and interactive rather than polished.
@@ -182,14 +183,21 @@ Current display support includes:
 - attributes, bright, and flash
 - border color from ULA port state
 - border rendering that now records colour history across the visible frame and can show at least coarse mid-frame border changes
+- scanline-based bitmap/attribute snapshots, which are enough for some raster-sensitive titles that update display memory during the frame
 - frame pacing to approximately 50 Hz unless `--fast` is used
 
 Important limitation:
 
-- Rendering is still effectively frame-snapshot based.
-- The border is more beam-aware than the bitmap area, but the main screen pixels are still rendered from an end-of-frame memory snapshot.
+- Rendering is no longer a pure end-of-frame snapshot.
+- Border colour is tracked across the visible frame and bitmap/attribute data is snapshotted per scanline, which improves many mid-frame effects.
 - The current draw routine still does not render mid-frame or mid-scanline bitmap/attribute changes correctly.
 - This means color bars, border effects, and timing-sensitive raster tricks are not faithfully represented.
+
+## Timing Notes That Matter
+
+- The system publishes the current ULA frame t-state to the bus before advancing the ULA for the next tick. Moving that ordering can shift contention and interrupt phase by one t-state.
+- Z80 instruction scheduling assumes the current `clock()` call already consumes the first T-state of the decoded instruction. Future cycle-accounting changes need to preserve that convention.
+- `HALT` should wake as soon as an interrupt becomes visible, even if the core is part-way through the synthetic halt wait. Delaying that wake can cause stable two-position frame jitter in timing-sensitive software.
 
 ### Keyboard
 

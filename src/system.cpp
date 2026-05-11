@@ -19,8 +19,10 @@ bool System::clock() {
         _beeper.clock(is_beeper_on, is_mic_on, cycle_count);
 
         _bus.clock();
-        _ula.clock(do_exit, do_break);
+        // The CPU samples contention against the ULA phase for the current tick,
+        // so publish the current frame t-state before advancing the ULA.
         _bus.set_frame_tstate(_ula.frame_tstate());
+        _ula.clock(do_exit, do_break);
         // _beeper.clock(false, false, 0);
         return _z80.clock(_debugger.is_break_enabled()) && !do_exit;
     }

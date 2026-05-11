@@ -21,6 +21,8 @@ void Bus::load_rom(std::string &rom_file) {
 }
 
 uint8_t Bus::read_port(uint16_t addr) const {
+    account_port_contention(addr);
+
     // The only port we care about is 0xfe. More specifically for now we just
     // check that the lowest bit is not set. The bits are set as follows: 0-4 :
     // keyboard 5   : unused/high 6   : ear input 7   : unused/high
@@ -49,6 +51,8 @@ uint8_t Bus::read_port(uint16_t addr) const {
 }
 
 void Bus::write_port(uint16_t addr, uint8_t v) {
+    account_port_contention(addr);
+
     if ((addr & 0xff) == static_cast<uint8_t>(machine.ula_port & 0xff)) {
         port_254 = v;
     }

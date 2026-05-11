@@ -196,3 +196,37 @@ TEST_CASE("Opcode fetch and operand reads both contribute to contention timing",
     REQUIRE(fetched.fetch_len == 3);
     REQUIRE(bus.end_instruction_timing() == 15);
 }
+
+TEST_CASE("Odd ports outside the contended address range do not add I/O wait states", "[bus]") {
+    Bus bus(65536);
+
+    bus.set_frame_tstate(bus.model().contention_first_tstate);
+    bus.begin_instruction_timing();
+    (void)bus.read_port(0x00ff);
+
+    REQUIRE(bus.end_instruction_timing() == 0);
+}
+
+TEST_CASE("Even ULA ports add the expected I/O contention pattern", "[bus]") {
+    Bus bus(65536);
+
+    bus.set_frame_tstate(bus.model().contention_first_tstate);
+    bus.begin_instruction_timing();
+    (void)bus.read_port(0x00fe);
+
+    REQUIRE(bus.end_instruction_timing() == 5);
+}
+
+TEST_CASE("Ports with a contended high byte incur full four-cycle I/O contention", "[bus]") {
+    Bus bus(65536);
+
+    bus.set_frame_tstate(bus.model().contention_first_tstate);
+    bus.begin_instruction_timing();
+    (void)bus.read_port(0x40ff);
+    REQUIRE(bus.end_instruction_timing() == 18);
+
+    bus.set_frame_tstate(bus.model().contention_first_tstate);
+    bus.begin_instruction_timing();
+    bus.write_port(0x40fe, 0x03);
+    REQUIRE(bus.end_instruction_timing() == 11);
+}
