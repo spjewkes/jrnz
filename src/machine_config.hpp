@@ -28,6 +28,7 @@ struct MachineModel {
     uint32_t contention_first_tstate;
     uint16_t contention_line_tstates;
     uint8_t contention_visible_tstates;
+    uint8_t vertical_blank_top_lines;
     uint8_t horizontal_blank_left_tstates;
     uint8_t horizontal_border_left_tstates;
     uint8_t horizontal_border_right_tstates;
@@ -70,6 +71,11 @@ constexpr MachineModel spectrum_48k_model() {
         .contention_first_tstate = 14336,
         .contention_line_tstates = 224,
         .contention_visible_tstates = 128,
+        // The visible frame begins a little before the active bitmap area. This
+        // is the vertical equivalent of the horizontal porch and is the main
+        // knob for small up/down border alignment tweaks against reference
+        // emulators and hardware captures.
+        .vertical_blank_top_lines = 32,
         // The visible window does not begin at the left edge of the 224T
         // scanline. This models the horizontal porch ahead of the left border
         // and is the main knob for small left/right viewport alignment tweaks

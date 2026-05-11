@@ -103,26 +103,22 @@ void ULA::record_border_tstate(uint64_t frame_pos) {
 }
 
 void ULA::record_screen_tstate(uint64_t frame_pos) {
-    const uint64_t visible_span = static_cast<uint64_t>(machine.visible_height()) * machine.contention_line_tstates;
+    const uint64_t visible_span = static_cast<uint64_t>(machine.screen_height) * machine.contention_line_tstates;
     if (frame_pos < machine.contention_first_tstate ||
-        frame_pos >= static_cast<uint64_t>(visible_frame_start_tstate) + visible_span) {
+        frame_pos >= static_cast<uint64_t>(machine.contention_first_tstate) + visible_span) {
         return;
     }
 
     const uint64_t visible_pos = frame_pos - visible_frame_start_tstate;
-    const uint64_t line = visible_pos / machine.contention_line_tstates;
     const uint64_t line_pos = visible_pos % machine.contention_line_tstates;
-    if (line < static_cast<uint64_t>(machine.border_top) ||
-        line >= static_cast<uint64_t>(machine.border_top + machine.screen_height)) {
-        return;
-    }
     if (line_pos !=
         static_cast<uint64_t>(machine.horizontal_border_left_tstates + machine.contention_visible_tstates - 1)) {
         return;
     }
 
     const std::size_t bytes_per_line = static_cast<std::size_t>(machine.screen_width / machine.attr_cell_size);
-    const uint8_t display_y = static_cast<uint8_t>(line - machine.border_top);
+    const uint8_t display_y =
+        static_cast<uint8_t>((frame_pos - machine.contention_first_tstate) / machine.contention_line_tstates);
     const uint8_t memory_y = remap_spectrum_y(display_y);
     const uint16_t bitmap_addr = static_cast<uint16_t>(machine.screen_bitmap_base + (memory_y * bytes_per_line));
     const uint16_t attr_addr = static_cast<uint16_t>(machine.screen_attr_base + ((display_y >> 3) * bytes_per_line));
