@@ -37,8 +37,8 @@ public:
 
 private:
     constexpr std::size_t horizontal_visible_tstates() const {
-        return static_cast<std::size_t>(machine.horizontal_border_left_tstates) + machine.contention_visible_tstates +
-               machine.horizontal_border_right_tstates;
+        return static_cast<std::size_t>(machine.horizontal_visible_border_left_tstates) +
+               machine.contention_visible_tstates + machine.horizontal_visible_border_right_tstates;
     }
     void record_border_tstate(uint64_t frame_pos);
     void record_screen_tstate(uint64_t frame_pos);

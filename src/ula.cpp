@@ -97,19 +97,23 @@ void ULA::record_border_tstate(uint64_t frame_pos) {
     const int64_t line_phase = relative - (physical_line * machine.contention_line_tstates);
 
     const uint64_t right_border_start = machine.contention_visible_tstates;
+    const uint64_t visible_right_border_end = right_border_start + machine.horizontal_visible_border_right_tstates;
     const uint64_t blanking_start = right_border_start + machine.horizontal_border_right_tstates;
     const uint64_t left_border_start = blanking_start + machine.horizontal_blank_tstates;
+    const uint64_t visible_left_border_start =
+        left_border_start + (machine.horizontal_border_left_tstates - machine.horizontal_visible_border_left_tstates);
 
     int64_t line = physical_line;
     uint64_t line_pos = 0;
     if (line_phase < static_cast<int64_t>(right_border_start)) {
-        line_pos = static_cast<uint64_t>(machine.horizontal_border_left_tstates + line_phase);
-    } else if (line_phase < static_cast<int64_t>(blanking_start)) {
-        line_pos = static_cast<uint64_t>(machine.horizontal_border_left_tstates + machine.contention_visible_tstates +
-                                         (line_phase - static_cast<int64_t>(right_border_start)));
-    } else if (line_phase >= static_cast<int64_t>(left_border_start)) {
+        line_pos = static_cast<uint64_t>(machine.horizontal_visible_border_left_tstates + line_phase);
+    } else if (line_phase < static_cast<int64_t>(visible_right_border_end)) {
+        line_pos =
+            static_cast<uint64_t>(machine.horizontal_visible_border_left_tstates + machine.contention_visible_tstates +
+                                  (line_phase - static_cast<int64_t>(right_border_start)));
+    } else if (line_phase >= static_cast<int64_t>(visible_left_border_start)) {
         line += 1;
-        line_pos = static_cast<uint64_t>(line_phase - static_cast<int64_t>(left_border_start));
+        line_pos = static_cast<uint64_t>(line_phase - static_cast<int64_t>(visible_left_border_start));
     } else {
         return;
     }
@@ -163,21 +167,21 @@ void ULA::render_frame() const {
             int x0 = 0;
             int x1 = 0;
 
-            if (bucket < machine.horizontal_border_left_tstates) {
-                x0 = (bucket * machine.border_left) / machine.horizontal_border_left_tstates;
-                x1 = ((bucket + 1) * machine.border_left) / machine.horizontal_border_left_tstates;
-            } else if (bucket < machine.horizontal_border_left_tstates + machine.contention_visible_tstates) {
-                const int display_bucket = bucket - machine.horizontal_border_left_tstates;
+            if (bucket < machine.horizontal_visible_border_left_tstates) {
+                x0 = (bucket * machine.border_left) / machine.horizontal_visible_border_left_tstates;
+                x1 = ((bucket + 1) * machine.border_left) / machine.horizontal_visible_border_left_tstates;
+            } else if (bucket < machine.horizontal_visible_border_left_tstates + machine.contention_visible_tstates) {
+                const int display_bucket = bucket - machine.horizontal_visible_border_left_tstates;
                 x0 = machine.border_left + (display_bucket * machine.screen_width) / machine.contention_visible_tstates;
                 x1 = machine.border_left +
                      ((display_bucket + 1) * machine.screen_width) / machine.contention_visible_tstates;
             } else {
-                const int right_bucket = bucket - static_cast<int>(machine.horizontal_border_left_tstates +
+                const int right_bucket = bucket - static_cast<int>(machine.horizontal_visible_border_left_tstates +
                                                                    machine.contention_visible_tstates);
                 x0 = machine.border_left + machine.screen_width +
-                     (right_bucket * machine.border_right) / machine.horizontal_border_right_tstates;
+                     (right_bucket * machine.border_right) / machine.horizontal_visible_border_right_tstates;
                 x1 = machine.border_left + machine.screen_width +
-                     ((right_bucket + 1) * machine.border_right) / machine.horizontal_border_right_tstates;
+                     ((right_bucket + 1) * machine.border_right) / machine.horizontal_visible_border_right_tstates;
             }
 
             if (x1 <= x0) {

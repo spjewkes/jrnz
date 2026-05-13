@@ -32,6 +32,8 @@ struct MachineModel {
     uint8_t horizontal_blank_tstates;
     uint8_t horizontal_border_left_tstates;
     uint8_t horizontal_border_right_tstates;
+    uint8_t horizontal_visible_border_left_tstates;
+    uint8_t horizontal_visible_border_right_tstates;
     uint16_t contention_lines;
     uint16_t contention_ram_base;
     uint16_t contention_ram_end;
@@ -72,17 +74,19 @@ constexpr MachineModel spectrum_48k_model() {
         .contention_first_tstate = 14336,
         .contention_line_tstates = 224,
         .contention_visible_tstates = 128,
-        // The visible frame begins a little before the active bitmap area. This
-        // is the vertical equivalent of the horizontal porch and is the main
-        // knob for small up/down border alignment tweaks against reference
-        // emulators and hardware captures.
-        .vertical_blank_top_lines = 32,
-        // Horizontal line order is display, right border, blanking, then left
-        // border. The left border at the end of one physical line is rendered
-        // as the left border of the following visual row.
+        // The viewport is cropped to the commonly-emulated 24-line top border
+        // even though the physical top border is wider.
+        .vertical_blank_top_lines = 24,
+        // Relative to the active display area, the raw 48K ULA line order is
+        // display, right border, blanking/retrace, then the next line's left
+        // border. The viewport crops that raw 24T/24T border to the inner
+        // 16T adjacent to the display on each side, matching Fuse-style
+        // emulator output.
         .horizontal_blank_tstates = 48,
-        .horizontal_border_left_tstates = 16,
-        .horizontal_border_right_tstates = 32,
+        .horizontal_border_left_tstates = 24,
+        .horizontal_border_right_tstates = 24,
+        .horizontal_visible_border_left_tstates = 16,
+        .horizontal_visible_border_right_tstates = 16,
         .contention_lines = 192,
         .contention_ram_base = 0x4000,
         .contention_ram_end = 0x8000,
@@ -91,8 +95,8 @@ constexpr MachineModel spectrum_48k_model() {
         .screen_height = 192,
         .attr_cell_size = 8,
         .border_left = 32,
-        .border_right = 64,
-        .border_top = 32,
+        .border_right = 32,
+        .border_top = 24,
         .render_scale = 3.0f,
         .default_rom_filenames = {"48.rom", "spectrum48.rom", "48k.rom", ""},
         .default_rom_filename_count = 3,

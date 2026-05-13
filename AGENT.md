@@ -198,8 +198,8 @@ Important limitation:
 - The system publishes the current ULA frame t-state to the bus before advancing the ULA for the next tick. Moving that ordering can shift contention and interrupt phase by one t-state.
 - Z80 instruction scheduling assumes the current `clock()` call already consumes the first T-state of the decoded instruction. Future cycle-accounting changes need to preserve that convention.
 - `HALT` should wake as soon as an interrupt becomes visible, even if the core is part-way through the synthetic halt wait. Delaying that wake can cause stable two-position frame jitter in timing-sensitive software.
-- Horizontal border placement follows the 48K line order in `src/machine_config.hpp`: display, right border, blanking, then left border. The visible left and right borders are asymmetric, and the blanking period is not rendered.
-- Vertical border placement is calibrated with `vertical_blank_top_lines` in `src/machine_config.hpp`. Screen scanline snapshots are anchored separately to the active display area, so avoid re-coupling those two concerns.
+- Horizontal border placement follows the 48K line order in `src/machine_config.hpp`: display, right border, blanking/retrace, then the next line's left border. The raw 24T side borders are cropped to the 16T visible viewport used by common emulators, and blanking/retrace is not rendered.
+- Vertical border placement is cropped with `vertical_blank_top_lines` in `src/machine_config.hpp`. Screen scanline snapshots are anchored separately to the active display area, so avoid re-coupling those two concerns.
 
 ### Keyboard
 
