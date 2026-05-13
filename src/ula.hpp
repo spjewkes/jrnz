@@ -21,8 +21,7 @@ public:
           _z80(_z80),
           _bus(_bus),
           visible_frame_start_tstate(machine.contention_first_tstate -
-                                     (machine.vertical_blank_top_lines * machine.contention_line_tstates) -
-                                     (machine.horizontal_border_left_tstates + machine.horizontal_blank_left_tstates)),
+                                     (machine.vertical_blank_top_lines * machine.contention_line_tstates)),
           border_timeline(static_cast<std::size_t>(machine.visible_height()) * horizontal_visible_tstates(), 0),
           screen_bitmap_snapshot(static_cast<std::size_t>(machine.screen_width / machine.attr_cell_size) *
                                      static_cast<std::size_t>(machine.screen_height),

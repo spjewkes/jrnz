@@ -29,7 +29,7 @@ struct MachineModel {
     uint16_t contention_line_tstates;
     uint8_t contention_visible_tstates;
     uint8_t vertical_blank_top_lines;
-    uint8_t horizontal_blank_left_tstates;
+    uint8_t horizontal_blank_tstates;
     uint8_t horizontal_border_left_tstates;
     uint8_t horizontal_border_right_tstates;
     uint16_t contention_lines;
@@ -41,13 +41,14 @@ struct MachineModel {
     int screen_height;
     int attr_cell_size;
     int border_left;
+    int border_right;
     int border_top;
 
     float render_scale;
     std::array<const char *, 4> default_rom_filenames;
     std::size_t default_rom_filename_count;
 
-    constexpr int visible_width() const { return screen_width + (border_left * 2); }
+    constexpr int visible_width() const { return border_left + screen_width + border_right; }
     constexpr int visible_height() const { return screen_height + (border_top * 2); }
     constexpr int window_width() const { return static_cast<int>(visible_width() * render_scale); }
     constexpr int window_height() const { return static_cast<int>(visible_height() * render_scale); }
@@ -76,13 +77,12 @@ constexpr MachineModel spectrum_48k_model() {
         // knob for small up/down border alignment tweaks against reference
         // emulators and hardware captures.
         .vertical_blank_top_lines = 32,
-        // The visible window does not begin at the left edge of the 224T
-        // scanline. This models the horizontal porch ahead of the left border
-        // and is the main knob for small left/right viewport alignment tweaks
-        // against reference emulators and hardware captures.
-        .horizontal_blank_left_tstates = 24,
-        .horizontal_border_left_tstates = 24,
-        .horizontal_border_right_tstates = 24,
+        // Horizontal line order is display, right border, blanking, then left
+        // border. The left border at the end of one physical line is rendered
+        // as the left border of the following visual row.
+        .horizontal_blank_tstates = 48,
+        .horizontal_border_left_tstates = 16,
+        .horizontal_border_right_tstates = 32,
         .contention_lines = 192,
         .contention_ram_base = 0x4000,
         .contention_ram_end = 0x8000,
@@ -90,7 +90,8 @@ constexpr MachineModel spectrum_48k_model() {
         .screen_width = 256,
         .screen_height = 192,
         .attr_cell_size = 8,
-        .border_left = 48,
+        .border_left = 32,
+        .border_right = 64,
         .border_top = 32,
         .render_scale = 3.0f,
         .default_rom_filenames = {"48.rom", "spectrum48.rom", "48k.rom", ""},

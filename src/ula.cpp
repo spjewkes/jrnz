@@ -85,21 +85,41 @@ uint8_t ULA::remap_spectrum_y(uint8_t y) {
     return remapped;
 }
 
+namespace {
+int64_t floor_div(int64_t value, int64_t divisor) {
+    return value >= 0 ? value / divisor : -(((-value) + divisor - 1) / divisor);
+}
+}  // namespace
+
 void ULA::record_border_tstate(uint64_t frame_pos) {
-    const uint64_t visible_span = static_cast<uint64_t>(machine.visible_height()) * machine.contention_line_tstates;
-    if (frame_pos < visible_frame_start_tstate ||
-        frame_pos >= static_cast<uint64_t>(visible_frame_start_tstate) + visible_span) {
+    const int64_t relative = static_cast<int64_t>(frame_pos) - static_cast<int64_t>(visible_frame_start_tstate);
+    const int64_t physical_line = floor_div(relative, machine.contention_line_tstates);
+    const int64_t line_phase = relative - (physical_line * machine.contention_line_tstates);
+
+    const uint64_t right_border_start = machine.contention_visible_tstates;
+    const uint64_t blanking_start = right_border_start + machine.horizontal_border_right_tstates;
+    const uint64_t left_border_start = blanking_start + machine.horizontal_blank_tstates;
+
+    int64_t line = physical_line;
+    uint64_t line_pos = 0;
+    if (line_phase < static_cast<int64_t>(right_border_start)) {
+        line_pos = static_cast<uint64_t>(machine.horizontal_border_left_tstates + line_phase);
+    } else if (line_phase < static_cast<int64_t>(blanking_start)) {
+        line_pos = static_cast<uint64_t>(machine.horizontal_border_left_tstates + machine.contention_visible_tstates +
+                                         (line_phase - static_cast<int64_t>(right_border_start)));
+    } else if (line_phase >= static_cast<int64_t>(left_border_start)) {
+        line += 1;
+        line_pos = static_cast<uint64_t>(line_phase - static_cast<int64_t>(left_border_start));
+    } else {
         return;
     }
 
-    const uint64_t visible_pos = frame_pos - visible_frame_start_tstate;
-    const uint64_t line = visible_pos / machine.contention_line_tstates;
-    const uint64_t line_pos = visible_pos % machine.contention_line_tstates;
-    if (line_pos >= horizontal_visible_tstates()) {
+    if (line < 0 || line >= machine.visible_height() || line_pos >= horizontal_visible_tstates()) {
         return;
     }
 
-    border_timeline[(line * horizontal_visible_tstates()) + line_pos] = static_cast<uint8_t>(_bus.port_254 & 0x07);
+    border_timeline[(static_cast<std::size_t>(line) * horizontal_visible_tstates()) + line_pos] =
+        static_cast<uint8_t>(_bus.port_254 & 0x07);
 }
 
 void ULA::record_screen_tstate(uint64_t frame_pos) {
@@ -109,10 +129,8 @@ void ULA::record_screen_tstate(uint64_t frame_pos) {
         return;
     }
 
-    const uint64_t visible_pos = frame_pos - visible_frame_start_tstate;
-    const uint64_t line_pos = visible_pos % machine.contention_line_tstates;
-    if (line_pos !=
-        static_cast<uint64_t>(machine.horizontal_border_left_tstates + machine.contention_visible_tstates - 1)) {
+    const uint64_t line_pos = (frame_pos - machine.contention_first_tstate) % machine.contention_line_tstates;
+    if (line_pos != static_cast<uint64_t>(machine.contention_visible_tstates - 1)) {
         return;
     }
 
@@ -157,9 +175,9 @@ void ULA::render_frame() const {
                 const int right_bucket = bucket - static_cast<int>(machine.horizontal_border_left_tstates +
                                                                    machine.contention_visible_tstates);
                 x0 = machine.border_left + machine.screen_width +
-                     (right_bucket * machine.border_left) / machine.horizontal_border_right_tstates;
+                     (right_bucket * machine.border_right) / machine.horizontal_border_right_tstates;
                 x1 = machine.border_left + machine.screen_width +
-                     ((right_bucket + 1) * machine.border_left) / machine.horizontal_border_right_tstates;
+                     ((right_bucket + 1) * machine.border_right) / machine.horizontal_border_right_tstates;
             }
 
             if (x1 <= x0) {

@@ -2,6 +2,22 @@
 
 #include "bus.hpp"
 
+TEST_CASE("48K horizontal display layout matches the ULA timing table", "[bus]") {
+    const MachineModel model = spectrum_48k_model();
+
+    REQUIRE(model.contention_visible_tstates == 128);
+    REQUIRE(model.horizontal_border_right_tstates == 32);
+    REQUIRE(model.horizontal_blank_tstates == 48);
+    REQUIRE(model.horizontal_border_left_tstates == 16);
+    REQUIRE(model.contention_visible_tstates + model.horizontal_border_right_tstates + model.horizontal_blank_tstates +
+                model.horizontal_border_left_tstates ==
+            model.contention_line_tstates);
+
+    REQUIRE(model.border_left == model.horizontal_border_left_tstates * 2);
+    REQUIRE(model.border_right == model.horizontal_border_right_tstates * 2);
+    REQUIRE(model.visible_width() == model.border_left + model.screen_width + model.border_right);
+}
+
 TEST_CASE("Bus preserves ROM write protection and RAM visibility", "[bus]") {
     Bus bus(65536);
 
