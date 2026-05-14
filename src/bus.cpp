@@ -51,10 +51,25 @@ uint8_t Bus::read_port(uint16_t addr) const {
 }
 
 void Bus::write_port(uint16_t addr, uint8_t v) {
+    const bool ula_port_selected = (addr & 0xff) == static_cast<uint8_t>(machine.ula_port & 0xff);
+    const bool delay_beam_latch = ula_port_selected && contention_active && frame_tstate_valid;
+    const uint32_t extra_beam_latch_delay = next_beam_port_latch_extra_tstates;
+    next_beam_port_latch_extra_tstates = 0;
+    // CPU state changes immediately in our instruction-at-once core, but the
+    // ULA should not see the border value until the I/O write phase arrives.
+    const uint32_t beam_latch_delay =
+        delay_beam_latch ? port_write_latch_delay(addr) + contention_access_phase + extra_beam_latch_delay : 0;
+
     account_port_contention(addr);
 
-    if ((addr & 0xff) == static_cast<uint8_t>(machine.ula_port & 0xff)) {
+    if (ula_port_selected) {
         port_254 = v;
+        if (delay_beam_latch) {
+            schedule_beam_port_write(v, beam_latch_delay);
+        } else {
+            beam_port_254 = v;
+            pending_beam_port_254 = false;
+        }
     }
 }
 

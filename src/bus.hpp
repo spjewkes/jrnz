@@ -82,6 +82,12 @@ public:
     void set_frame_tstate(uint64_t tstate) {
         current_frame_tstate = tstate;
         frame_tstate_valid = true;
+        if (pending_beam_port_254 && current_frame_tstate == pending_beam_port_254_tstate) {
+            beam_port_254 = pending_beam_port_254_value;
+            pending_beam_port_254 = false;
+        } else if (!pending_beam_port_254 && !contention_active) {
+            beam_port_254 = port_254;
+        }
     }
     void set_input_line(MachineInputLine line, bool active) {
         switch (line) {
@@ -113,6 +119,7 @@ public:
         }
         contention_access_phase += tstates;
     }
+    void delay_next_beam_port_latch(uint32_t tstates) { next_beam_port_latch_extra_tstates += tstates; }
 
     void clock() {
         // Not actively used at the moment but may be useful for debugging
@@ -120,6 +127,9 @@ public:
 
     // TODO - this needs to be dealt with better at some point
     uint8_t port_254 = {0};
+    // Beam-visible latch for border/audio timing; this can intentionally lag
+    // behind port_254 while an in-flight I/O write reaches the ULA.
+    uint8_t beam_ula_port() const { return beam_port_254; }
     mutable uint16_t floating_counter = {0};
     const MachineModel &model() const { return machine; }
 
@@ -197,6 +207,23 @@ private:
         contended_segment(1);
     }
 
+    uint32_t port_write_latch_delay(uint16_t addr) const {
+        const uint8_t high_byte = static_cast<uint8_t>(addr >> 8);
+        const bool high_byte_contended = high_byte >= 0x40 && high_byte <= 0x7f;
+
+        uint32_t delay = 1;
+        if (high_byte_contended) {
+            delay += contention_delay(current_frame_tstate + contention_access_phase);
+        }
+        return delay;
+    }
+
+    void schedule_beam_port_write(uint8_t value, uint32_t phase_delay) {
+        pending_beam_port_254 = true;
+        pending_beam_port_254_value = value;
+        pending_beam_port_254_tstate = (current_frame_tstate + phase_delay) % machine.frame_tstates;
+    }
+
     void account_contention(uint16_t addr) const {
         if (!contention_active) {
             return;
@@ -236,4 +263,9 @@ private:
     mutable uint32_t contention_wait_states = {0};
     mutable uint32_t contention_access_phase = {0};
     mutable bool contention_active = {false};
+    uint8_t beam_port_254 = {0};
+    bool pending_beam_port_254 = {false};
+    uint64_t pending_beam_port_254_tstate = {0};
+    uint8_t pending_beam_port_254_value = {0};
+    uint32_t next_beam_port_latch_extra_tstates = {0};
 };

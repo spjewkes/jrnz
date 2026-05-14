@@ -1420,6 +1420,9 @@ size_t Instruction::impl_in_block(Z80 &state, bool inc, bool repeat) {
 size_t Instruction::impl_out_block(Z80 &state, bool inc, bool repeat) {
     uint8_t value = state.bus.read_data(state.hl.get());
     advance_to_block_io_cycle(state, false /* input */);
+    // Keep the empirical border-effect correction local to block output; simple
+    // OUT timings need separate validation before sharing this adjustment.
+    state.bus.delay_next_beam_port_latch(state.bus.model().block_io_port_write_latch_extra_tstates);
     state.bus.write_port(state.bc.get(), value);
 
     int adjust = (inc ? 1 : -1);

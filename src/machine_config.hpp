@@ -29,11 +29,13 @@ struct MachineModel {
     uint16_t contention_line_tstates;
     uint8_t contention_visible_tstates;
     uint8_t vertical_blank_top_lines;
+    uint8_t active_display_border_line_offset;
     uint8_t horizontal_blank_tstates;
     uint8_t horizontal_border_left_tstates;
     uint8_t horizontal_border_right_tstates;
     uint8_t horizontal_visible_border_left_tstates;
     uint8_t horizontal_visible_border_right_tstates;
+    uint8_t block_io_port_write_latch_extra_tstates;
     uint16_t contention_lines;
     uint16_t contention_ram_base;
     uint16_t contention_ram_end;
@@ -77,6 +79,11 @@ constexpr MachineModel spectrum_48k_model() {
         // The viewport is cropped to the commonly-emulated 24-line top border
         // even though the physical top border is wider.
         .vertical_blank_top_lines = 24,
+        // Keep top-border effects anchored to the cropped viewport, but nudge
+        // side-border effects once the beam reaches the display area. This is
+        // intentionally separate from vertical_blank_top_lines so top-border
+        // tricks are not pushed down into the bitmap.
+        .active_display_border_line_offset = 9,
         // Relative to the active display area, the raw 48K ULA line order is
         // display, right border, blanking/retrace, then the next line's left
         // border. The viewport crops that raw 24T/24T border to the inner
@@ -87,6 +94,9 @@ constexpr MachineModel spectrum_48k_model() {
         .horizontal_border_right_tstates = 24,
         .horizontal_visible_border_left_tstates = 16,
         .horizontal_visible_border_right_tstates = 16,
+        // OUTI/OUTD reach the external write point later than our
+        // instruction-at-once core can express from generic bus state alone.
+        .block_io_port_write_latch_extra_tstates = 4,
         .contention_lines = 192,
         .contention_ram_base = 0x4000,
         .contention_ram_end = 0x8000,

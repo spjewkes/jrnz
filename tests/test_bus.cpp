@@ -149,9 +149,65 @@ TEST_CASE("Port writes only latch the Spectrum ULA port when the low byte is 0xf
     bus.port_254 = 0x00;
     bus.write_port(0x12fe, 0x77);
     REQUIRE(bus.port_254 == 0x77);
+    REQUIRE(bus.beam_ula_port() == 0x77);
 
     bus.write_port(0x12ff, 0x33);
     REQUIRE(bus.port_254 == 0x77);
+    REQUIRE(bus.beam_ula_port() == 0x77);
+}
+
+TEST_CASE("ULA port writes latch on the beam at the I/O write phase", "[bus]") {
+    Bus bus(65536);
+
+    bus.port_254 = 0x01;
+    bus.set_frame_tstate(100);
+    REQUIRE(bus.beam_ula_port() == 0x01);
+
+    bus.begin_instruction_timing();
+    bus.advance_instruction_timing(7);
+    bus.write_port(0x00fe, 0x02);
+
+    REQUIRE(bus.port_254 == 0x02);
+    REQUIRE(bus.beam_ula_port() == 0x01);
+
+    bus.set_frame_tstate(107);
+    REQUIRE(bus.beam_ula_port() == 0x01);
+
+    bus.set_frame_tstate(108);
+    REQUIRE(bus.beam_ula_port() == 0x02);
+    REQUIRE(bus.end_instruction_timing() == 0);
+}
+
+TEST_CASE("Block output port writes can delay the beam latch past the generic I/O phase", "[bus]") {
+    Bus bus(65536);
+
+    bus.port_254 = 0x01;
+    bus.set_frame_tstate(100);
+    REQUIRE(bus.beam_ula_port() == 0x01);
+
+    bus.begin_instruction_timing();
+    bus.advance_instruction_timing(7);
+    bus.delay_next_beam_port_latch(bus.model().block_io_port_write_latch_extra_tstates);
+    bus.write_port(0x00fe, 0x02);
+
+    REQUIRE(bus.port_254 == 0x02);
+    REQUIRE(bus.beam_ula_port() == 0x01);
+
+    bus.set_frame_tstate(111);
+    REQUIRE(bus.beam_ula_port() == 0x01);
+
+    bus.set_frame_tstate(112);
+    REQUIRE(bus.beam_ula_port() == 0x02);
+    REQUIRE(bus.end_instruction_timing() == 0);
+}
+
+TEST_CASE("Spectrum active-display border mapping is independent of the top viewport crop", "[bus]") {
+    const auto model = spectrum_48k_model();
+
+    REQUIRE(model.vertical_blank_top_lines == 24);
+    REQUIRE(model.active_display_border_line_offset == 9);
+    REQUIRE(model.border_top == 24);
+    REQUIRE(model.visible_height() == 240);
 }
 
 TEST_CASE("Contention adds wait states for accesses in contended RAM during the active display window", "[bus]") {

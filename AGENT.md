@@ -198,8 +198,10 @@ Important limitation:
 - The system publishes the current ULA frame t-state to the bus before advancing the ULA for the next tick. Moving that ordering can shift contention and interrupt phase by one t-state.
 - Z80 instruction scheduling assumes the current `clock()` call already consumes the first T-state of the decoded instruction. Future cycle-accounting changes need to preserve that convention.
 - `HALT` should wake as soon as an interrupt becomes visible, even if the core is part-way through the synthetic halt wait. Delaying that wake can cause stable two-position frame jitter in timing-sensitive software.
+- ULA port writes have two observable states: `port_254` changes immediately for CPU-level state, while `beam_ula_port()` is delayed to the I/O write phase for border rendering. Do not collapse them unless the CPU becomes genuinely per-T-state internally.
+- Block-output instructions (`OUTI`/`OUTD`/repeat forms) add an extra beam-latch delay through `block_io_port_write_latch_extra_tstates`. This is a deliberately signposted tuning point for border effects such as Paperboy; avoid applying it to all `OUT` instructions unless simple-output timing has been revalidated.
 - Horizontal border placement follows the 48K line order in `src/machine_config.hpp`: display, right border, blanking/retrace, then the next line's left border. The raw 24T side borders are cropped to the 16T visible viewport used by common emulators, and blanking/retrace is not rendered.
-- Vertical border placement is cropped with `vertical_blank_top_lines` in `src/machine_config.hpp`. Screen scanline snapshots are anchored separately to the active display area, so avoid re-coupling those two concerns.
+- Vertical viewport cropping uses `vertical_blank_top_lines`, while active-display side-border alignment has a separate `active_display_border_line_offset` tuning point. The ULA fills the resulting display-top transition band so it does not fall back to black. Keep those separate: changing the viewport crop moves top-border effects, while the active-display offset is intended for side-border raster alignment against the bitmap.
 
 ### Keyboard
 

@@ -20,8 +20,8 @@ public:
         : machine(_machine),
           _z80(_z80),
           _bus(_bus),
-          visible_frame_start_tstate(machine.contention_first_tstate -
-                                     (machine.vertical_blank_top_lines * machine.contention_line_tstates)),
+          border_frame_start_tstate(machine.contention_first_tstate -
+                                    (machine.vertical_blank_top_lines * machine.contention_line_tstates)),
           border_timeline(static_cast<std::size_t>(machine.visible_height()) * horizontal_visible_tstates(), 0),
           screen_bitmap_snapshot(static_cast<std::size_t>(machine.screen_width / machine.attr_cell_size) *
                                      static_cast<std::size_t>(machine.screen_height),
@@ -52,7 +52,7 @@ private:
     uint64_t counter = {0};
     uint64_t next_frame_deadline = {0};
     uint64_t frame_counter = {0};
-    uint32_t visible_frame_start_tstate = {0};
+    uint32_t border_frame_start_tstate = {0};
     std::vector<uint8_t> border_timeline;
     std::vector<uint8_t> screen_bitmap_snapshot;
     std::vector<uint8_t> screen_attr_snapshot;

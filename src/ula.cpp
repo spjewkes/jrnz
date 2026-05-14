@@ -92,7 +92,7 @@ int64_t floor_div(int64_t value, int64_t divisor) {
 }  // namespace
 
 void ULA::record_border_tstate(uint64_t frame_pos) {
-    const int64_t relative = static_cast<int64_t>(frame_pos) - static_cast<int64_t>(visible_frame_start_tstate);
+    const int64_t relative = static_cast<int64_t>(frame_pos) - static_cast<int64_t>(border_frame_start_tstate);
     const int64_t physical_line = floor_div(relative, machine.contention_line_tstates);
     const int64_t line_phase = relative - (physical_line * machine.contention_line_tstates);
 
@@ -118,12 +118,30 @@ void ULA::record_border_tstate(uint64_t frame_pos) {
         return;
     }
 
+    const uint8_t border = static_cast<uint8_t>(_bus.beam_ula_port() & 0x07);
+
+    // This is deliberately line-local: pre-display top-border effects stay
+    // anchored, while active-display side-border effects can be aligned
+    // against the rendered bitmap independently.
+    const int64_t unshifted_line = line;
+    const bool fill_transition_band =
+        line >= machine.border_top && line < machine.border_top + machine.active_display_border_line_offset;
+    if (line >= machine.border_top) {
+        line += machine.active_display_border_line_offset;
+    }
+
     if (line < 0 || line >= machine.visible_height() || line_pos >= horizontal_visible_tstates()) {
         return;
     }
 
-    border_timeline[(static_cast<std::size_t>(line) * horizontal_visible_tstates()) + line_pos] =
-        static_cast<uint8_t>(_bus.port_254 & 0x07);
+    border_timeline[(static_cast<std::size_t>(line) * horizontal_visible_tstates()) + line_pos] = border;
+
+    // The active-display line offset creates a small hole at the display-top
+    // boundary. Fill only that transition band so it does not render as the
+    // default black border while keeping deeper active-display rows shifted.
+    if (fill_transition_band && unshifted_line >= 0 && unshifted_line < machine.visible_height()) {
+        border_timeline[(static_cast<std::size_t>(unshifted_line) * horizontal_visible_tstates()) + line_pos] = border;
+    }
 }
 
 void ULA::record_screen_tstate(uint64_t frame_pos) {
