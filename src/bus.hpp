@@ -65,6 +65,14 @@ public:
         assert(bank < machine.ram_bank_count);
         ram[bank_offset(bank, offset)] = value;
     }
+    void write_physical_ram_block(uint8_t bank, uint16_t offset, const uint8_t *data, std::size_t size) {
+        assert(bank < machine.ram_bank_count);
+        assert(offset <= bank_size);
+        assert(size <= static_cast<std::size_t>(bank_size - offset));
+        for (std::size_t pos = 0; pos < size; ++pos) {
+            ram[bank_offset(bank, static_cast<uint16_t>(offset + pos))] = data[pos];
+        }
+    }
     uint8_t read_physical_rom(uint8_t bank, uint16_t offset) const {
         assert(bank < machine.rom_bank_count);
         return rom[bank_offset(bank, offset)];

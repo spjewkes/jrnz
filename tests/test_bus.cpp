@@ -1,3 +1,4 @@
+#include <array>
 #include <catch2/catch_test_macros.hpp>
 
 #include "bus.hpp"
@@ -163,6 +164,18 @@ TEST_CASE("128K ULA screen reads follow the shadow-screen paging bit", "[bus]") 
     REQUIRE(bus.ula_screen_bank() == 7);
     REQUIRE(bus.read_ula_screen(0x4000) == 0x34);
     REQUIRE(bus[0x4000] == 0x12);
+}
+
+TEST_CASE("Physical RAM block writes target an explicit bank", "[bus]") {
+    Bus bus(spectrum_128k_model());
+    const std::array<uint8_t, 3> bytes = {0x12, 0x34, 0x56};
+
+    bus.write_physical_ram_block(4, 0x0100, bytes.data(), bytes.size());
+
+    REQUIRE(bus.read_physical_ram(4, 0x0100) == 0x12);
+    REQUIRE(bus.read_physical_ram(4, 0x0101) == 0x34);
+    REQUIRE(bus.read_physical_ram(4, 0x0102) == 0x56);
+    REQUIRE(bus.read_physical_ram(0, 0x0100) == 0x00);
 }
 
 TEST_CASE("Bus preserves ROM write protection and RAM visibility", "[bus]") {
