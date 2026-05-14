@@ -69,6 +69,10 @@ public:
         assert(bank < machine.rom_bank_count);
         return rom[bank_offset(bank, offset)];
     }
+    void write_physical_rom(uint8_t bank, uint16_t offset, uint8_t value) {
+        assert(bank < machine.rom_bank_count);
+        rom[bank_offset(bank, offset)] = value;
+    }
 
     uint8_t read_port(uint16_t addr) const;
     void write_port(uint16_t addr, uint8_t v);
@@ -163,6 +167,11 @@ public:
     uint8_t beam_ula_port() const { return beam_port_254; }
     mutable uint16_t floating_counter = {0};
     const MachineModel &model() const { return machine; }
+    uint8_t memory_paging_register() const { return memory_paging_register_value; }
+    uint8_t selected_rom_bank() const { return selected_rom_bank_value; }
+    uint8_t selected_paged_ram_bank() const { return selected_paged_ram_bank_value; }
+    bool shadow_screen_enabled() const { return shadow_screen_enabled_value; }
+    bool memory_paging_disabled() const { return memory_paging_disabled_value; }
 
 private:
     static constexpr uint16_t bank_size = 0x4000;
@@ -347,6 +356,11 @@ private:
     std::vector<uint8_t> rom;
     std::vector<uint8_t> ram;
     std::array<PageMapping, cpu_page_count> cpu_pages{};
+    uint8_t memory_paging_register_value = {0};
+    uint8_t selected_rom_bank_value = {0};
+    uint8_t selected_paged_ram_bank_value = {0};
+    bool shadow_screen_enabled_value = {false};
+    bool memory_paging_disabled_value = {false};
     mutable bool ear_input_active = {true};
     mutable uint64_t current_frame_tstate = {0};
     mutable bool frame_tstate_valid = {false};

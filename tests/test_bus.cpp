@@ -73,6 +73,12 @@ TEST_CASE("Original 128K model records bank layout and 7C ULA timings", "[bus]")
 TEST_CASE("128K bus maps CPU pages onto separate physical banks before paging is implemented", "[bus]") {
     Bus bus(spectrum_128k_model());
 
+    REQUIRE(bus.memory_paging_register() == 0x00);
+    REQUIRE(bus.selected_rom_bank() == 0);
+    REQUIRE(bus.selected_paged_ram_bank() == 0);
+    REQUIRE_FALSE(bus.shadow_screen_enabled());
+    REQUIRE_FALSE(bus.memory_paging_disabled());
+
     bus[0x0000] = 0x11;
     bus.write_data(0x0000, 0x22);
     REQUIRE(bus[0x0000] == 0x11);
