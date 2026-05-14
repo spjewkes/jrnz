@@ -9,6 +9,9 @@ TEST_CASE("48K horizontal display layout matches the ULA timing table", "[bus]")
     REQUIRE(model.memory_size == 65536);
     REQUIRE(model.physical_ram_size == 48 * 1024);
     REQUIRE(model.physical_rom_size == 16 * 1024);
+    REQUIRE(model.bank_size == 0x4000);
+    REQUIRE(model.ram_bank_count == 3);
+    REQUIRE(model.rom_bank_count == 1);
     REQUIRE_FALSE(model.has_memory_paging);
     REQUIRE(model.cpu_frequency_hz == 3500000);
     REQUIRE(model.ay_frequency_hz == 0);
@@ -65,6 +68,26 @@ TEST_CASE("Original 128K model records bank layout and 7C ULA timings", "[bus]")
             model.contention_line_tstates);
 
     REQUIRE(model.default_rom_filename_count == 3);
+}
+
+TEST_CASE("128K bus maps CPU pages onto separate physical banks before paging is implemented", "[bus]") {
+    Bus bus(spectrum_128k_model());
+
+    bus[0x0000] = 0x11;
+    bus.write_data(0x0000, 0x22);
+    REQUIRE(bus[0x0000] == 0x11);
+    REQUIRE(bus.read_physical_rom(0, 0x0000) == 0x11);
+
+    bus[0x4000] = 0x33;
+    bus[0x8000] = 0x44;
+    bus[0xc000] = 0x55;
+
+    REQUIRE(bus.read_physical_ram(5, 0x0000) == 0x33);
+    REQUIRE(bus.read_physical_ram(2, 0x0000) == 0x44);
+    REQUIRE(bus.read_physical_ram(0, 0x0000) == 0x55);
+
+    bus.write_physical_ram(1, 0x0000, 0x66);
+    REQUIRE(bus[0xc000] == 0x55);
 }
 
 TEST_CASE("Bus preserves ROM write protection and RAM visibility", "[bus]") {

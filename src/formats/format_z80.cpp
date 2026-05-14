@@ -22,13 +22,15 @@ static uint16_t get_next_ushort(std::ifstream &stream) {
 /**
  * @brief Read a data block from a Z80 file into memory.
  */
-static void read_data_block(uint32_t version, std::vector<uint8_t> &mem, std::ifstream &stream, bool compressed,
-                            uint16_t addr_start, uint16_t size) {
-    uint16_t mem_pos = addr_start;
+static void read_data_block(uint32_t version, Bus &bus, std::ifstream &stream, bool compressed, uint16_t addr_start,
+                            uint16_t size) {
+    uint32_t mem_pos = addr_start;
 
     if (!compressed) {
         // If block of data is uncompressed then just write the remaining file to memory
-        stream.read(reinterpret_cast<char *>(&mem[mem_pos]), size);
+        for (uint32_t pos = 0; pos < size; ++pos) {
+            bus[static_cast<uint16_t>(mem_pos++)] = get_next_byte(stream);
+        }
     } else {
         // while (stream.peek() != EOF || size--) {
         uint32_t pos = 0;
@@ -49,7 +51,7 @@ static void read_data_block(uint32_t version, std::vector<uint8_t> &mem, std::if
                 uint8_t compressed_byte = get_next_byte(stream);
                 assert(count > 0);
                 while (count--) {
-                    mem[mem_pos++] = compressed_byte;
+                    bus[static_cast<uint16_t>(mem_pos++)] = compressed_byte;
                 }
                 pos += 3;
             } else if (version == 1 && this_byte == 0x00 && stream.peek() == 0xED) {
@@ -64,14 +66,14 @@ static void read_data_block(uint32_t version, std::vector<uint8_t> &mem, std::if
                 } else {
                     // Not the end of memory, so write first byte out and put back
                     // the remaining 3 bytes
-                    mem[mem_pos++] = this_byte;
+                    bus[static_cast<uint16_t>(mem_pos++)] = this_byte;
                     stream.putback(byte_4);
                     stream.putback(byte_3);
                     stream.putback(byte_2);
                 }
             } else {
                 // Normal byte - write it to memory
-                mem[mem_pos++] = this_byte;
+                bus[static_cast<uint16_t>(mem_pos++)] = this_byte;
             }
         }
     }
@@ -406,12 +408,12 @@ void Bus::load_z80(std::string &z80_file, Z80 &state) {
                 read_block_header(z80, size, is_compressed, page);
 
                 uint16_t addr_start = get_addr_start_from_page(page);
-                read_data_block(version, mem, z80, is_compressed, addr_start, size);
+                read_data_block(version, *this, z80, is_compressed, addr_start, size);
             }
         } else {
             std::cout << "Z80 version 1 format detected\n";
             // For version one the rest of the block is data
-            read_data_block(version, mem, z80, compression_on, 16384, 49152);
+            read_data_block(version, *this, z80, compression_on, 16384, 49152);
         }
 
         z80.close();

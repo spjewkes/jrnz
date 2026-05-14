@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <cassert>
 #include <cstdint>
 #include <deque>
@@ -40,28 +41,47 @@ struct FetchedOpcode {
 class Bus {
 public:
     explicit Bus(const MachineModel &_machine)
-        : machine(_machine), mem(_machine.memory_size), ram_start(machine.ram_base) {}
-    explicit Bus(size_t size) : machine(spectrum_48k_model()), mem(size), ram_start(machine.ram_base) {}
+        : machine(_machine), rom(machine.physical_rom_size), ram(machine.physical_ram_size) {
+        configure_default_memory_map();
+    }
+    explicit Bus(size_t size) : Bus(spectrum_48k_model()) {
+        assert(size == machine.memory_size);
+        UNUSED(size);
+    }
     virtual ~Bus() {}
 
     void load_rom(std::string &rom_file);
     void load_snapshot(std::string &sna_file, Z80 &state);
     void load_z80(std::string &z80_file, Z80 &state);
 
-    uint8_t &operator[](uint16_t addr) { return mem[addr]; }
+    uint8_t &operator[](uint16_t addr) { return mapped_byte(addr); }
+    const uint8_t &operator[](uint16_t addr) const { return mapped_byte(addr); }
+
+    uint8_t read_physical_ram(uint8_t bank, uint16_t offset) const {
+        assert(bank < machine.ram_bank_count);
+        return ram[bank_offset(bank, offset)];
+    }
+    void write_physical_ram(uint8_t bank, uint16_t offset, uint8_t value) {
+        assert(bank < machine.ram_bank_count);
+        ram[bank_offset(bank, offset)] = value;
+    }
+    uint8_t read_physical_rom(uint8_t bank, uint16_t offset) const {
+        assert(bank < machine.rom_bank_count);
+        return rom[bank_offset(bank, offset)];
+    }
 
     uint8_t read_port(uint16_t addr) const;
     void write_port(uint16_t addr, uint8_t v);
 
     uint8_t read_data(uint16_t addr) const {
         account_contention(addr);
-        return mem[addr];
+        return mapped_byte(addr);
     }
 
     void write_data(uint16_t addr, uint8_t v) {
         account_contention(addr);
-        if (addr >= ram_start) {
-            mem[addr] = v;
+        if (!is_read_only_addr(addr)) {
+            mapped_byte(addr) = v;
         }
     }
 
@@ -76,7 +96,10 @@ public:
     }
 
     StorageElement read_element_from_mem(uint16_t addr, size_t count) {
-        return StorageElement(&mem[addr], count, (addr < ram_start));
+        if (count > 1) {
+            assert(page_index(addr) == page_index(static_cast<uint16_t>(addr + count - 1)));
+        }
+        return StorageElement(&mapped_byte(addr), count, is_read_only_addr(addr));
     }
 
     FetchedOpcode read_opcode_from_mem(uint16_t addr) const;
@@ -142,6 +165,60 @@ public:
     const MachineModel &model() const { return machine; }
 
 private:
+    static constexpr uint16_t bank_size = 0x4000;
+    static constexpr uint8_t cpu_page_count = 4;
+
+    enum class PhysicalMemoryKind : uint8_t {
+        Rom,
+        Ram,
+    };
+
+    struct PageMapping {
+        PhysicalMemoryKind kind;
+        uint8_t bank;
+    };
+
+    static constexpr uint8_t page_index(uint16_t addr) { return static_cast<uint8_t>(addr / bank_size); }
+    static constexpr uint16_t page_offset(uint16_t addr) { return static_cast<uint16_t>(addr & (bank_size - 1)); }
+
+    std::size_t bank_offset(uint8_t bank, uint16_t offset) const {
+        assert(offset < bank_size);
+        return (static_cast<std::size_t>(bank) * bank_size) + offset;
+    }
+
+    bool is_read_only_addr(uint16_t addr) const { return cpu_pages[page_index(addr)].kind == PhysicalMemoryKind::Rom; }
+
+    uint8_t &mapped_byte(uint16_t addr) {
+        const PageMapping page = cpu_pages[page_index(addr)];
+        const std::size_t offset = bank_offset(page.bank, page_offset(addr));
+        return page.kind == PhysicalMemoryKind::Rom ? rom[offset] : ram[offset];
+    }
+
+    const uint8_t &mapped_byte(uint16_t addr) const {
+        const PageMapping page = cpu_pages[page_index(addr)];
+        const std::size_t offset = bank_offset(page.bank, page_offset(addr));
+        return page.kind == PhysicalMemoryKind::Rom ? rom[offset] : ram[offset];
+    }
+
+    void configure_default_memory_map() {
+        assert(machine.bank_size == bank_size);
+        assert(rom.size() >= static_cast<std::size_t>(machine.rom_bank_count) * bank_size);
+        assert(ram.size() >= static_cast<std::size_t>(machine.ram_bank_count) * bank_size);
+
+        cpu_pages[0] = PageMapping{PhysicalMemoryKind::Rom, 0};
+
+        if (machine.family == MachineFamily::Spectrum128K) {
+            cpu_pages[1] = PageMapping{PhysicalMemoryKind::Ram, machine.default_screen_bank};
+            cpu_pages[2] = PageMapping{PhysicalMemoryKind::Ram, 2};
+            cpu_pages[3] = PageMapping{PhysicalMemoryKind::Ram, 0};
+            return;
+        }
+
+        cpu_pages[1] = PageMapping{PhysicalMemoryKind::Ram, 0};
+        cpu_pages[2] = PageMapping{PhysicalMemoryKind::Ram, 1};
+        cpu_pages[3] = PageMapping{PhysicalMemoryKind::Ram, 2};
+    }
+
     uint16_t floating_bus_addr_for_tstate(uint64_t tstate) const {
         const uint64_t frame_pos = tstate % machine.frame_tstates;
         const uint64_t visible_span = static_cast<uint64_t>(machine.contention_lines) * machine.contention_line_tstates;
@@ -267,8 +344,9 @@ private:
     }
 
     MachineModel machine;
-    std::vector<uint8_t> mem;
-    uint16_t ram_start = {0};
+    std::vector<uint8_t> rom;
+    std::vector<uint8_t> ram;
+    std::array<PageMapping, cpu_page_count> cpu_pages{};
     mutable bool ear_input_active = {true};
     mutable uint64_t current_frame_tstate = {0};
     mutable bool frame_tstate_valid = {false};

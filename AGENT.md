@@ -34,9 +34,9 @@ The project is no longer at the “barely boots” stage. It can load ROMs and s
 ### What is still limited
 
 - The emulator is still 48K-oriented rather than a general full-family Spectrum emulator.
-- An original 128K machine model exists as configuration data, but runtime
-  support still needs banked ROM/RAM mapping, paging-port behavior, AY audio,
-  and 128K snapshot loading before it should be selected by default.
+- An original 128K machine model exists and the bus has physical ROM/RAM bank
+  backing, but runtime support still needs paging-port behavior, AY audio, and
+  128K snapshot loading before it should be selected by default.
 - ULA/video timing is still simplified overall.
 - Mid-scanline display effects are still not rendered accurately.
 - Memory contention is present but should still be treated as an evolving 48K-model feature rather than finished hardware-accuracy work.
@@ -158,9 +158,8 @@ Current runtime machine assumptions are centered on the 48K Spectrum:
 - 48K memory layout assumptions in snapshots and display code
 
 There is also an original 128K model definition in `src/machine_config.hpp`.
-For now it is intentionally descriptive: it records 128K timing, bank layout,
-and paging-port constants, but the bus still uses a flat 64K address space at
-runtime.
+The bus now stores physical ROM/RAM banks separately and can initialise the
+default 128K CPU map, but `0x7ffd` paging writes are not implemented yet.
 
 ### CPU support
 
@@ -289,7 +288,7 @@ This section is intentionally blunt. Agents should assume these are real constra
 ### Spectrum hardware scope
 
 - The emulator is fundamentally 48K-centric.
-- 128K paging and AY sound are not supported.
+- 128K physical bank storage exists, but 128K paging and AY sound are not supported.
 - Tape loading is not implemented as a full tape subsystem, though the EAR input path now exists at the bus level.
 - Peripheral support is minimal.
 

@@ -4,19 +4,26 @@
 
 #include "bus.hpp"
 
+#include <algorithm>
+
 #include "z80.hpp"
 
 void Bus::load_rom(std::string &rom_file) {
     if (std::ifstream rom{rom_file, std::ios::binary | std::ios::ate}) {
-        auto rom_size = rom.tellg();
-        ram_start = rom_size;
+        const std::streamsize rom_size = rom.tellg();
+        const std::streamsize bytes_to_read =
+            std::min<std::streamsize>(rom_size, static_cast<std::streamsize>(this->rom.size()));
         rom.seekg(0);
-        rom.read(reinterpret_cast<char *>(&mem[0]), rom_size);
+        rom.read(reinterpret_cast<char *>(this->rom.data()), bytes_to_read);
         rom.close();
+
+        if (rom_size > bytes_to_read) {
+            std::cerr << "WARNING: ROM file is larger than this machine model can map; loaded first " << bytes_to_read
+                      << " bytes.\n";
+        }
     } else {
         std::cerr << "No ROM file found called " << rom_file << std::endl;
         std::cerr << "ROM uninitialized" << std::endl;
-        ram_start = machine.ram_base;
     }
 }
 
@@ -41,13 +48,13 @@ uint8_t Bus::read_port(uint16_t addr) const {
     if (frame_tstate_valid) {
         const uint16_t fb_addr = floating_bus_addr_for_tstate(current_frame_tstate);
         if (fb_addr != 0xffff) {
-            return mem[fb_addr];
+            return mapped_byte(fb_addr);
         }
         return 0xff;
     }
 
     const uint16_t fb_addr = machine.screen_bitmap_base + (floating_counter++ & machine.floating_bus_mask);
-    return mem[fb_addr];
+    return mapped_byte(fb_addr);
 }
 
 void Bus::write_port(uint16_t addr, uint8_t v) {

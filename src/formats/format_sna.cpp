@@ -92,8 +92,10 @@ void Bus::load_snapshot(std::string &sna_file, Z80 &state) {
 
         //! TODO - ignore for now
 
-        // Renaming file is the 48k of RAM
-        sna.read(reinterpret_cast<char *>(&mem[16384]), 49152);
+        // The rest of a 48K SNA file is the 48K RAM image at 0x4000-0xffff.
+        for (uint32_t offset = 0; offset < 49152; ++offset) {
+            (*this)[static_cast<uint16_t>(0x4000 + offset)] = get_next_byte(sna);
+        }
         sna.close();
 
         // 48K SNA stores the return PC on the stack; loading should restore it
