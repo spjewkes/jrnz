@@ -172,6 +172,14 @@ public:
     uint8_t selected_paged_ram_bank() const { return selected_paged_ram_bank_value; }
     bool shadow_screen_enabled() const { return shadow_screen_enabled_value; }
     bool memory_paging_disabled() const { return memory_paging_disabled_value; }
+    uint8_t ula_screen_bank() const {
+        return shadow_screen_enabled_value ? machine.shadow_screen_bank : machine.default_screen_bank;
+    }
+    uint8_t read_ula_screen(uint16_t addr) const {
+        assert(addr >= machine.screen_bitmap_base);
+        assert(addr < static_cast<uint16_t>(machine.screen_bitmap_base + bank_size));
+        return read_physical_ram(ula_screen_bank(), static_cast<uint16_t>(addr - machine.screen_bitmap_base));
+    }
 
 private:
     static constexpr uint16_t bank_size = 0x4000;

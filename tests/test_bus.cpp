@@ -148,6 +148,23 @@ TEST_CASE("128K paging register remaps the selected ROM and top RAM page", "[bus
     REQUIRE(bus.read_physical_rom(1, 0x0000) == 0x22);
 }
 
+TEST_CASE("128K ULA screen reads follow the shadow-screen paging bit", "[bus]") {
+    Bus bus(spectrum_128k_model());
+
+    bus.write_physical_ram(5, 0x0000, 0x12);
+    bus.write_physical_ram(7, 0x0000, 0x34);
+
+    REQUIRE(bus.ula_screen_bank() == 5);
+    REQUIRE(bus.read_ula_screen(0x4000) == 0x12);
+    REQUIRE(bus[0x4000] == 0x12);
+
+    bus.write_port(0x7ffd, 0x08);
+
+    REQUIRE(bus.ula_screen_bank() == 7);
+    REQUIRE(bus.read_ula_screen(0x4000) == 0x34);
+    REQUIRE(bus[0x4000] == 0x12);
+}
+
 TEST_CASE("Bus preserves ROM write protection and RAM visibility", "[bus]") {
     Bus bus(65536);
 

@@ -48,13 +48,13 @@ uint8_t Bus::read_port(uint16_t addr) const {
     if (frame_tstate_valid) {
         const uint16_t fb_addr = floating_bus_addr_for_tstate(current_frame_tstate);
         if (fb_addr != 0xffff) {
-            return mapped_byte(fb_addr);
+            return read_ula_screen(fb_addr);
         }
         return 0xff;
     }
 
     const uint16_t fb_addr = machine.screen_bitmap_base + (floating_counter++ & machine.floating_bus_mask);
-    return mapped_byte(fb_addr);
+    return read_ula_screen(fb_addr);
 }
 
 void Bus::write_port(uint16_t addr, uint8_t v) {
