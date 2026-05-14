@@ -59,6 +59,7 @@ uint8_t Bus::read_port(uint16_t addr) const {
 
 void Bus::write_port(uint16_t addr, uint8_t v) {
     const bool ula_port_selected = (addr & 0xff) == static_cast<uint8_t>(machine.ula_port & 0xff);
+    const bool paging_port_selected = memory_paging_port_selected(addr);
     const bool delay_beam_latch = ula_port_selected && contention_active && frame_tstate_valid;
     const uint32_t extra_beam_latch_delay = next_beam_port_latch_extra_tstates;
     next_beam_port_latch_extra_tstates = 0;
@@ -77,6 +78,10 @@ void Bus::write_port(uint16_t addr, uint8_t v) {
             beam_port_254 = v;
             pending_beam_port_254_writes.clear();
         }
+    }
+
+    if (paging_port_selected) {
+        write_memory_paging_register(v);
     }
 }
 

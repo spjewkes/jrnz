@@ -96,6 +96,34 @@ TEST_CASE("128K bus maps CPU pages onto separate physical banks before paging is
     REQUIRE(bus[0xc000] == 0x55);
 }
 
+TEST_CASE("128K paging register writes update state and latch the paging lock", "[bus]") {
+    Bus bus(spectrum_128k_model());
+
+    bus.write_port(0x7ffd, 0x1b);
+
+    REQUIRE(bus.memory_paging_register() == 0x1b);
+    REQUIRE(bus.selected_paged_ram_bank() == 3);
+    REQUIRE(bus.selected_rom_bank() == 1);
+    REQUIRE(bus.shadow_screen_enabled());
+    REQUIRE_FALSE(bus.memory_paging_disabled());
+
+    bus.write_port(0x7fff, 0x04);
+    REQUIRE(bus.memory_paging_register() == 0x1b);
+
+    bus.write_port(0x7ffd, 0x20);
+    REQUIRE(bus.memory_paging_register() == 0x20);
+    REQUIRE(bus.selected_paged_ram_bank() == 0);
+    REQUIRE(bus.selected_rom_bank() == 0);
+    REQUIRE_FALSE(bus.shadow_screen_enabled());
+    REQUIRE(bus.memory_paging_disabled());
+
+    bus.write_port(0x7ffd, 0x1f);
+    REQUIRE(bus.memory_paging_register() == 0x20);
+    REQUIRE(bus.selected_paged_ram_bank() == 0);
+    REQUIRE(bus.selected_rom_bank() == 0);
+    REQUIRE_FALSE(bus.shadow_screen_enabled());
+}
+
 TEST_CASE("Bus preserves ROM write protection and RAM visibility", "[bus]") {
     Bus bus(65536);
 

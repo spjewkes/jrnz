@@ -322,6 +322,23 @@ private:
             PendingBeamPortWrite{(current_frame_tstate + phase_delay) % machine.frame_tstates, value});
     }
 
+    bool memory_paging_port_selected(uint16_t addr) const {
+        // Original 128K paging is partially decoded: A15 and A1 must both be low.
+        return machine.has_memory_paging && ((addr & 0x8002) == 0);
+    }
+
+    void write_memory_paging_register(uint8_t value) {
+        if (memory_paging_disabled_value) {
+            return;
+        }
+
+        memory_paging_register_value = value;
+        selected_paged_ram_bank_value = static_cast<uint8_t>(value & machine.paging_ram_bank_mask);
+        shadow_screen_enabled_value = (value & machine.paging_shadow_screen_bit) != 0;
+        selected_rom_bank_value = (value & machine.paging_rom_select_bit) != 0 ? 1 : 0;
+        memory_paging_disabled_value = (value & machine.paging_disable_bit) != 0;
+    }
+
     void account_contention(uint16_t addr) const {
         if (!contention_active) {
             return;
