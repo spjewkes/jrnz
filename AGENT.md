@@ -35,8 +35,8 @@ The project is no longer at the “barely boots” stage. It can load ROMs and s
 
 - The emulator is still 48K-oriented rather than a general full-family Spectrum emulator.
 - An original 128K machine model exists and the bus has physical ROM/RAM bank
-  backing, but runtime support still needs paging-port behavior, AY audio, and
-  128K snapshot loading before it should be selected by default.
+  backing plus `0x7ffd` paging, but runtime support still needs AY audio and
+  128K snapshot loading before it should be treated as complete.
 - ULA/video timing is still simplified overall.
 - Mid-scanline display effects are still not rendered accurately.
 - Memory contention is present but should still be treated as an evolving 48K-model feature rather than finished hardware-accuracy work.
@@ -119,6 +119,8 @@ The project now uses separate build directories per configuration:
     - `./run_jrnz.sh debug ...`
     - `./run_jrnz.sh release ...`
     - `./run_jrnz.sh relwithdebinfo ...`
+  - Pass `--machine 128k` to select the original 128K model. This can load a
+    combined `128.rom`, but 128K support is still incomplete.
 - `./run_tests.sh`
   - Defaults to `debug`
   - Can also be called as:
@@ -148,7 +150,7 @@ Note:
 
 ### Machine model
 
-Current runtime machine assumptions are centered on the 48K Spectrum:
+Default runtime machine assumptions are centered on the 48K Spectrum:
 
 - 64K address space
 - ROM at low memory, RAM above ROM
@@ -159,7 +161,7 @@ Current runtime machine assumptions are centered on the 48K Spectrum:
 
 There is also an original 128K model definition in `src/machine_config.hpp`.
 The bus now stores physical ROM/RAM banks separately and can initialise the
-default 128K CPU map, but `0x7ffd` paging writes are not implemented yet.
+default 128K CPU map. Use `--machine 128k` for manual boot testing.
 
 ### CPU support
 
@@ -261,7 +263,7 @@ Implemented:
 
 Not implemented or intentionally rejected:
 
-- 128K machine modes
+- 128K snapshot modes
 - Interface 1 pages
 - Multiface pages
 - broader hardware-mode features present in `.z80` metadata
@@ -288,7 +290,7 @@ This section is intentionally blunt. Agents should assume these are real constra
 ### Spectrum hardware scope
 
 - The emulator is fundamentally 48K-centric.
-- 128K physical bank storage exists, but 128K paging and AY sound are not supported.
+- 128K physical bank storage and paging exist, but AY sound is not supported.
 - Tape loading is not implemented as a full tape subsystem, though the EAR input path now exists at the bus level.
 - Peripheral support is minimal.
 

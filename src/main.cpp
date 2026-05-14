@@ -18,6 +18,16 @@ SDL_Window *window = nullptr;
 SDL_Renderer *renderer = nullptr;
 
 namespace {
+MachineModel selected_machine_model(MachineFamily family) {
+    switch (family) {
+        case MachineFamily::Spectrum48K:
+            return spectrum_48k_model();
+        case MachineFamily::Spectrum128K:
+            return spectrum_128k_model();
+    }
+    return spectrum_48k_model();
+}
+
 std::string find_default_rom_path(const MachineModel &machine) {
     namespace fs = std::filesystem;
 
@@ -54,7 +64,8 @@ void wait_keypress() {
  */
 int main(int argc, char **argv) {
     std::cout << "Running jrnz..." << std::endl;
-    static constexpr MachineModel machine = spectrum_48k_model();
+    Options options(argc, argv);
+    const MachineModel machine = selected_machine_model(options.machine_family);
 
 #ifdef HAVE_DISPLAY
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
@@ -76,8 +87,6 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 #endif
-
-    Options options(argc, argv);
 
     Bus mem(machine);
     Z80 state(mem, options.fast_mode);

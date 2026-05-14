@@ -7,6 +7,8 @@
 #include <cstdint>
 #include <string>
 
+#include "machine_config.hpp"
+
 /**
  * @brief Defines options class.
  */
@@ -31,6 +33,7 @@ public:
 
     bool fast_mode = {false};
     bool pause_on_quit = {false};
+    MachineFamily machine_family = {MachineFamily::Spectrum48K};
 
 private:
     Options() = delete;
