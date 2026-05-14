@@ -34,6 +34,9 @@ The project is no longer at the “barely boots” stage. It can load ROMs and s
 ### What is still limited
 
 - The emulator is still 48K-oriented rather than a general full-family Spectrum emulator.
+- An original 128K machine model exists as configuration data, but runtime
+  support still needs banked ROM/RAM mapping, paging-port behavior, AY audio,
+  and 128K snapshot loading before it should be selected by default.
 - ULA/video timing is still simplified overall.
 - Mid-scanline display effects are still not rendered accurately.
 - Memory contention is present but should still be treated as an evolving 48K-model feature rather than finished hardware-accuracy work.
@@ -145,7 +148,7 @@ Note:
 
 ### Machine model
 
-Current machine assumptions are centered on the 48K Spectrum:
+Current runtime machine assumptions are centered on the 48K Spectrum:
 
 - 64K address space
 - ROM at low memory, RAM above ROM
@@ -153,6 +156,11 @@ Current machine assumptions are centered on the 48K Spectrum:
 - 50 Hz frame cadence
 - model-driven contention fields and display timing constants
 - 48K memory layout assumptions in snapshots and display code
+
+There is also an original 128K model definition in `src/machine_config.hpp`.
+For now it is intentionally descriptive: it records 128K timing, bank layout,
+and paging-port constants, but the bus still uses a flat 64K address space at
+runtime.
 
 ### CPU support
 
@@ -200,6 +208,11 @@ Important limitation:
 - `HALT` should wake as soon as an interrupt becomes visible, even if the core is part-way through the synthetic halt wait. Delaying that wake can cause stable two-position frame jitter in timing-sensitive software.
 - ULA port writes have two observable states: `port_254` changes immediately for CPU-level state, while `beam_ula_port()` is delayed to the I/O write phase for border rendering. Do not collapse them unless the CPU becomes genuinely per-T-state internally.
 - Block-output instructions (`OUTI`/`OUTD`/repeat forms) add an extra beam-latch delay through `block_io_port_write_latch_extra_tstates`. This is a deliberately signposted tuning point for border effects such as Paperboy; avoid applying it to all `OUT` instructions unless simple-output timing has been revalidated.
+- Manual visual timing references used so far: Paperboy exercises the delayed
+  block-output border latch, while Aqua Plane exercises active-display
+  side-border vertical alignment. Re-test both before changing
+  `block_io_port_write_latch_extra_tstates`,
+  `active_display_border_line_offset`, or the horizontal line mapping.
 - Horizontal border placement follows the 48K line order in `src/machine_config.hpp`: display, right border, blanking/retrace, then the next line's left border. The raw 24T side borders are cropped to the 16T visible viewport used by common emulators, and blanking/retrace is not rendered.
 - Vertical viewport cropping uses `vertical_blank_top_lines`, while active-display side-border alignment has a separate `active_display_border_line_offset` tuning point. The ULA fills the resulting display-top transition band so it does not fall back to black. Keep those separate: changing the viewport crop moves top-border effects, while the active-display offset is intended for side-border raster alignment against the bitmap.
 

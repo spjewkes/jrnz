@@ -8,8 +8,27 @@
 #include <cstddef>
 #include <cstdint>
 
+enum class MachineFamily : uint8_t {
+    Spectrum48K,
+    Spectrum128K,
+};
+
 struct MachineModel {
+    MachineFamily family;
     std::size_t memory_size;
+    std::size_t physical_ram_size;
+    std::size_t physical_rom_size;
+    uint16_t bank_size;
+    uint8_t ram_bank_count;
+    uint8_t rom_bank_count;
+    bool has_memory_paging;
+    uint16_t memory_paging_port;
+    uint8_t paging_ram_bank_mask;
+    uint8_t paging_shadow_screen_bit;
+    uint8_t paging_rom_select_bit;
+    uint8_t paging_disable_bit;
+    uint8_t default_screen_bank;
+    uint8_t shadow_screen_bank;
 
     uint16_t rom_base;
     uint16_t ram_base;
@@ -23,6 +42,7 @@ struct MachineModel {
     uint8_t interrupt_hold_tstates;
 
     uint32_t cpu_frequency_hz;
+    uint32_t ay_frequency_hz;
     uint32_t frame_rate_hz;
     uint32_t frame_tstates;
     uint32_t contention_first_tstate;
@@ -60,7 +80,21 @@ struct MachineModel {
 
 constexpr MachineModel spectrum_48k_model() {
     return MachineModel{
+        .family = MachineFamily::Spectrum48K,
         .memory_size = 65536,
+        .physical_ram_size = 48 * 1024,
+        .physical_rom_size = 16 * 1024,
+        .bank_size = 0,
+        .ram_bank_count = 0,
+        .rom_bank_count = 1,
+        .has_memory_paging = false,
+        .memory_paging_port = 0x0000,
+        .paging_ram_bank_mask = 0x00,
+        .paging_shadow_screen_bit = 0x00,
+        .paging_rom_select_bit = 0x00,
+        .paging_disable_bit = 0x00,
+        .default_screen_bank = 0,
+        .shadow_screen_bank = 0,
         .rom_base = 0x0000,
         .ram_base = 0x4000,
         .screen_bitmap_base = 0x4000,
@@ -71,6 +105,7 @@ constexpr MachineModel spectrum_48k_model() {
         .ula_ear_bit_mask = 0x40,
         .interrupt_hold_tstates = 32,
         .cpu_frequency_hz = 3500000,
+        .ay_frequency_hz = 0,
         .frame_rate_hz = 50,
         .frame_tstates = 69888,
         .contention_first_tstate = 14336,
@@ -111,6 +146,65 @@ constexpr MachineModel spectrum_48k_model() {
         .border_top = 24,
         .render_scale = 3.0f,
         .default_rom_filenames = {"48.rom", "spectrum48.rom", "48k.rom", ""},
+        .default_rom_filename_count = 3,
+    };
+}
+
+constexpr MachineModel spectrum_128k_model() {
+    return MachineModel{
+        .family = MachineFamily::Spectrum128K,
+        .memory_size = 65536,
+        .physical_ram_size = 128 * 1024,
+        .physical_rom_size = 32 * 1024,
+        .bank_size = 0x4000,
+        .ram_bank_count = 8,
+        .rom_bank_count = 2,
+        .has_memory_paging = true,
+        .memory_paging_port = 0x7ffd,
+        .paging_ram_bank_mask = 0x07,
+        .paging_shadow_screen_bit = 0x08,
+        .paging_rom_select_bit = 0x10,
+        .paging_disable_bit = 0x20,
+        .default_screen_bank = 5,
+        .shadow_screen_bank = 7,
+        .rom_base = 0x0000,
+        .ram_base = 0x4000,
+        .screen_bitmap_base = 0x4000,
+        .screen_attr_base = 0x5800,
+        .floating_bus_mask = 0x3fff,
+        .ula_port = 0x00fe,
+        .ula_read_high_mask = 0xa0,
+        .ula_ear_bit_mask = 0x40,
+        .interrupt_hold_tstates = 36,
+        .cpu_frequency_hz = 3546900,
+        .ay_frequency_hz = 1773400,
+        .frame_rate_hz = 50,
+        .frame_tstates = 70908,
+        .contention_first_tstate = 14362,
+        .contention_line_tstates = 228,
+        .contention_visible_tstates = 128,
+        // Keep the visible viewport consistent with the current 48K renderer.
+        // The full 128K frame has a wider physical top border than we display.
+        .vertical_blank_top_lines = 24,
+        .active_display_border_line_offset = 9,
+        .horizontal_blank_tstates = 52,
+        .horizontal_border_left_tstates = 24,
+        .horizontal_border_right_tstates = 24,
+        .horizontal_visible_border_left_tstates = 16,
+        .horizontal_visible_border_right_tstates = 16,
+        .block_io_port_write_latch_extra_tstates = 16,
+        .contention_lines = 192,
+        .contention_ram_base = 0x4000,
+        .contention_ram_end = 0x8000,
+        .contention_pattern = {6, 5, 4, 3, 2, 1, 0, 0},
+        .screen_width = 256,
+        .screen_height = 192,
+        .attr_cell_size = 8,
+        .border_left = 32,
+        .border_right = 32,
+        .border_top = 24,
+        .render_scale = 3.0f,
+        .default_rom_filenames = {"128.rom", "spectrum128.rom", "128k.rom", ""},
         .default_rom_filename_count = 3,
     };
 }

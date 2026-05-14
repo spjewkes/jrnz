@@ -5,6 +5,13 @@
 TEST_CASE("48K horizontal display layout matches the ULA timing table", "[bus]") {
     const MachineModel model = spectrum_48k_model();
 
+    REQUIRE(model.family == MachineFamily::Spectrum48K);
+    REQUIRE(model.memory_size == 65536);
+    REQUIRE(model.physical_ram_size == 48 * 1024);
+    REQUIRE(model.physical_rom_size == 16 * 1024);
+    REQUIRE_FALSE(model.has_memory_paging);
+    REQUIRE(model.cpu_frequency_hz == 3500000);
+    REQUIRE(model.ay_frequency_hz == 0);
     REQUIRE(model.contention_visible_tstates == 128);
     REQUIRE(model.horizontal_border_left_tstates == 24);
     REQUIRE(model.horizontal_border_right_tstates == 24);
@@ -23,6 +30,41 @@ TEST_CASE("48K horizontal display layout matches the ULA timing table", "[bus]")
     REQUIRE(model.visible_width() == 320);
     REQUIRE(model.border_top == 24);
     REQUIRE(model.visible_height() == 240);
+}
+
+TEST_CASE("Original 128K model records bank layout and 7C ULA timings", "[bus]") {
+    const MachineModel model = spectrum_128k_model();
+
+    REQUIRE(model.family == MachineFamily::Spectrum128K);
+    REQUIRE(model.memory_size == 65536);
+    REQUIRE(model.physical_ram_size == 128 * 1024);
+    REQUIRE(model.physical_rom_size == 32 * 1024);
+    REQUIRE(model.bank_size == 0x4000);
+    REQUIRE(model.ram_bank_count == 8);
+    REQUIRE(model.rom_bank_count == 2);
+    REQUIRE(model.has_memory_paging);
+    REQUIRE(model.memory_paging_port == 0x7ffd);
+    REQUIRE(model.paging_ram_bank_mask == 0x07);
+    REQUIRE(model.paging_shadow_screen_bit == 0x08);
+    REQUIRE(model.paging_rom_select_bit == 0x10);
+    REQUIRE(model.paging_disable_bit == 0x20);
+    REQUIRE(model.default_screen_bank == 5);
+    REQUIRE(model.shadow_screen_bank == 7);
+
+    REQUIRE(model.cpu_frequency_hz == 3546900);
+    REQUIRE(model.ay_frequency_hz == 1773400);
+    REQUIRE(model.interrupt_hold_tstates == 36);
+    REQUIRE(model.contention_first_tstate == 14362);
+    REQUIRE(model.frame_tstates == 70908);
+    REQUIRE(model.contention_visible_tstates == 128);
+    REQUIRE(model.horizontal_border_left_tstates == 24);
+    REQUIRE(model.horizontal_border_right_tstates == 24);
+    REQUIRE(model.horizontal_blank_tstates == 52);
+    REQUIRE(model.contention_visible_tstates + model.horizontal_border_right_tstates + model.horizontal_blank_tstates +
+                model.horizontal_border_left_tstates ==
+            model.contention_line_tstates);
+
+    REQUIRE(model.default_rom_filename_count == 3);
 }
 
 TEST_CASE("Bus preserves ROM write protection and RAM visibility", "[bus]") {
