@@ -86,3 +86,57 @@ TEST_CASE("Z80 snapshot loader restores AF and interrupt flip-flops from the fil
     REQUIRE(bus.read_data(0x4001) == 0xbb);
     REQUIRE(bus.read_data(0x4002) == 0xcc);
 }
+
+TEST_CASE("Z80 128K snapshots load pages 3 through 10 into physical RAM banks", "[snapshot][z80]") {
+    TempFile tmp("jrnz_test_snapshot_128k_pages.z80");
+    std::ofstream out(tmp.path, std::ios::binary | std::ios::trunc);
+    REQUIRE(out.is_open());
+
+    std::array<uint8_t, 30> header{};
+    header[6] = 0x00;
+    header[7] = 0x00;
+    out.write(reinterpret_cast<const char *>(header.data()), static_cast<std::streamsize>(header.size()));
+
+    const std::array<uint8_t, 25> header2 = {
+        0x17, 0x00,              // v2 additional header length
+        0x00, 0x90,              // PC
+        0x03,                    // original 128K hardware mode
+        0x00,                    // last OUT to 0x7ffd, applied in a later loader step
+        0x00,                    // Interface 1 ROM paged
+        0x00,                    // emulation bits
+        0x00,                    // last AY register index
+        0x00, 0x00, 0x00, 0x00,  // AY register contents
+        0x00, 0x00, 0x00, 0x00,  //
+        0x00, 0x00, 0x00, 0x00,  //
+        0x00, 0x00, 0x00, 0x00   //
+    };
+    out.write(reinterpret_cast<const char *>(header2.data()), static_cast<std::streamsize>(header2.size()));
+
+    for (uint8_t page = 3; page <= 10; ++page) {
+        const uint8_t bank = static_cast<uint8_t>(page - 3);
+        const std::array<uint8_t, 3> block_header = {0xff, 0xff, page};
+        std::array<uint8_t, 0x4000> block{};
+        block[0x0000] = static_cast<uint8_t>(0x80 | bank);
+        block[0x3fff] = static_cast<uint8_t>(0x40 | bank);
+
+        out.write(reinterpret_cast<const char *>(block_header.data()),
+                  static_cast<std::streamsize>(block_header.size()));
+        out.write(reinterpret_cast<const char *>(block.data()), static_cast<std::streamsize>(block.size()));
+    }
+    out.close();
+
+    Bus bus(spectrum_128k_model());
+    Z80 state(bus, true);
+
+    bus.load_z80(tmp.path, state);
+
+    REQUIRE(state.pc.get() == 0x9000);
+    for (uint8_t bank = 0; bank < 8; ++bank) {
+        REQUIRE(bus.read_physical_ram(bank, 0x0000) == static_cast<uint8_t>(0x80 | bank));
+        REQUIRE(bus.read_physical_ram(bank, 0x3fff) == static_cast<uint8_t>(0x40 | bank));
+    }
+
+    REQUIRE(bus[0x4000] == 0x85);
+    REQUIRE(bus[0x8000] == 0x82);
+    REQUIRE(bus[0xc000] == 0x80);
+}

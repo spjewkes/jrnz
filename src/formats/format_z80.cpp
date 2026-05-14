@@ -2,6 +2,8 @@
 . * Implement reading of Z80 file format.
  */
 
+#include <vector>
+
 #include "bus.hpp"
 #include "z80.hpp"
 
@@ -22,14 +24,49 @@ static uint16_t get_next_ushort(std::ifstream &stream) {
 /**
  * @brief Read a data block from a Z80 file into memory.
  */
-static void read_data_block(uint32_t version, Bus &bus, std::ifstream &stream, bool compressed, uint16_t addr_start,
-                            uint16_t size) {
-    uint32_t mem_pos = addr_start;
+enum class Z80SnapshotMachine : uint8_t {
+    Spectrum48K,
+    Spectrum128K,
+};
+
+enum class Z80BlockTargetKind : uint8_t {
+    CpuAddress,
+    PhysicalRamBank,
+};
+
+struct Z80BlockTarget {
+    Z80BlockTargetKind kind;
+    uint16_t offset;
+    uint8_t ram_bank;
+};
+
+static void write_data_byte(Bus &bus, const Z80BlockTarget &target, uint32_t mem_pos, uint8_t value) {
+    const uint16_t offset = static_cast<uint16_t>(target.offset + mem_pos);
+    if (target.kind == Z80BlockTargetKind::PhysicalRamBank) {
+        bus.write_physical_ram(target.ram_bank, offset, value);
+        return;
+    }
+    bus[offset] = value;
+}
+
+/**
+ * @brief Read a data block from a Z80 file into memory.
+ */
+static void read_data_block(uint32_t version, Bus &bus, std::ifstream &stream, bool compressed,
+                            const Z80BlockTarget &target, uint16_t size) {
+    uint32_t mem_pos = 0;
 
     if (!compressed) {
-        // If block of data is uncompressed then just write the remaining file to memory
+        if (target.kind == Z80BlockTargetKind::PhysicalRamBank) {
+            std::vector<uint8_t> data(size);
+            stream.read(reinterpret_cast<char *>(data.data()), static_cast<std::streamsize>(data.size()));
+            bus.write_physical_ram_block(target.ram_bank, target.offset, data.data(), data.size());
+            return;
+        }
+
+        // If block of data is uncompressed then just write the remaining file to memory.
         for (uint32_t pos = 0; pos < size; ++pos) {
-            bus[static_cast<uint16_t>(mem_pos++)] = get_next_byte(stream);
+            write_data_byte(bus, target, mem_pos++, get_next_byte(stream));
         }
     } else {
         // while (stream.peek() != EOF || size--) {
@@ -47,11 +84,12 @@ static void read_data_block(uint32_t version, Bus &bus, std::ifstream &stream, b
                 // Found a compressed stream of data. Uncompress it.
                 uint8_t next_byte = get_next_byte(stream);
                 assert(next_byte == 0xED);
+                UNUSED(next_byte);
                 uint8_t count = get_next_byte(stream);
                 uint8_t compressed_byte = get_next_byte(stream);
                 assert(count > 0);
                 while (count--) {
-                    bus[static_cast<uint16_t>(mem_pos++)] = compressed_byte;
+                    write_data_byte(bus, target, mem_pos++, compressed_byte);
                 }
                 pos += 3;
             } else if (version == 1 && this_byte == 0x00 && stream.peek() == 0xED) {
@@ -66,14 +104,14 @@ static void read_data_block(uint32_t version, Bus &bus, std::ifstream &stream, b
                 } else {
                     // Not the end of memory, so write first byte out and put back
                     // the remaining 3 bytes
-                    bus[static_cast<uint16_t>(mem_pos++)] = this_byte;
+                    write_data_byte(bus, target, mem_pos++, this_byte);
                     stream.putback(byte_4);
                     stream.putback(byte_3);
                     stream.putback(byte_2);
                 }
             } else {
                 // Normal byte - write it to memory
-                bus[static_cast<uint16_t>(mem_pos++)] = this_byte;
+                write_data_byte(bus, target, mem_pos++, this_byte);
             }
         }
     }
@@ -195,7 +233,7 @@ void read_header_1(std::ifstream &stream, Z80 &state, Bus &bus, uint32_t &versio
 /**
  * @brief Read the first header.
  */
-void read_header_2(std::ifstream &stream, Z80 &state, uint32_t &version) {
+Z80SnapshotMachine read_header_2(std::ifstream &stream, Z80 &state, Bus &bus, uint32_t &version) {
     // 0x30 - Length of header 2
     uint16_t length = get_next_ushort(stream);
 
@@ -214,9 +252,18 @@ void read_header_2(std::ifstream &stream, Z80 &state, uint32_t &version) {
 
     // 0x34 - Hardware mode
     uint8_t hardware_mode = get_next_byte(stream);
-    if (hardware_mode != 0) {
-        std::cerr << "Error: Only 48k hardware mode is currently supported with Z80 files (mode " << std::hex
-                  << static_cast<int>(hardware_mode) << std::dec << ")\n";
+    Z80SnapshotMachine snapshot_machine = Z80SnapshotMachine::Spectrum48K;
+    const bool original_128k_mode = (version == 2 && hardware_mode == 3) || (version == 3 && hardware_mode == 4);
+    if (hardware_mode == 0) {
+        snapshot_machine = Z80SnapshotMachine::Spectrum48K;
+    } else if (original_128k_mode && bus.model().family == MachineFamily::Spectrum128K) {
+        snapshot_machine = Z80SnapshotMachine::Spectrum128K;
+    } else if (original_128k_mode) {
+        std::cerr << "Error: 128K Z80 snapshots require --machine 128k\n";
+        exit(-1);
+    } else {
+        std::cerr << "Error: Unsupported Z80 hardware mode " << std::hex << static_cast<int>(hardware_mode) << std::dec
+                  << "\n";
         exit(-1);
     }
 
@@ -247,7 +294,7 @@ void read_header_2(std::ifstream &stream, Z80 &state, uint32_t &version) {
     UNUSED(sound_chip_contents);
 
     if (version == 2) {
-        return;
+        return snapshot_machine;
     }
 
     // 0x55 - low T state counter
@@ -321,6 +368,8 @@ void read_header_2(std::ifstream &stream, Z80 &state, uint32_t &version) {
         uint8_t last_out = get_next_byte(stream);
         UNUSED(last_out);
     }
+
+    return snapshot_machine;
 }
 
 /**
@@ -340,10 +389,14 @@ void read_block_header(std::ifstream &stream, uint16_t &length, bool &is_compres
 /**
  * @brief Get start address from page number.
  */
-uint16_t get_addr_start_from_page(uint8_t page) {
+Z80BlockTarget get_block_target_from_page(uint8_t page, Z80SnapshotMachine snapshot_machine) {
+    if (snapshot_machine == Z80SnapshotMachine::Spectrum128K && page >= 3 && page <= 10) {
+        return Z80BlockTarget{Z80BlockTargetKind::PhysicalRamBank, 0x0000, static_cast<uint8_t>(page - 3)};
+    }
+
     switch (page) {
         case 0:
-            return 0x0000;
+            return Z80BlockTarget{Z80BlockTargetKind::CpuAddress, 0x0000, 0};
         case 1:
             std::cerr << "Error: interface 1 ROM is not supported\n";
             exit(-1);
@@ -354,9 +407,9 @@ uint16_t get_addr_start_from_page(uint8_t page) {
             std::cerr << "Error: page 0 in 128k mode is not supported\n";
             exit(-1);
         case 4:
-            return 0x8000;
+            return Z80BlockTarget{Z80BlockTargetKind::CpuAddress, 0x8000, 0};
         case 5:
-            return 0xc000;
+            return Z80BlockTarget{Z80BlockTargetKind::CpuAddress, 0xc000, 0};
         case 6:
             std::cerr << "Error: page 3 in 128k mode is not supported\n";
             exit(-1);
@@ -364,7 +417,7 @@ uint16_t get_addr_start_from_page(uint8_t page) {
             std::cerr << "Error: page 4 in 128k mode is not supported\n";
             exit(-1);
         case 8:
-            return 0x4000;
+            return Z80BlockTarget{Z80BlockTargetKind::CpuAddress, 0x4000, 0};
         case 9:
             std::cerr << "Error: page 6 in 128k mode is not supported\n";
             exit(-1);
@@ -396,7 +449,7 @@ void Bus::load_z80(std::string &z80_file, Z80 &state) {
         read_header_1(z80, state, *this, version, compression_on);
 
         if (version != 1) {
-            read_header_2(z80, state, version);
+            const Z80SnapshotMachine snapshot_machine = read_header_2(z80, state, *this, version);
             std::cout << "Z80 version " << version << " format detected\n";
 
             // Read blocks of data into memory
@@ -407,13 +460,14 @@ void Bus::load_z80(std::string &z80_file, Z80 &state) {
 
                 read_block_header(z80, size, is_compressed, page);
 
-                uint16_t addr_start = get_addr_start_from_page(page);
-                read_data_block(version, *this, z80, is_compressed, addr_start, size);
+                const Z80BlockTarget target = get_block_target_from_page(page, snapshot_machine);
+                read_data_block(version, *this, z80, is_compressed, target, size);
             }
         } else {
             std::cout << "Z80 version 1 format detected\n";
             // For version one the rest of the block is data
-            read_data_block(version, *this, z80, compression_on, 16384, 49152);
+            const Z80BlockTarget target{Z80BlockTargetKind::CpuAddress, 16384, 0};
+            read_data_block(version, *this, z80, compression_on, target, 49152);
         }
 
         z80.close();
