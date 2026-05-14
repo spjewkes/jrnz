@@ -267,10 +267,13 @@ Z80SnapshotMachine read_header_2(std::ifstream &stream, Z80 &state, Bus &bus, ui
         exit(-1);
     }
 
-    // 0x35 - OUT state
-    // Ignore this as we only support 48k for now
+    // 0x35 - last OUT to 0x7ffd on 128K snapshots
     uint8_t out_state = get_next_byte(stream);
-    UNUSED(out_state);
+    if (snapshot_machine == Z80SnapshotMachine::Spectrum128K) {
+        bus.restore_memory_paging_register(out_state);
+    } else {
+        UNUSED(out_state);
+    }
 
     // 0x36 - interface 1 ROM paged
     // Ignore this as we neither support interface 1 nor Timex

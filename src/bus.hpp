@@ -180,6 +180,7 @@ public:
     uint8_t selected_paged_ram_bank() const { return selected_paged_ram_bank_value; }
     bool shadow_screen_enabled() const { return shadow_screen_enabled_value; }
     bool memory_paging_disabled() const { return memory_paging_disabled_value; }
+    void restore_memory_paging_register(uint8_t value) { set_memory_paging_register(value, true); }
     uint8_t ula_screen_bank() const {
         return shadow_screen_enabled_value ? machine.shadow_screen_bank : machine.default_screen_bank;
     }
@@ -340,8 +341,10 @@ private:
         return machine.has_memory_paging && ((addr & 0x8002) == 0);
     }
 
-    void write_memory_paging_register(uint8_t value) {
-        if (memory_paging_disabled_value) {
+    void write_memory_paging_register(uint8_t value) { set_memory_paging_register(value, false); }
+
+    void set_memory_paging_register(uint8_t value, bool force) {
+        if (memory_paging_disabled_value && !force) {
             return;
         }
 

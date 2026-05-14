@@ -149,6 +149,21 @@ TEST_CASE("128K paging register remaps the selected ROM and top RAM page", "[bus
     REQUIRE(bus.read_physical_rom(1, 0x0000) == 0x22);
 }
 
+TEST_CASE("128K snapshot paging restore bypasses the runtime paging lock", "[bus]") {
+    Bus bus(spectrum_128k_model());
+
+    bus.write_port(0x7ffd, 0x20);
+    REQUIRE(bus.memory_paging_disabled());
+
+    bus.restore_memory_paging_register(0x13);
+
+    REQUIRE(bus.memory_paging_register() == 0x13);
+    REQUIRE(bus.selected_paged_ram_bank() == 3);
+    REQUIRE(bus.selected_rom_bank() == 1);
+    REQUIRE_FALSE(bus.shadow_screen_enabled());
+    REQUIRE_FALSE(bus.memory_paging_disabled());
+}
+
 TEST_CASE("128K ULA screen reads follow the shadow-screen paging bit", "[bus]") {
     Bus bus(spectrum_128k_model());
 

@@ -140,3 +140,54 @@ TEST_CASE("Z80 128K snapshots load pages 3 through 10 into physical RAM banks", 
     REQUIRE(bus[0x8000] == 0x82);
     REQUIRE(bus[0xc000] == 0x80);
 }
+
+TEST_CASE("Z80 128K snapshots restore the saved paging register", "[snapshot][z80]") {
+    TempFile tmp("jrnz_test_snapshot_128k_paging.z80");
+    std::ofstream out(tmp.path, std::ios::binary | std::ios::trunc);
+    REQUIRE(out.is_open());
+
+    std::array<uint8_t, 30> header{};
+    out.write(reinterpret_cast<const char *>(header.data()), static_cast<std::streamsize>(header.size()));
+
+    const std::array<uint8_t, 25> header2 = {
+        0x17, 0x00,              // v2 additional header length
+        0x00, 0xa0,              // PC
+        0x03,                    // original 128K hardware mode
+        0x1b,                    // page RAM 3 at 0xc000, select ROM 1 and shadow screen
+        0x00,                    // Interface 1 ROM paged
+        0x00,                    // emulation bits
+        0x00,                    // last AY register index
+        0x00, 0x00, 0x00, 0x00,  // AY register contents
+        0x00, 0x00, 0x00, 0x00,  //
+        0x00, 0x00, 0x00, 0x00,  //
+        0x00, 0x00, 0x00, 0x00   //
+    };
+    out.write(reinterpret_cast<const char *>(header2.data()), static_cast<std::streamsize>(header2.size()));
+
+    for (uint8_t page = 3; page <= 10; ++page) {
+        const uint8_t bank = static_cast<uint8_t>(page - 3);
+        const std::array<uint8_t, 3> block_header = {0xff, 0xff, page};
+        std::array<uint8_t, 0x4000> block{};
+        block[0x0000] = static_cast<uint8_t>(0x20 | bank);
+
+        out.write(reinterpret_cast<const char *>(block_header.data()),
+                  static_cast<std::streamsize>(block_header.size()));
+        out.write(reinterpret_cast<const char *>(block.data()), static_cast<std::streamsize>(block.size()));
+    }
+    out.close();
+
+    Bus bus(spectrum_128k_model());
+    Z80 state(bus, true);
+
+    bus.load_z80(tmp.path, state);
+
+    REQUIRE(state.pc.get() == 0xa000);
+    REQUIRE(bus.memory_paging_register() == 0x1b);
+    REQUIRE(bus.selected_paged_ram_bank() == 3);
+    REQUIRE(bus.selected_rom_bank() == 1);
+    REQUIRE(bus.shadow_screen_enabled());
+    REQUIRE_FALSE(bus.memory_paging_disabled());
+    REQUIRE(bus[0x4000] == 0x25);
+    REQUIRE(bus[0xc000] == 0x23);
+    REQUIRE(bus.read_ula_screen(0x4000) == 0x27);
+}
