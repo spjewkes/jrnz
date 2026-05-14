@@ -214,15 +214,12 @@ private:
         assert(rom.size() >= static_cast<std::size_t>(machine.rom_bank_count) * bank_size);
         assert(ram.size() >= static_cast<std::size_t>(machine.ram_bank_count) * bank_size);
 
-        cpu_pages[0] = PageMapping{PhysicalMemoryKind::Rom, 0};
-
         if (machine.family == MachineFamily::Spectrum128K) {
-            cpu_pages[1] = PageMapping{PhysicalMemoryKind::Ram, machine.default_screen_bank};
-            cpu_pages[2] = PageMapping{PhysicalMemoryKind::Ram, 2};
-            cpu_pages[3] = PageMapping{PhysicalMemoryKind::Ram, 0};
+            apply_memory_paging_state();
             return;
         }
 
+        cpu_pages[0] = PageMapping{PhysicalMemoryKind::Rom, 0};
         cpu_pages[1] = PageMapping{PhysicalMemoryKind::Ram, 0};
         cpu_pages[2] = PageMapping{PhysicalMemoryKind::Ram, 1};
         cpu_pages[3] = PageMapping{PhysicalMemoryKind::Ram, 2};
@@ -337,6 +334,22 @@ private:
         shadow_screen_enabled_value = (value & machine.paging_shadow_screen_bit) != 0;
         selected_rom_bank_value = (value & machine.paging_rom_select_bit) != 0 ? 1 : 0;
         memory_paging_disabled_value = (value & machine.paging_disable_bit) != 0;
+        apply_memory_paging_state();
+    }
+
+    void apply_memory_paging_state() {
+        if (!machine.has_memory_paging) {
+            return;
+        }
+
+        assert(selected_rom_bank_value < machine.rom_bank_count);
+        assert(selected_paged_ram_bank_value < machine.ram_bank_count);
+        assert(machine.default_screen_bank < machine.ram_bank_count);
+
+        cpu_pages[0] = PageMapping{PhysicalMemoryKind::Rom, selected_rom_bank_value};
+        cpu_pages[1] = PageMapping{PhysicalMemoryKind::Ram, machine.default_screen_bank};
+        cpu_pages[2] = PageMapping{PhysicalMemoryKind::Ram, 2};
+        cpu_pages[3] = PageMapping{PhysicalMemoryKind::Ram, selected_paged_ram_bank_value};
     }
 
     void account_contention(uint16_t addr) const {

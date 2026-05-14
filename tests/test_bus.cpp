@@ -124,6 +124,30 @@ TEST_CASE("128K paging register writes update state and latch the paging lock", 
     REQUIRE_FALSE(bus.shadow_screen_enabled());
 }
 
+TEST_CASE("128K paging register remaps the selected ROM and top RAM page", "[bus]") {
+    Bus bus(spectrum_128k_model());
+
+    bus.write_physical_rom(0, 0x0000, 0x11);
+    bus.write_physical_rom(1, 0x0000, 0x22);
+    bus.write_physical_ram(0, 0x0000, 0x33);
+    bus.write_physical_ram(3, 0x0000, 0x44);
+
+    REQUIRE(bus[0x0000] == 0x11);
+    REQUIRE(bus[0xc000] == 0x33);
+
+    bus.write_port(0x7ffd, 0x13);
+
+    REQUIRE(bus[0x0000] == 0x22);
+    REQUIRE(bus[0xc000] == 0x44);
+
+    bus.write_data(0xc000, 0x55);
+    REQUIRE(bus.read_physical_ram(3, 0x0000) == 0x55);
+    REQUIRE(bus.read_physical_ram(0, 0x0000) == 0x33);
+
+    bus.write_data(0x0000, 0x66);
+    REQUIRE(bus.read_physical_rom(1, 0x0000) == 0x22);
+}
+
 TEST_CASE("Bus preserves ROM write protection and RAM visibility", "[bus]") {
     Bus bus(65536);
 
