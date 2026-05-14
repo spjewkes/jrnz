@@ -160,13 +160,13 @@ TEST_CASE("MEMPTR seed instructions are visible through a following BIT (HL) pro
         CpuHarness h;
         h.cpu.hl.set(0x5000);
         h.cpu.af.accum(0x28);
-        h.cpu.de.set(0x3401);
+        h.cpu.de.set(0x8401);
         h.mem[0x5000] = 0x00;
         h.load({0x12, 0xcb, 0x46});
 
         const StepResult seed = h.step();
         REQUIRE(seed.cycle_delta() == 7);
-        REQUIRE(h.mem[0x3401] == 0x28);
+        REQUIRE(h.mem[0x8401] == 0x28);
         require_probe(h, 0x2802);
     }
 
@@ -188,11 +188,11 @@ TEST_CASE("MEMPTR seed instructions are visible through a following BIT (HL) pro
         h.cpu.hl.set(0x5000);
         h.cpu.af.accum(0x20);
         h.mem[0x5000] = 0x00;
-        h.load({0x32, 0x56, 0x34, 0xcb, 0x46});
+        h.load({0x32, 0x56, 0x84, 0xcb, 0x46});
 
         const StepResult seed = h.step();
         REQUIRE(seed.cycle_delta() == 13);
-        REQUIRE(h.mem[0x3456] == 0x20);
+        REQUIRE(h.mem[0x8456] == 0x20);
         require_probe(h, 0x2057);
     }
 
@@ -289,15 +289,15 @@ TEST_CASE("MEMPTR seed instructions are visible through a following BIT (HL) pro
     SECTION("Indexed memory stores seed MEMPTR with the effective address") {
         CpuHarness h;
         h.cpu.hl.set(0x5000);
-        h.cpu.iy.set(0x2003);
+        h.cpu.iy.set(0xa003);
         h.cpu.af.accum(0x77);
         h.mem[0x5000] = 0x00;
         h.load({0xfd, 0x77, 0xff, 0xcb, 0x46});
 
         const StepResult seed = h.step();
         REQUIRE(seed.cycle_delta() == 19);
-        REQUIRE(h.mem[0x2002] == 0x77);
-        require_probe(h, 0x2002);
+        REQUIRE(h.mem[0xa002] == 0x77);
+        require_probe(h, 0xa002);
     }
 }
 

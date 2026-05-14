@@ -193,6 +193,40 @@ TEST_CASE("Physical RAM block writes target an explicit bank", "[bus]") {
     REQUIRE(bus.read_physical_ram(0, 0x0100) == 0x00);
 }
 
+TEST_CASE("128K AY register ports preserve selected register state", "[bus]") {
+    Bus bus(spectrum_128k_model());
+
+    bus.write_port(0xfffd, 0x0e);
+    bus.write_port(0xbffd, 0x5a);
+
+    REQUIRE(bus.selected_ay_register() == 0x0e);
+    REQUIRE(bus.ay_register(0x0e) == 0x5a);
+    REQUIRE(bus.read_port(0xfffd) == 0x5a);
+
+    bus.write_port(0xfffd, 0x1f);
+    bus.write_port(0xbffd, 0xa5);
+
+    REQUIRE(bus.selected_ay_register() == 0x0f);
+    REQUIRE(bus.ay_register(0x0f) == 0xa5);
+    REQUIRE(bus.ay_register(0x0e) == 0x5a);
+    REQUIRE(bus.read_port(0xfffd) == 0xa5);
+}
+
+TEST_CASE("Kempston joystick port returns explicit input state instead of floating bus data", "[bus]") {
+    Bus bus(spectrum_128k_model());
+    bus[0x4000] = 0xff;
+    bus.floating_counter = 0;
+
+    REQUIRE(bus.read_port(0x001f) == 0x00);
+    REQUIRE(bus.floating_counter == 0);
+
+    bus.set_kempston_joystick_state(0xff);
+
+    REQUIRE(bus.kempston_joystick_state() == 0x1f);
+    REQUIRE(bus.read_port(0x001f) == 0x1f);
+    REQUIRE(bus.floating_counter == 0);
+}
+
 TEST_CASE("Bus preserves ROM write protection and RAM visibility", "[bus]") {
     Bus bus(65536);
 

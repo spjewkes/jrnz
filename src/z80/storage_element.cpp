@@ -16,6 +16,7 @@ StorageElement::StorageElement(uint8_t *_ptr, size_t _count, bool _readonly)
     if (readonly) {
         read_only.resize(count);
         std::memcpy(&read_only[0], _ptr, _count);
+        ptr = &read_only[0];
     }
 }
 
@@ -113,31 +114,29 @@ StorageElement StorageElement::create_element(Z80 &state, Operand operand) {
         case Operand::IYL:
             return state.iy.element_lo();
         case Operand::indBC:
-            return StorageElement(&state.bus[state.bc.get()], 1);
+            return state.bus.read_element_from_mem(state.bc.get(), 1);
         case Operand::indDE:
-            return StorageElement(&state.bus[state.de.get()], 1);
+            return state.bus.read_element_from_mem(state.de.get(), 1);
         case Operand::indHL:
-            return StorageElement(&state.bus[state.hl.get()], 1);
+            return state.bus.read_element_from_mem(state.hl.get(), 1);
         case Operand::indN: {
-            return StorageElement(&state.bus[state.bus.read_addr_from_mem(state.curr_operand_pc)], 1);
+            return state.bus.read_element_from_mem(state.bus.read_addr_from_mem(state.curr_operand_pc), 1);
         }
         case Operand::indNN: {
-            return StorageElement(&state.bus[state.bus.read_addr_from_mem(state.curr_operand_pc)], 2);
+            return state.bus.read_element_from_mem(state.bus.read_addr_from_mem(state.curr_operand_pc), 2);
         }
         case Operand::indIXN: {
             int offset = static_cast<int8_t>(state.bus.read_data(state.curr_operand_pc));
-            uint8_t *ptr = &state.bus[state.ix.get() + offset];
             state.curr_operand_pc += 1;
-            return StorageElement(ptr, 1);
+            return state.bus.read_element_from_mem(static_cast<uint16_t>(state.ix.get() + offset), 1);
         }
         case Operand::indIYN: {
             int offset = static_cast<int8_t>(state.bus.read_data(state.curr_operand_pc));
-            uint8_t *ptr = &state.bus[state.iy.get() + offset];
             state.curr_operand_pc += 1;
-            return StorageElement(ptr, 1);
+            return state.bus.read_element_from_mem(static_cast<uint16_t>(state.iy.get() + offset), 1);
         }
         case Operand::indSP:
-            return StorageElement(&state.bus[state.sp.get()], 2);
+            return state.bus.read_element_from_mem(state.sp.get(), 2);
         case Operand::ZERO:
             return StorageElement(0x00);
         case Operand::ONE:

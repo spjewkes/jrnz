@@ -239,4 +239,21 @@ TEST_CASE("EX (SP),rr swaps stack memory with register pairs", "[exchange-stack]
         REQUIRE(h.mem.read_addr_from_mem(0xfffc) == 0xface);
         REQUIRE(h.cpu.sp.get() == 0xfffc);
     }
+
+    SECTION("EX (SP),HL reads ROM but cannot modify it") {
+        CpuHarness h;
+        h.cpu.hl.set(0x1234);
+        h.cpu.sp.set(0x004e);
+        h.mem[0x004e] = 0xc1;
+        h.mem[0x004f] = 0xe1;
+        h.load({0xe3}, 0x8000);
+
+        const StepResult step = h.step();
+
+        REQUIRE(step.cycle_delta() == 19);
+        REQUIRE(h.cpu.hl.get() == 0xe1c1);
+        REQUIRE(h.mem[0x004e] == 0xc1);
+        REQUIRE(h.mem[0x004f] == 0xe1);
+        REQUIRE(h.cpu.sp.get() == 0x004e);
+    }
 }

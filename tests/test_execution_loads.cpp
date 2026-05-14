@@ -88,6 +88,20 @@ TEST_CASE("Documented load instructions move bytes and words without disturbing 
         REQUIRE(h.cpu.af.accum() == 0xe1);
         REQUIRE(h.cpu.af.flags() == 0xa5);
     }
+
+    SECTION("LD (nn),A cannot write through a ROM-mapped address") {
+        CpuHarness h;
+        h.cpu.af.set(0x07a5);
+        h.mem[0x004e] = 0xc1;
+        h.load({0x32, 0x4e, 0x00}, 0x8000);
+
+        const StepResult store = h.step();
+
+        REQUIRE(store.cycle_delta() == 13);
+        REQUIRE(store.pc_after == 0x8003);
+        REQUIRE(h.mem[0x004e] == 0xc1);
+        REQUIRE(h.cpu.af.flags() == 0xa5);
+    }
 }
 
 TEST_CASE("Extended and indexed load instructions preserve byte order and target registers", "[loads]") {

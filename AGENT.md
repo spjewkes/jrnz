@@ -44,6 +44,11 @@ The project is no longer at the “barely boots” stage. It can load ROMs and s
 - Snapshot support is intentionally limited to 48K-compatible cases.
 - Peripheral support is minimal.
 - The debugger exists, but it is basic and interactive rather than polished.
+- ROM write protection is currently enforced for normal bus writes and CPU
+  memory operands, but the bus still exposes mutable mapped-memory access via
+  `operator[]`. Future cleanup should remove or restrict that API, route all
+  mapped writes through `write_data()`, and keep explicit physical ROM/RAM
+  write APIs for loaders and tests.
 
 ## Repository Layout
 

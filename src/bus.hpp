@@ -181,6 +181,18 @@ public:
     bool shadow_screen_enabled() const { return shadow_screen_enabled_value; }
     bool memory_paging_disabled() const { return memory_paging_disabled_value; }
     void restore_memory_paging_register(uint8_t value) { set_memory_paging_register(value, true); }
+    uint8_t selected_ay_register() const { return selected_ay_register_value; }
+    uint8_t ay_register(uint8_t reg) const { return ay_register_values[reg & 0x0f]; }
+    void reset_ay_state() {
+        selected_ay_register_value = 0;
+        ay_register_values.fill(0);
+    }
+    void restore_ay_state(uint8_t selected_register, const std::array<uint8_t, 16> &registers) {
+        selected_ay_register_value = selected_register & 0x0f;
+        ay_register_values = registers;
+    }
+    uint8_t kempston_joystick_state() const { return kempston_joystick_state_value; }
+    void set_kempston_joystick_state(uint8_t value) { kempston_joystick_state_value = value & 0x1f; }
     uint8_t ula_screen_bank() const {
         return shadow_screen_enabled_value ? machine.shadow_screen_bank : machine.default_screen_bank;
     }
@@ -341,6 +353,23 @@ private:
         return machine.has_memory_paging && ((addr & 0x8002) == 0);
     }
 
+    bool ay_register_port_selected(uint16_t addr) const {
+        // Original 128K AY register select/read: A15=1, A14=1, A1=0.
+        return machine.ay_frequency_hz != 0 && ((addr & 0xc002) == 0xc000);
+    }
+
+    bool ay_data_port_selected(uint16_t addr) const {
+        // Original 128K AY data write: A15=1, A14=0, A1=0.
+        return machine.ay_frequency_hz != 0 && ((addr & 0xc002) == 0x8000);
+    }
+
+    bool kempston_joystick_port_selected(uint16_t addr) const {
+        // Common Kempston joystick reads use port 0x1f. Return no input unless
+        // an input layer explicitly sets the state; do not fall through to the
+        // floating bus because menu code can mistake random bits for directions.
+        return (addr & 0x00ff) == 0x001f;
+    }
+
     void write_memory_paging_register(uint8_t value) { set_memory_paging_register(value, false); }
 
     void set_memory_paging_register(uint8_t value, bool force) {
@@ -405,6 +434,9 @@ private:
     std::vector<uint8_t> rom;
     std::vector<uint8_t> ram;
     std::array<PageMapping, cpu_page_count> cpu_pages{};
+    std::array<uint8_t, 16> ay_register_values{};
+    uint8_t selected_ay_register_value = {0};
+    uint8_t kempston_joystick_state_value = {0};
     uint8_t memory_paging_register_value = {0};
     uint8_t selected_rom_bank_value = {0};
     uint8_t selected_paged_ram_bank_value = {0};

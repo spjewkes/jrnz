@@ -2,6 +2,7 @@
 . * Implement reading of Z80 file format.
  */
 
+#include <array>
 #include <vector>
 
 #include "bus.hpp"
@@ -286,15 +287,17 @@ Z80SnapshotMachine read_header_2(std::ifstream &stream, Z80 &state, Bus &bus, ui
     UNUSED(emulation_bits);
 
     // 0x38 - last OUT to soundchip
-    // Ignore this as we do not support 128k Spectrums
-    uint8_t last_out = get_next_byte(stream);
-    UNUSED(last_out);
+    uint8_t last_ay_register = get_next_byte(stream);
 
     // 0x39 - contents of the sound chip
-    // Our emulator ignores this for now
-    char sound_chip_contents[16];
-    stream.read(sound_chip_contents, 16);
-    UNUSED(sound_chip_contents);
+    std::array<uint8_t, 16> sound_chip_contents{};
+    stream.read(reinterpret_cast<char *>(sound_chip_contents.data()),
+                static_cast<std::streamsize>(sound_chip_contents.size()));
+    if (snapshot_machine == Z80SnapshotMachine::Spectrum128K) {
+        bus.restore_ay_state(last_ay_register, sound_chip_contents);
+    } else {
+        UNUSED(last_ay_register);
+    }
 
     if (version == 2) {
         return snapshot_machine;
@@ -441,6 +444,7 @@ void Bus::load_z80(std::string &z80_file, Z80 &state) {
         state.reset();
         port_254 = 0;
         floating_counter = 0;
+        reset_ay_state();
 
         uint32_t version = 0;
         auto file_size = z80.tellg();

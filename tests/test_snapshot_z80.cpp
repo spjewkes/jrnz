@@ -104,11 +104,11 @@ TEST_CASE("Z80 128K snapshots load pages 3 through 10 into physical RAM banks", 
         0x00,                    // last OUT to 0x7ffd, applied in a later loader step
         0x00,                    // Interface 1 ROM paged
         0x00,                    // emulation bits
-        0x00,                    // last AY register index
-        0x00, 0x00, 0x00, 0x00,  // AY register contents
-        0x00, 0x00, 0x00, 0x00,  //
-        0x00, 0x00, 0x00, 0x00,  //
-        0x00, 0x00, 0x00, 0x00   //
+        0x0e,                    // last AY register index
+        0x10, 0x11, 0x12, 0x13,  // AY register contents
+        0x14, 0x15, 0x16, 0x17,  //
+        0x18, 0x19, 0x1a, 0x1b,  //
+        0x1c, 0x1d, 0x5a, 0x1f   //
     };
     out.write(reinterpret_cast<const char *>(header2.data()), static_cast<std::streamsize>(header2.size()));
 
@@ -156,11 +156,11 @@ TEST_CASE("Z80 128K snapshots restore the saved paging register", "[snapshot][z8
         0x1b,                    // page RAM 3 at 0xc000, select ROM 1 and shadow screen
         0x00,                    // Interface 1 ROM paged
         0x00,                    // emulation bits
-        0x00,                    // last AY register index
-        0x00, 0x00, 0x00, 0x00,  // AY register contents
-        0x00, 0x00, 0x00, 0x00,  //
-        0x00, 0x00, 0x00, 0x00,  //
-        0x00, 0x00, 0x00, 0x00   //
+        0x0e,                    // last AY register index
+        0x10, 0x11, 0x12, 0x13,  // AY register contents
+        0x14, 0x15, 0x16, 0x17,  //
+        0x18, 0x19, 0x1a, 0x1b,  //
+        0x1c, 0x1d, 0x5a, 0x1f   //
     };
     out.write(reinterpret_cast<const char *>(header2.data()), static_cast<std::streamsize>(header2.size()));
 
@@ -190,4 +190,7 @@ TEST_CASE("Z80 128K snapshots restore the saved paging register", "[snapshot][z8
     REQUIRE(bus[0x4000] == 0x25);
     REQUIRE(bus[0xc000] == 0x23);
     REQUIRE(bus.read_ula_screen(0x4000) == 0x27);
+    REQUIRE(bus.selected_ay_register() == 0x0e);
+    REQUIRE(bus.ay_register(0x0e) == 0x5a);
+    REQUIRE(bus.read_port(0xfffd) == 0x5a);
 }
