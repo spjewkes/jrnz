@@ -96,7 +96,9 @@ constexpr MachineModel spectrum_48k_model() {
         .horizontal_visible_border_right_tstates = 16,
         // OUTI/OUTD reach the external write point later than our
         // instruction-at-once core can express from generic bus state alone.
-        .block_io_port_write_latch_extra_tstates = 4,
+        // Tuned against Paperboy's border handlebars relative to Fuse; keep
+        // this local to block output unless simple OUT timing is rechecked.
+        .block_io_port_write_latch_extra_tstates = 16,
         .contention_lines = 192,
         .contention_ram_base = 0x4000,
         .contention_ram_end = 0x8000,

@@ -68,7 +68,7 @@ void Bus::write_port(uint16_t addr, uint8_t v) {
             schedule_beam_port_write(v, beam_latch_delay);
         } else {
             beam_port_254 = v;
-            pending_beam_port_254 = false;
+            pending_beam_port_254_writes.clear();
         }
     }
 }

@@ -6,6 +6,7 @@
 
 #include <cassert>
 #include <cstdint>
+#include <deque>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -82,10 +83,17 @@ public:
     void set_frame_tstate(uint64_t tstate) {
         current_frame_tstate = tstate;
         frame_tstate_valid = true;
-        if (pending_beam_port_254 && current_frame_tstate == pending_beam_port_254_tstate) {
-            beam_port_254 = pending_beam_port_254_value;
-            pending_beam_port_254 = false;
-        } else if (!pending_beam_port_254 && !contention_active) {
+        bool applied_delayed_write = false;
+        for (auto it = pending_beam_port_254_writes.begin(); it != pending_beam_port_254_writes.end();) {
+            if (current_frame_tstate == it->frame_tstate) {
+                beam_port_254 = it->value;
+                applied_delayed_write = true;
+                it = pending_beam_port_254_writes.erase(it);
+            } else {
+                ++it;
+            }
+        }
+        if (!applied_delayed_write && pending_beam_port_254_writes.empty() && !contention_active) {
             beam_port_254 = port_254;
         }
     }
@@ -218,10 +226,14 @@ private:
         return delay;
     }
 
+    struct PendingBeamPortWrite {
+        uint64_t frame_tstate;
+        uint8_t value;
+    };
+
     void schedule_beam_port_write(uint8_t value, uint32_t phase_delay) {
-        pending_beam_port_254 = true;
-        pending_beam_port_254_value = value;
-        pending_beam_port_254_tstate = (current_frame_tstate + phase_delay) % machine.frame_tstates;
+        pending_beam_port_254_writes.push_back(
+            PendingBeamPortWrite{(current_frame_tstate + phase_delay) % machine.frame_tstates, value});
     }
 
     void account_contention(uint16_t addr) const {
@@ -264,8 +276,6 @@ private:
     mutable uint32_t contention_access_phase = {0};
     mutable bool contention_active = {false};
     uint8_t beam_port_254 = {0};
-    bool pending_beam_port_254 = {false};
-    uint64_t pending_beam_port_254_tstate = {0};
-    uint8_t pending_beam_port_254_value = {0};
+    std::deque<PendingBeamPortWrite> pending_beam_port_254_writes;
     uint32_t next_beam_port_latch_extra_tstates = {0};
 };

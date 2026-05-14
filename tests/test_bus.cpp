@@ -193,12 +193,48 @@ TEST_CASE("Block output port writes can delay the beam latch past the generic I/
     REQUIRE(bus.port_254 == 0x02);
     REQUIRE(bus.beam_ula_port() == 0x01);
 
-    bus.set_frame_tstate(111);
+    const uint64_t latch_tstate =
+        100 + 7 + 1 + static_cast<uint64_t>(bus.model().block_io_port_write_latch_extra_tstates);
+
+    bus.set_frame_tstate(latch_tstate - 1);
     REQUIRE(bus.beam_ula_port() == 0x01);
 
-    bus.set_frame_tstate(112);
+    bus.set_frame_tstate(latch_tstate);
     REQUIRE(bus.beam_ula_port() == 0x02);
     REQUIRE(bus.end_instruction_timing() == 0);
+}
+
+TEST_CASE("Delayed ULA port writes are queued rather than overwritten", "[bus]") {
+    Bus bus(65536);
+
+    bus.port_254 = 0x00;
+    bus.set_frame_tstate(100);
+    REQUIRE(bus.beam_ula_port() == 0x00);
+
+    bus.begin_instruction_timing();
+    bus.advance_instruction_timing(7);
+    bus.delay_next_beam_port_latch(16);
+    bus.write_port(0x00fe, 0x01);
+    REQUIRE(bus.end_instruction_timing() == 0);
+
+    bus.set_frame_tstate(116);
+    bus.begin_instruction_timing();
+    bus.advance_instruction_timing(7);
+    bus.delay_next_beam_port_latch(16);
+    bus.write_port(0x00fe, 0x02);
+    REQUIRE(bus.end_instruction_timing() == 0);
+
+    bus.set_frame_tstate(123);
+    REQUIRE(bus.beam_ula_port() == 0x00);
+
+    bus.set_frame_tstate(124);
+    REQUIRE(bus.beam_ula_port() == 0x01);
+
+    bus.set_frame_tstate(139);
+    REQUIRE(bus.beam_ula_port() == 0x01);
+
+    bus.set_frame_tstate(140);
+    REQUIRE(bus.beam_ula_port() == 0x02);
 }
 
 TEST_CASE("Spectrum active-display border mapping is independent of the top viewport crop", "[bus]") {
