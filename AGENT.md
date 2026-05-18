@@ -24,6 +24,8 @@ The project is no longer at the “barely boots” stage. It can load ROMs and s
 - 48K ROM loading works.
 - 48K `SNA` loading works.
 - `Z80` snapshot loading works for version 1, 2, and 3 in 48K mode.
+- TAP files can be attached with `--tap` and loaded through a ROM `LD-BYTES`
+  fast-load trap.
 - The 48K machine model is now centralized and passed around explicitly rather than being spread across hardcoded literals.
 - Bus timing has model-driven floating-bus and RAM-contention support, with direct tests around both.
 - Port I/O contention is now modelled for the key 48K ULA-port access patterns, with direct tests around the current behaviour.
@@ -66,6 +68,8 @@ The project is no longer at the “barely boots” stage. It can load ROMs and s
   - Spectrum keyboard matrix mapping onto SDL keyboard state.
 - `src/beeper.hpp`
   - Simple beeper implementation using SDL audio.
+- `src/tape.cpp`, `src/tape.hpp`
+  - TAP block parsing and ROM-loader fast-load support.
 - `src/debugger.cpp`, `src/debugger.hpp`
   - Interactive debugger and disassembly/memory dump helpers.
 - `src/options.cpp`, `src/options.hpp`
@@ -126,6 +130,8 @@ The project now uses separate build directories per configuration:
     - `./run_jrnz.sh relwithdebinfo ...`
   - Pass `--machine 128k` to select the original 128K model. This can load a
     combined `128.rom`, but 128K support is still incomplete.
+  - Pass `--tap <filename>` to attach a TAP file. The current implementation
+    fast-loads through the ROM loader rather than emulating tape pulses.
 - `./run_tests.sh`
   - Defaults to `debug`
   - Can also be called as:
@@ -248,6 +254,23 @@ The beeper exists and is audible, but it is simple:
 
 It should be treated as functional rather than highly accurate.
 
+128K AY audio is not implemented yet. The bus preserves the currently selected
+AY register and register contents for snapshot/port-state purposes, but those
+registers do not currently drive sound output.
+
+### Tape
+
+TAP support is implemented as a pragmatic ROM fast-load path:
+
+- `--tap <filename>` attaches a TAP file.
+- The loader traps the ROM `LD-BYTES` entry point and copies or verifies the
+  next matching TAP block directly through the bus.
+- This is enough for many standard TAP workflows, including manual `LOAD ""`
+  use from BASIC.
+- It is not a pulse-level tape implementation and does not currently synthesize
+  EAR input timing.
+- It does not auto-type loader commands.
+
 ### Port input lines
 
 The bus now exposes a small machine-input-line API:
@@ -296,7 +319,7 @@ This section is intentionally blunt. Agents should assume these are real constra
 
 - The emulator is fundamentally 48K-centric.
 - 128K physical bank storage and paging exist, but AY sound is not supported.
-- Tape loading is not implemented as a full tape subsystem, though the EAR input path now exists at the bus level.
+- Tape loading is ROM fast-load based rather than pulse-level EAR emulation.
 - Peripheral support is minimal.
 
 ### Debugger ergonomics
