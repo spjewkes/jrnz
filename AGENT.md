@@ -31,14 +31,17 @@ The project is no longer at the “barely boots” stage. It can load ROMs and s
 - Port I/O contention is now modelled for the key 48K ULA-port access patterns, with direct tests around the current behaviour.
 - Port `0xFE` EAR input is explicit and can be driven through a generic machine input-line API.
 - Basic display, keyboard, and beeper support are present.
+- Original 128K AY register writes now drive an initial AY-3-8912 audio model
+  that is mixed into the existing SDL audio path.
 - A number of real programs and games are known to run.
 
 ### What is still limited
 
 - The emulator is still 48K-oriented rather than a general full-family Spectrum emulator.
 - An original 128K machine model exists and the bus has physical ROM/RAM bank
-  backing plus `0x7ffd` paging, but runtime support still needs AY audio and
-  128K snapshot loading before it should be treated as complete.
+  backing plus `0x7ffd` paging, TAP fast-loading, and initial AY audio, but it
+  still needs broader 128K runtime validation before it should be treated as
+  complete.
 - ULA/video timing is still simplified overall.
 - Mid-scanline display effects are still not rendered accurately.
 - Memory contention is present but should still be treated as an evolving 48K-model feature rather than finished hardware-accuracy work.
@@ -254,9 +257,18 @@ The beeper exists and is audible, but it is simple:
 
 It should be treated as functional rather than highly accurate.
 
-128K AY audio is not implemented yet. The bus preserves the currently selected
-AY register and register contents for snapshot/port-state purposes, but those
-registers do not currently drive sound output.
+128K AY audio has an initial implementation:
+
+- The bus preserves the selected AY register and 16 register values for ports
+  and snapshots.
+- `System` mirrors those registers into a simple AY-3-8912 model each tick.
+- The AY model currently supports tone, noise, envelope stepping, and register
+  masking well enough to produce output.
+- Output is mixed into the existing mono SDL beeper stream.
+
+It should still be treated as first-pass audio rather than hardware-accurate
+sound synthesis. Mixer balance, envelope edge cases, and real-game validation
+remain likely follow-up work.
 
 ### Tape
 
@@ -318,7 +330,8 @@ This section is intentionally blunt. Agents should assume these are real constra
 ### Spectrum hardware scope
 
 - The emulator is fundamentally 48K-centric.
-- 128K physical bank storage and paging exist, but AY sound is not supported.
+- 128K physical bank storage, paging, and initial AY sound exist, but 128K
+  support still needs broader real-software validation.
 - Tape loading is ROM fast-load based rather than pulse-level EAR emulation.
 - Peripheral support is minimal.
 
