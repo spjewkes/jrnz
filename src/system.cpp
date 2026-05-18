@@ -6,6 +6,12 @@
 
 #include <iostream>
 
+void System::sync_ay_registers() {
+    for (uint8_t reg = 0; reg < 16; ++reg) {
+        _ay.write_register(reg, _bus.ay_register(reg));
+    }
+}
+
 bool System::clock() {
     if (do_break) {
         _debugger.set_break(true);
@@ -16,7 +22,9 @@ bool System::clock() {
         uint64_t cycle_count = 1;
         bool is_beeper_on = (_bus.port_254 >> 4) & 0x1;
         bool is_mic_on = !static_cast<bool>(((_bus.port_254) >> 3) & 0x1);
-        _beeper.clock(is_beeper_on, is_mic_on, cycle_count);
+        sync_ay_registers();
+        _ay.clock_cpu_tstate();
+        _beeper.clock(is_beeper_on, is_mic_on, _ay.output_level(), cycle_count);
 
         _bus.clock();
         // The CPU samples contention against the ULA phase for the current tick,

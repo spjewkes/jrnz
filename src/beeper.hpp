@@ -6,8 +6,10 @@
 
 #include <SDL2/SDL_audio.h>
 
+#include <algorithm>
 #include <array>
 #include <cmath>
+#include <cstdint>
 #include <fstream>
 #include <string>
 #include <vector>
@@ -20,6 +22,7 @@
 constexpr uint32_t num_buffers = 4;
 constexpr uint16_t frequency = 22050;
 constexpr float beeper_gain = 0.10f;
+constexpr float ay_gain = 0.60f;
 
 /**
  * @brief Class describing the beeper
@@ -75,23 +78,28 @@ public:
         }
     }
 
-    void clock(bool is_ear_on, bool is_mic_on, uint64_t clocks) {
+    void clock(bool is_ear_on, bool is_mic_on, uint64_t clocks) { clock(is_ear_on, is_mic_on, 0, clocks); }
+
+    void clock(bool is_ear_on, bool is_mic_on, int32_t ay_level, uint64_t clocks) {
         if (clocks > 0) {
             num_clocks += clocks;
 
-            if (is_ear_on) {
-                value += 2;
-            } else if (is_ear_on && is_mic_on) {
-                // Both on should make the sound a bit louder
-                value += 4;
+            const uint32_t beeper_step = (is_ear_on && is_mic_on) ? 4 : (is_ear_on ? 2 : 0);
+            if (beeper_step > 0) {
+                value += beeper_step * static_cast<uint32_t>(clocks);
             }
+            ay_value += static_cast<int64_t>(ay_level) * static_cast<int64_t>(clocks);
 
             if (num_clocks > num_clocks_per_sample) {
                 const uint32_t clamped_value = (value > 0x7f) ? 0x7f : value;
                 const uint32_t scaled_value = static_cast<uint32_t>(clamped_value * beeper_gain);
+                const int32_t averaged_ay =
+                    static_cast<int32_t>(ay_value / static_cast<int64_t>(num_clocks_per_sample));
+                const int32_t scaled_ay = static_cast<int32_t>(static_cast<float>(averaged_ay) * ay_gain);
+                const int32_t mixed_value = std::clamp(static_cast<int32_t>(scaled_value) + scaled_ay, -128, 127);
                 SDL_LockAudioDevice(device);
 
-                data[buffer_write][index++] = static_cast<char>(scaled_value);
+                data[buffer_write][index++] = static_cast<char>(mixed_value);
                 if (index >= samples) {
                     // Reached the end of the current data buffer
                     // Move on to next buffer and mark previous buffer as ready to read
@@ -106,11 +114,12 @@ public:
                 }
                 SDL_UnlockAudioDevice(device);
                 num_clocks -= num_clocks_per_sample;
-                if (num_clocks > 0 && is_ear_on) {
-                    value = 2;
+                if (num_clocks > 0 && beeper_step > 0) {
+                    value = beeper_step;
                 } else {
                     value = 0;
                 }
+                ay_value = static_cast<int64_t>(ay_level) * static_cast<int64_t>(num_clocks);
             }
         }
     }
@@ -120,6 +129,7 @@ public:
     uint32_t buffer_write = {0};
     uint32_t index = {0};
     uint32_t value = {0};
+    int64_t ay_value = {0};
 
     std::array<std::vector<char>, num_buffers> data;
 
@@ -130,5 +140,5 @@ private:
     uint16_t samples = {0};
 
     SDL_AudioSpec audiospec;
-    SDL_AudioDeviceID device;
+    SDL_AudioDeviceID device = {0};
 };
