@@ -26,7 +26,7 @@ TEST_CASE("Register port instructions transfer values through BC-selected ports"
         CpuHarness h;
         h.cpu.bc.set(0x0001);
         h.mem.floating_counter = 0;
-        h.mem[0x4000] = 0x81;
+        h.mem.poke_mapped_for_test(0x4000, 0x81);
         h.cpu.af.flag(RegisterAF::Flags::Carry, false);
         h.load({0xed, 0x60});
 

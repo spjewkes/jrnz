@@ -217,7 +217,7 @@ TEST_CASE("Rotate and shift instructions operate on memory through HL", "[rotate
     SECTION("RLC (HL)") {
         CpuHarness h;
         h.cpu.hl.set(0x9400);
-        h.mem[0x9400] = 0x80;
+        h.mem.poke_mapped_for_test(0x9400, 0x80);
         h.load({0xcb, 0x06});
 
         const StepResult step = h.step();
@@ -235,7 +235,7 @@ TEST_CASE("Rotate and shift instructions operate on memory through HL", "[rotate
     SECTION("SRL (HL)") {
         CpuHarness h;
         h.cpu.hl.set(0x9401);
-        h.mem[0x9401] = 0x01;
+        h.mem.poke_mapped_for_test(0x9401, 0x01);
         h.load({0xcb, 0x3e});
 
         const StepResult step = h.step();

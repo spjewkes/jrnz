@@ -40,7 +40,7 @@ void run_alu_source_cases(const AluSourceCase *cases, size_t count) {
             h.cpu.hl.set(tc.base);
         }
         if (tc.addr != 0x0000) {
-            h.mem[tc.addr] = tc.mem_value;
+            h.mem.poke_mapped_for_test(tc.addr, tc.mem_value);
         }
         h.load({tc.code[0], tc.code[1], tc.code[2]});
 

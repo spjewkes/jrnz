@@ -54,7 +54,7 @@ TEST_CASE("Base LD family opcodes transfer values across registers and memory co
         h.cpu.de.set(static_cast<uint16_t>((tc.d << 8) | tc.e));
         h.cpu.hl.set(tc.hl_addr);
         h.cpu.af.accum(tc.a);
-        h.mem[tc.hl_addr] = tc.mem_value;
+        h.mem.poke_mapped_for_test(tc.hl_addr, tc.mem_value);
         h.load({tc.code[0], tc.code[1]});
 
         const StepResult step = h.step();

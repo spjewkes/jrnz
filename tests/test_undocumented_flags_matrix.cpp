@@ -31,7 +31,7 @@ TEST_CASE("Block compare instructions derive undocumented flags from A minus val
             h.cpu.af.flags(0x00);
             h.cpu.hl.set(tc.hl);
             h.cpu.bc.set(tc.bc);
-            h.mem[tc.hl] = tc.value;
+            h.mem.poke_mapped_for_test(tc.hl, tc.value);
             h.load(tc.code);
 
             const StepResult step = h.step();
@@ -49,7 +49,7 @@ TEST_CASE("Block compare instructions derive undocumented flags from A minus val
         h.cpu.af.accum(0x09);
         h.cpu.hl.set(0x8400);
         h.cpu.bc.set(0x0002);
-        h.mem[0x8400] = 0x01;
+        h.mem.poke_mapped_for_test(0x8400, 0x01);
         h.load({0xed, 0xa1});
 
         const StepResult step = h.step();
@@ -68,7 +68,7 @@ TEST_CASE("Block compare instructions derive undocumented flags from A minus val
         h.cpu.af.accum(0x09);
         h.cpu.hl.set(0x8501);
         h.cpu.bc.set(0x0002);
-        h.mem[0x8501] = 0x01;
+        h.mem.poke_mapped_for_test(0x8501, 0x01);
         h.load({0xed, 0xa9});
 
         const StepResult step = h.step();
@@ -86,8 +86,8 @@ TEST_CASE("Block compare instructions derive undocumented flags from A minus val
         h.cpu.af.accum(0x09);
         h.cpu.hl.set(0x8600);
         h.cpu.bc.set(0x0002);
-        h.mem[0x8600] = 0x01;
-        h.mem[0x8601] = 0x09;
+        h.mem.poke_mapped_for_test(0x8600, 0x01);
+        h.mem.poke_mapped_for_test(0x8601, 0x09);
         h.load({0xed, 0xb1});
 
         const StepResult first = h.step();
@@ -116,8 +116,8 @@ TEST_CASE("Block compare instructions derive undocumented flags from A minus val
         h.cpu.af.accum(0x09);
         h.cpu.hl.set(0x8701);
         h.cpu.bc.set(0x0002);
-        h.mem[0x8701] = 0x01;
-        h.mem[0x8700] = 0x09;
+        h.mem.poke_mapped_for_test(0x8701, 0x01);
+        h.mem.poke_mapped_for_test(0x8700, 0x09);
         h.load({0xed, 0xb9});
 
         const StepResult first = h.step();
@@ -154,7 +154,7 @@ TEST_CASE("Block transfer instructions derive undocumented flags from A plus tra
         h.cpu.hl.set(0x8800);
         h.cpu.de.set(0x8900);
         h.cpu.bc.set(0x0002);
-        h.mem[0x8800] = 0x27;
+        h.mem.poke_mapped_for_test(0x8800, 0x27);
         h.load({0xed, 0xa0});
 
         const StepResult step = h.step();
@@ -180,7 +180,7 @@ TEST_CASE("Block transfer instructions derive undocumented flags from A plus tra
         h.cpu.hl.set(0x8a01);
         h.cpu.de.set(0x8b01);
         h.cpu.bc.set(0x0002);
-        h.mem[0x8a01] = 0x27;
+        h.mem.poke_mapped_for_test(0x8a01, 0x27);
         h.load({0xed, 0xa8});
 
         const StepResult step = h.step();
@@ -200,8 +200,8 @@ TEST_CASE("Block transfer instructions derive undocumented flags from A plus tra
         h.cpu.hl.set(0x8c00);
         h.cpu.de.set(0x8d00);
         h.cpu.bc.set(0x0002);
-        h.mem[0x8c00] = 0x08;
-        h.mem[0x8c01] = 0x01;
+        h.mem.poke_mapped_for_test(0x8c00, 0x08);
+        h.mem.poke_mapped_for_test(0x8c01, 0x01);
         h.load({0xed, 0xb0});
 
         const StepResult first = h.step();
@@ -228,8 +228,8 @@ TEST_CASE("Block transfer instructions derive undocumented flags from A plus tra
         h.cpu.hl.set(0x8e01);
         h.cpu.de.set(0x8f01);
         h.cpu.bc.set(0x0002);
-        h.mem[0x8e01] = 0x08;
-        h.mem[0x8e00] = 0x01;
+        h.mem.poke_mapped_for_test(0x8e01, 0x08);
+        h.mem.poke_mapped_for_test(0x8e00, 0x01);
         h.load({0xed, 0xb8});
 
         const StepResult first = h.step();
@@ -278,10 +278,10 @@ TEST_CASE("Block I/O instructions expose undocumented N and F3/F5 behaviour",
             h.cpu.bc.set(tc.bc);
             h.cpu.hl.set(tc.hl);
             if (tc.preload_port_data) {
-                h.mem[0x4000] = tc.value;
+                h.mem.poke_mapped_for_test(0x4000, tc.value);
                 h.mem.floating_counter = 0;
             } else {
-                h.mem[tc.hl] = tc.value;
+                h.mem.poke_mapped_for_test(tc.hl, tc.value);
             }
             h.load(tc.code);
 
@@ -320,10 +320,10 @@ TEST_CASE("Block I/O instructions expose undocumented N and F3/F5 behaviour",
             h.cpu.bc.set(tc.bc);
             h.cpu.hl.set(tc.hl);
             if (tc.preload_port_data) {
-                h.mem[0x4000] = tc.value;
+                h.mem.poke_mapped_for_test(0x4000, tc.value);
                 h.mem.floating_counter = 0;
             } else {
-                h.mem[tc.hl] = tc.value;
+                h.mem.poke_mapped_for_test(tc.hl, tc.value);
             }
             h.load(tc.code);
 
@@ -341,7 +341,7 @@ TEST_CASE("Block I/O instructions expose undocumented N and F3/F5 behaviour",
         CpuHarness h;
         h.cpu.bc.set(0x02ff);
         h.cpu.hl.set(0x8c00);
-        h.mem[0x4000] = 0x01;
+        h.mem.poke_mapped_for_test(0x4000, 0x01);
         h.mem.floating_counter = 0;
         h.load({0xed, 0xa2});
 
@@ -379,7 +379,7 @@ TEST_CASE("Block I/O instructions expose undocumented N and F3/F5 behaviour",
         CpuHarness h;
         h.cpu.bc.set(0x02fe);
         h.cpu.hl.set(0x8d00);
-        h.mem[0x8d00] = 0x01;
+        h.mem.poke_mapped_for_test(0x8d00, 0x01);
         h.load({0xed, 0xa3});
 
         const StepResult step = h.step();
@@ -398,7 +398,7 @@ TEST_CASE("Block I/O instructions expose undocumented N and F3/F5 behaviour",
         CpuHarness h;
         h.cpu.bc.set(0x02fe);
         h.cpu.hl.set(0x8e00);
-        h.mem[0x8e00] = 0xff;
+        h.mem.poke_mapped_for_test(0x8e00, 0xff);
         h.load({0xed, 0xa3});
 
         const StepResult step = h.step();
@@ -417,7 +417,7 @@ TEST_CASE("Block I/O instructions expose undocumented N and F3/F5 behaviour",
         CpuHarness h;
         h.cpu.bc.set(0x02ff);
         h.cpu.hl.set(0x8f10);
-        h.mem[0x4000] = 0x01;
+        h.mem.poke_mapped_for_test(0x4000, 0x01);
         h.mem.floating_counter = 0;
         h.load({0xed, 0xaa});
 
@@ -457,7 +457,7 @@ TEST_CASE("Block I/O instructions expose undocumented N and F3/F5 behaviour",
         CpuHarness h;
         h.cpu.bc.set(0x02ff);
         h.cpu.hl.set(0x9031);
-        h.mem[0x4000] = 0x01;
+        h.mem.poke_mapped_for_test(0x4000, 0x01);
         h.mem.floating_counter = 0;
         h.load({0xed, 0xba});
 
@@ -479,7 +479,7 @@ TEST_CASE("Block I/O instructions expose undocumented N and F3/F5 behaviour",
         CpuHarness h;
         h.cpu.bc.set(0x02fe);
         h.cpu.hl.set(0x9121);
-        h.mem[0x9121] = 0x01;
+        h.mem.poke_mapped_for_test(0x9121, 0x01);
         h.load({0xed, 0xab});
 
         const StepResult step = h.step();
@@ -499,7 +499,7 @@ TEST_CASE("Block I/O instructions expose undocumented N and F3/F5 behaviour",
         CpuHarness h;
         h.cpu.bc.set(0x02fe);
         h.cpu.hl.set(0x9201);
-        h.mem[0x9201] = 0xff;
+        h.mem.poke_mapped_for_test(0x9201, 0xff);
         h.load({0xed, 0xab});
 
         const StepResult step = h.step();
@@ -519,7 +519,7 @@ TEST_CASE("Block I/O instructions expose undocumented N and F3/F5 behaviour",
         CpuHarness h;
         h.cpu.bc.set(0x02fe);
         h.cpu.hl.set(0x9301);
-        h.mem[0x9301] = 0x01;
+        h.mem.poke_mapped_for_test(0x9301, 0x01);
         h.load({0xed, 0xbb});
 
         const StepResult first = h.step();

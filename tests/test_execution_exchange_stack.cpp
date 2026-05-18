@@ -244,8 +244,8 @@ TEST_CASE("EX (SP),rr swaps stack memory with register pairs", "[exchange-stack]
         CpuHarness h;
         h.cpu.hl.set(0x1234);
         h.cpu.sp.set(0x004e);
-        h.mem[0x004e] = 0xc1;
-        h.mem[0x004f] = 0xe1;
+        h.mem.poke_mapped_for_test(0x004e, 0xc1);
+        h.mem.poke_mapped_for_test(0x004f, 0xe1);
         h.load({0xe3}, 0x8000);
 
         const StepResult step = h.step();

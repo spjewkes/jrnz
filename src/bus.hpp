@@ -54,8 +54,14 @@ public:
     void load_snapshot(std::string &sna_file, Z80 &state);
     void load_z80(std::string &z80_file, Z80 &state);
 
-    uint8_t &operator[](uint16_t addr) { return mapped_byte(addr); }
-    const uint8_t &operator[](uint16_t addr) const { return mapped_byte(addr); }
+    // Non-contentious mapped inspection. Emulated CPU writes must go through
+    // write_data() so ROM mappings and contention stay authoritative.
+    uint8_t operator[](uint16_t addr) const { return peek(addr); }
+    uint8_t peek(uint16_t addr) const { return mapped_byte(addr); }
+
+    // Test setup only: synthetic CPU programs often live in low memory where
+    // the real machine maps ROM, so tests need an explicit bypass.
+    void poke_mapped_for_test(uint16_t addr, uint8_t value) { mapped_byte(addr) = value; }
 
     uint8_t read_physical_ram(uint8_t bank, uint16_t offset) const {
         assert(bank < machine.ram_bank_count);

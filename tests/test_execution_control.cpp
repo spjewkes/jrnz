@@ -93,7 +93,7 @@ TEST_CASE("Conditional CALL and RET use documented taken and untaken behavior", 
 TEST_CASE("RST pushes the next PC and jumps to the fixed vector", "[control-exec]") {
     CpuHarness h;
     h.cpu.pc.set(0x0100);
-    h.mem[0x0100] = 0xef;  // RST 28h
+    h.mem.poke_mapped_for_test(0x0100, 0xef);  // RST 28h
 
     const StepResult step = h.step();
 
@@ -265,8 +265,8 @@ TEST_CASE("Mode 2 interrupt pushes PC and vectors through the I register page", 
     h.cpu.iff1 = true;
     h.cpu.int_mode = 2;
     h.cpu.ir.hi(0x12);
-    h.mem[0x12ff] = 0x56;
-    h.mem[0x1300] = 0x34;
+    h.mem.poke_mapped_for_test(0x12ff, 0x56);
+    h.mem.poke_mapped_for_test(0x1300, 0x34);
     h.cpu.interrupt = true;
 
     const StepResult step = h.step();
@@ -395,8 +395,8 @@ TEST_CASE("Interrupt sequencing preserves documented IFF and mode transitions", 
         REQUIRE_FALSE(h.cpu.iff2);
         REQUIRE_FALSE(h.cpu.ei_pending);
 
-        h.mem[0x0066] = 0xed;
-        h.mem[0x0067] = 0x45;
+        h.mem.poke_mapped_for_test(0x0066, 0xed);
+        h.mem.poke_mapped_for_test(0x0067, 0x45);
         const StepResult retn = h.step();
         REQUIRE(retn.cycle_delta() == 14);
         REQUIRE(h.cpu.pc.get() == 0x0001);
@@ -511,8 +511,8 @@ TEST_CASE("Interrupt edge cases cover HALT and IM2 vector details", "[interrupts
         h.cpu.int_mode = 2;
         h.cpu.ir.hi(0x9a);
         h.cpu.interrupt = true;
-        h.mem[0x9aff] = 0x78;
-        h.mem[0x9b00] = 0x56;
+        h.mem.poke_mapped_for_test(0x9aff, 0x78);
+        h.mem.poke_mapped_for_test(0x9b00, 0x56);
 
         const StepResult step = h.step();
         REQUIRE(step.cycle_delta() == 13);

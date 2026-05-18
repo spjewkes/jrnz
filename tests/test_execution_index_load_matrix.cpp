@@ -630,7 +630,7 @@ TEST_CASE("Indexed load exceptions keep H and L when combined with indexed memor
         const uint16_t base = (tc.code[0] == 0xdd) ? tc.ix : tc.iy;
         const int8_t disp = static_cast<int8_t>(tc.code[2]);
         const uint16_t addr = static_cast<uint16_t>(base + disp);
-        h.mem[addr] = tc.mem_value;
+        h.mem.poke_mapped_for_test(addr, tc.mem_value);
         h.load({tc.code[0], tc.code[1], tc.code[2]});
 
         const StepResult step = h.step();

@@ -8,7 +8,7 @@ TEST_CASE("RLD and RRD rotate nibbles between A and (HL) with documented flags",
         h.cpu.af.accum(0x3c);
         h.cpu.af.flag(RegisterAF::Flags::Carry, true);
         h.cpu.hl.set(0x9300);
-        h.mem[0x9300] = 0xa5;
+        h.mem.poke_mapped_for_test(0x9300, 0xa5);
         h.load({0xed, 0x6f});
 
         const StepResult step = h.step();
@@ -31,7 +31,7 @@ TEST_CASE("RLD and RRD rotate nibbles between A and (HL) with documented flags",
         h.cpu.af.accum(0x40);
         h.cpu.af.flag(RegisterAF::Flags::Carry, true);
         h.cpu.hl.set(0x9301);
-        h.mem[0x9301] = 0x12;
+        h.mem.poke_mapped_for_test(0x9301, 0x12);
         h.load({0xed, 0x67});
 
         const StepResult step = h.step();
@@ -54,7 +54,7 @@ TEST_CASE("RLD and RRD rotate nibbles between A and (HL) with documented flags",
         h.cpu.af.accum(0x00);
         h.cpu.af.flag(RegisterAF::Flags::Carry, false);
         h.cpu.hl.set(0x9302);
-        h.mem[0x9302] = 0x00;
+        h.mem.poke_mapped_for_test(0x9302, 0x00);
         h.load({0xed, 0x67});
 
         const StepResult step = h.step();

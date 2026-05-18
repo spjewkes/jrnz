@@ -80,14 +80,14 @@ TEST_CASE("128K bus maps CPU pages onto separate physical banks before paging is
     REQUIRE_FALSE(bus.shadow_screen_enabled());
     REQUIRE_FALSE(bus.memory_paging_disabled());
 
-    bus[0x0000] = 0x11;
+    bus.poke_mapped_for_test(0x0000, 0x11);
     bus.write_data(0x0000, 0x22);
     REQUIRE(bus[0x0000] == 0x11);
     REQUIRE(bus.read_physical_rom(0, 0x0000) == 0x11);
 
-    bus[0x4000] = 0x33;
-    bus[0x8000] = 0x44;
-    bus[0xc000] = 0x55;
+    bus.poke_mapped_for_test(0x4000, 0x33);
+    bus.poke_mapped_for_test(0x8000, 0x44);
+    bus.poke_mapped_for_test(0xc000, 0x55);
 
     REQUIRE(bus.read_physical_ram(5, 0x0000) == 0x33);
     REQUIRE(bus.read_physical_ram(2, 0x0000) == 0x44);
@@ -214,7 +214,7 @@ TEST_CASE("128K AY register ports preserve selected register state", "[bus]") {
 
 TEST_CASE("Kempston joystick port returns explicit input state instead of floating bus data", "[bus]") {
     Bus bus(spectrum_128k_model());
-    bus[0x4000] = 0xff;
+    bus.poke_mapped_for_test(0x4000, 0xff);
     bus.floating_counter = 0;
 
     REQUIRE(bus.read_port(0x001f) == 0x00);
@@ -230,8 +230,8 @@ TEST_CASE("Kempston joystick port returns explicit input state instead of floati
 TEST_CASE("Bus preserves ROM write protection and RAM visibility", "[bus]") {
     Bus bus(65536);
 
-    bus[0x3fff] = 0x11;
-    bus[0x4000] = 0x22;
+    bus.poke_mapped_for_test(0x3fff, 0x11);
+    bus.poke_mapped_for_test(0x4000, 0x22);
 
     bus.write_data(0x3fff, 0xaa);
     bus.write_data(0x4000, 0xbb);
@@ -243,8 +243,8 @@ TEST_CASE("Bus preserves ROM write protection and RAM visibility", "[bus]") {
 TEST_CASE("Word writes respect the ROM to RAM boundary one byte at a time", "[bus]") {
     Bus bus(65536);
 
-    bus[0x3fff] = 0x12;
-    bus[0x4000] = 0x34;
+    bus.poke_mapped_for_test(0x3fff, 0x12);
+    bus.poke_mapped_for_test(0x4000, 0x34);
 
     bus.write_addr_to_mem(0x3fff, 0xabcd);
 
@@ -254,8 +254,8 @@ TEST_CASE("Word writes respect the ROM to RAM boundary one byte at a time", "[bu
 
 TEST_CASE("Port reads distinguish even keyboard ports from the floating bus path", "[bus]") {
     Bus bus(65536);
-    bus[0x4000] = 0x81;
-    bus[0x4001] = 0x42;
+    bus.poke_mapped_for_test(0x4000, 0x81);
+    bus.poke_mapped_for_test(0x4001, 0x42);
     bus.floating_counter = 0;
 
     const uint8_t even = bus.read_port(0x00fe);
@@ -271,9 +271,9 @@ TEST_CASE("Port reads distinguish even keyboard ports from the floating bus path
 
 TEST_CASE("Floating bus reads advance through the 16K display region and wrap around", "[bus]") {
     Bus bus(65536);
-    bus[0x4000] = 0x11;
-    bus[0x4001] = 0x22;
-    bus[0x7fff] = 0x33;
+    bus.poke_mapped_for_test(0x4000, 0x11);
+    bus.poke_mapped_for_test(0x4001, 0x22);
+    bus.poke_mapped_for_test(0x7fff, 0x33);
 
     bus.floating_counter = 0x3fff;
     REQUIRE(bus.read_port(0x00ff) == 0x33);
@@ -298,8 +298,8 @@ TEST_CASE("Floating bus follows bitmap and attribute fetch phases during the dis
     const uint16_t bitmap = bus.model().screen_bitmap_base;
     const uint16_t attr = bus.model().screen_attr_base;
 
-    bus[bitmap] = 0x12;
-    bus[attr] = 0x34;
+    bus.poke_mapped_for_test(bitmap, 0x12);
+    bus.poke_mapped_for_test(attr, 0x34);
 
     bus.set_frame_tstate(bus.model().contention_first_tstate);
     REQUIRE(bus.read_port(0x00ff) == 0x12);
@@ -334,9 +334,9 @@ TEST_CASE("Port 0xfe exposes the EAR input on bit 6 while keeping the fixed high
 
 TEST_CASE("ROM writes remain blocked even when addressing through read-modify-write helpers", "[bus]") {
     Bus bus(65536);
-    bus[0x3ffe] = 0x12;
-    bus[0x3fff] = 0x34;
-    bus[0x4000] = 0x56;
+    bus.poke_mapped_for_test(0x3ffe, 0x12);
+    bus.poke_mapped_for_test(0x3fff, 0x34);
+    bus.poke_mapped_for_test(0x4000, 0x56);
 
     bus.write_addr_to_mem(0x3ffe, 0xabcd);
 
@@ -500,10 +500,10 @@ TEST_CASE("Opcode fetch and operand reads both contribute to contention timing",
     Bus bus(65536);
 
     const uint16_t base = bus.model().contention_ram_base;
-    bus[base] = 0xdd;
-    bus[static_cast<uint16_t>(base + 1)] = 0xcb;
-    bus[static_cast<uint16_t>(base + 2)] = 0x05;
-    bus[static_cast<uint16_t>(base + 3)] = 0x46;
+    bus.poke_mapped_for_test(base, 0xdd);
+    bus.poke_mapped_for_test(static_cast<uint16_t>(base + 1), 0xcb);
+    bus.poke_mapped_for_test(static_cast<uint16_t>(base + 2), 0x05);
+    bus.poke_mapped_for_test(static_cast<uint16_t>(base + 3), 0x46);
 
     bus.set_frame_tstate(bus.model().contention_first_tstate);
     bus.begin_instruction_timing();

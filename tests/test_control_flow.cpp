@@ -71,8 +71,8 @@ TEST_CASE("EI only enables maskable interrupts after the following instruction",
     Bus mem(65536);
     Z80 state(mem, true);
 
-    mem[0x0000] = 0xfb;  // ei
-    mem[0x0001] = 0x00;  // nop
+    mem.poke_mapped_for_test(0x0000, 0xfb);  // ei
+    mem.poke_mapped_for_test(0x0001, 0x00);  // nop
 
     state.pc.set(0x0000);
     state.sp.set(0xfffe);

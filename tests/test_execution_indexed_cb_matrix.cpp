@@ -61,7 +61,7 @@ TEST_CASE("Indexed CB opcodes update memory and register targets consistently", 
             } else {
                 h.cpu.iy.set(tc.base);
             }
-            h.mem[tc.addr] = tc.initial;
+            h.mem.poke_mapped_for_test(tc.addr, tc.initial);
             h.load({tc.code[0], tc.code[1], tc.code[2], tc.code[3]});
 
             const StepResult step = h.step();
@@ -108,7 +108,7 @@ TEST_CASE("Indexed CB opcodes update memory and register targets consistently", 
             } else {
                 h.cpu.iy.set(tc.base);
             }
-            h.mem[tc.addr] = tc.initial;
+            h.mem.poke_mapped_for_test(tc.addr, tc.initial);
             h.load({tc.code[0], tc.code[1], tc.code[2], tc.code[3]});
 
             const StepResult step = h.step();

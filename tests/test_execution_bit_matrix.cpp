@@ -97,7 +97,7 @@ TEST_CASE("BIT register and HL forms match documented and undocumented flag form
 
                     h.cpu.hl.set(0x9800);
                     h.cpu.memptr.set(0x2800);
-                    h.mem[0x9800] = value;
+                    h.mem.poke_mapped_for_test(0x9800, value);
                     h.cpu.af.flags(0x00);
                     h.cpu.af.flag(RegisterAF::Flags::Carry, carry_in);
                     h.load({0xcb, opcode});

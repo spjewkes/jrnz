@@ -47,7 +47,7 @@ static void write_data_byte(Bus &bus, const Z80BlockTarget &target, uint32_t mem
         bus.write_physical_ram(target.ram_bank, offset, value);
         return;
     }
-    bus[offset] = value;
+    bus.write_data(offset, value);
 }
 
 /**

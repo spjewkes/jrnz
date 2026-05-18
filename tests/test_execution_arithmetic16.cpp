@@ -7,7 +7,7 @@ TEST_CASE("8-bit arithmetic instructions follow documented result and flag rules
         CpuHarness h;
         h.cpu.af.accum(0x7f);
         h.cpu.hl.set(0x8400);
-        h.mem[0x8400] = 0x01;
+        h.mem.poke_mapped_for_test(0x8400, 0x01);
         h.load({0x86});
 
         const StepResult step = h.step();
@@ -46,7 +46,7 @@ TEST_CASE("8-bit arithmetic instructions follow documented result and flag rules
         h.cpu.af.accum(0x00);
         h.cpu.af.flag(RegisterAF::Flags::Carry, true);
         h.cpu.hl.set(0x8410);
-        h.mem[0x8410] = 0x00;
+        h.mem.poke_mapped_for_test(0x8410, 0x00);
         h.load({0x9e});
 
         const StepResult step = h.step();
@@ -66,7 +66,7 @@ TEST_CASE("8-bit arithmetic instructions follow documented result and flag rules
         CpuHarness h;
         h.cpu.af.accum(0x20);
         h.cpu.ix.set(0x8504);
-        h.mem[0x8502] = 0x22;
+        h.mem.poke_mapped_for_test(0x8502, 0x22);
         h.load({0xdd, 0x86, 0xfe});
 
         const StepResult step = h.step();
@@ -87,7 +87,7 @@ TEST_CASE("8-bit arithmetic instructions follow documented result and flag rules
         h.cpu.af.accum(0x40);
         h.cpu.af.flag(RegisterAF::Flags::Carry, true);
         h.cpu.iy.set(0x8600);
-        h.mem[0x8602] = 0x41;
+        h.mem.poke_mapped_for_test(0x8602, 0x41);
         h.load({0xfd, 0x9e, 0x02});
 
         const StepResult step = h.step();

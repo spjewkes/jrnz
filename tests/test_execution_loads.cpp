@@ -26,7 +26,7 @@ TEST_CASE("Documented load instructions move bytes and words without disturbing 
         h.cpu.af.flags(0x53);
         h.cpu.bc.hi(0x12);
         h.cpu.hl.set(0x8700);
-        h.mem[0x8700] = 0x9a;
+        h.mem.poke_mapped_for_test(0x8700, 0x9a);
         h.load({0x48, 0x7e, 0x70});
 
         const StepResult reg = h.step();
@@ -54,7 +54,7 @@ TEST_CASE("Documented load instructions move bytes and words without disturbing 
         h.cpu.af.set(0x5ac3);
         h.cpu.bc.set(0x8800);
         h.cpu.de.set(0x8801);
-        h.mem[0x8801] = 0xa7;
+        h.mem.poke_mapped_for_test(0x8801, 0xa7);
         h.load({0x02, 0x1a});
 
         const StepResult store = h.step();
@@ -73,7 +73,7 @@ TEST_CASE("Documented load instructions move bytes and words without disturbing 
     SECTION("LD (nn),A and LD A,(nn) use little-endian addresses") {
         CpuHarness h;
         h.cpu.af.set(0x3ca5);
-        h.mem[0x8942] = 0xe1;
+        h.mem.poke_mapped_for_test(0x8942, 0xe1);
         h.load({0x32, 0x40, 0x89, 0x3a, 0x42, 0x89});
 
         const StepResult store = h.step();
@@ -92,7 +92,7 @@ TEST_CASE("Documented load instructions move bytes and words without disturbing 
     SECTION("LD (nn),A cannot write through a ROM-mapped address") {
         CpuHarness h;
         h.cpu.af.set(0x07a5);
-        h.mem[0x004e] = 0xc1;
+        h.mem.poke_mapped_for_test(0x004e, 0xc1);
         h.load({0x32, 0x4e, 0x00}, 0x8000);
 
         const StepResult store = h.step();
@@ -109,8 +109,8 @@ TEST_CASE("Extended and indexed load instructions preserve byte order and target
         CpuHarness h;
         h.cpu.af.flags(0x96);
         h.cpu.hl.set(0x1234);
-        h.mem[0x8a10] = 0xcd;
-        h.mem[0x8a11] = 0xab;
+        h.mem.poke_mapped_for_test(0x8a10, 0xcd);
+        h.mem.poke_mapped_for_test(0x8a11, 0xab);
         h.load({0x22, 0x00, 0x8a, 0x2a, 0x10, 0x8a});
 
         const StepResult store = h.step();
@@ -130,8 +130,8 @@ TEST_CASE("Extended and indexed load instructions preserve byte order and target
         CpuHarness h;
         h.cpu.af.flags(0x69);
         h.cpu.bc.set(0xbeef);
-        h.mem[0x8b20] = 0x44;
-        h.mem[0x8b21] = 0x33;
+        h.mem.poke_mapped_for_test(0x8b20, 0x44);
+        h.mem.poke_mapped_for_test(0x8b21, 0x33);
         h.load({0xed, 0x43, 0x00, 0x8b, 0xed, 0x5b, 0x20, 0x8b});
 
         const StepResult store = h.step();
@@ -153,8 +153,8 @@ TEST_CASE("Extended and indexed load instructions preserve byte order and target
         h.cpu.de.set(0x5678);
         h.cpu.hl.set(0xaaaa);
         h.cpu.sp.set(0x9abc);
-        h.mem[0x8b50] = 0xfe;
-        h.mem[0x8b51] = 0xdc;
+        h.mem.poke_mapped_for_test(0x8b50, 0xfe);
+        h.mem.poke_mapped_for_test(0x8b51, 0xdc);
         h.load({0xed, 0x53, 0x00, 0x8b, 0xed, 0x73, 0x10, 0x8b, 0xed, 0x7b, 0x50, 0x8b});
 
         const StepResult store_de = h.step();
@@ -198,8 +198,8 @@ TEST_CASE("Extended and indexed load instructions preserve byte order and target
         CpuHarness h;
         h.cpu.af.flags(0xc3);
         h.cpu.ix.set(0x1357);
-        h.mem[0x8c30] = 0x68;
-        h.mem[0x8c31] = 0x24;
+        h.mem.poke_mapped_for_test(0x8c30, 0x68);
+        h.mem.poke_mapped_for_test(0x8c31, 0x24);
         h.load({0xdd, 0x22, 0x00, 0x8c, 0xfd, 0x2a, 0x30, 0x8c});
 
         const StepResult store = h.step();
@@ -219,8 +219,8 @@ TEST_CASE("Extended and indexed load instructions preserve byte order and target
         CpuHarness h;
         h.cpu.af.flags(0x81);
         h.cpu.iy.set(0x9abc);
-        h.mem[0x8c40] = 0x78;
-        h.mem[0x8c41] = 0x56;
+        h.mem.poke_mapped_for_test(0x8c40, 0x78);
+        h.mem.poke_mapped_for_test(0x8c41, 0x56);
         h.load({0xfd, 0x22, 0x10, 0x8c, 0xdd, 0x2a, 0x40, 0x8c});
 
         const StepResult store_iy = h.step();

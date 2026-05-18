@@ -43,7 +43,7 @@ TEST_CASE("BIT instructions update flags according to the tested bit", "[bitsetr
     SECTION("BIT 7,(HL) sets Z and PV when the tested bit is clear") {
         CpuHarness h;
         h.cpu.hl.set(0x9500);
-        h.mem[0x9500] = 0x00;
+        h.mem.poke_mapped_for_test(0x9500, 0x00);
         h.cpu.af.flag(RegisterAF::Flags::Carry, true);
         h.load({0xcb, 0x7e});
 
@@ -62,7 +62,7 @@ TEST_CASE("BIT instructions update flags according to the tested bit", "[bitsetr
     SECTION("BIT 7,(IX+d) uses the indexed memory byte") {
         CpuHarness h;
         h.cpu.ix.set(0x9601);
-        h.mem[0x9600] = 0x80;
+        h.mem.poke_mapped_for_test(0x9600, 0x80);
         h.cpu.af.flag(RegisterAF::Flags::Carry, true);
         h.load({0xdd, 0xcb, 0xff, 0x7e});
 
@@ -96,7 +96,7 @@ TEST_CASE("SET instructions modify the addressed bit and preserve flags", "[bits
     SECTION("SET 0,(HL)") {
         CpuHarness h;
         h.cpu.hl.set(0x9700);
-        h.mem[0x9700] = 0x20;
+        h.mem.poke_mapped_for_test(0x9700, 0x20);
         h.cpu.af.flags(0x2a);
         h.load({0xcb, 0xc6});
 
@@ -111,7 +111,7 @@ TEST_CASE("SET instructions modify the addressed bit and preserve flags", "[bits
     SECTION("SET 0,(IX+d)") {
         CpuHarness h;
         h.cpu.ix.set(0x9800);
-        h.mem[0x9801] = 0x10;
+        h.mem.poke_mapped_for_test(0x9801, 0x10);
         h.cpu.af.flags(0x55);
         h.load({0xdd, 0xcb, 0x01, 0xc6});
 
@@ -142,7 +142,7 @@ TEST_CASE("RES instructions clear the addressed bit and preserve flags", "[bitse
     SECTION("RES 0,(HL)") {
         CpuHarness h;
         h.cpu.hl.set(0x9900);
-        h.mem[0x9900] = 0xff;
+        h.mem.poke_mapped_for_test(0x9900, 0xff);
         h.cpu.af.flags(0xa5);
         h.load({0xcb, 0x86});
 
@@ -157,7 +157,7 @@ TEST_CASE("RES instructions clear the addressed bit and preserve flags", "[bitse
     SECTION("RES 0,(IX+d)") {
         CpuHarness h;
         h.cpu.ix.set(0x9a00);
-        h.mem[0x99ff] = 0x01;
+        h.mem.poke_mapped_for_test(0x99ff, 0x01);
         h.cpu.af.flags(0x5a);
         h.load({0xdd, 0xcb, 0xff, 0x86});
 

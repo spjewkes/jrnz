@@ -33,7 +33,7 @@ TEST_CASE("Undocumented IN (C) discards the byte but updates flags from the port
         h.cpu.bc.set(0x01ff);
         h.cpu.de.set(0x1234);
         h.cpu.hl.set(0x5678);
-        h.mem[0x4000] = 0x00;
+        h.mem.poke_mapped_for_test(0x4000, 0x00);
         h.mem.floating_counter = 0;
         h.load({0xed, 0x70});
 
@@ -86,7 +86,7 @@ TEST_CASE("BIT copies undocumented flag bits from the tested source", "[undocume
     SECTION("Indexed BIT copies F3 and F5 from the effective address high byte") {
         CpuHarness h;
         h.cpu.ix.set(0x2834);
-        h.mem[0x2834] = 0x00;
+        h.mem.poke_mapped_for_test(0x2834, 0x00);
         h.load({0xdd, 0xcb, 0x00, 0x46});
 
         const StepResult step = h.step();
@@ -101,7 +101,7 @@ TEST_CASE("BIT copies undocumented flag bits from the tested source", "[undocume
         CpuHarness h;
         h.cpu.hl.set(0x4000);
         h.cpu.memptr.set(0x2801);
-        h.mem[0x4000] = 0x00;
+        h.mem.poke_mapped_for_test(0x4000, 0x00);
         h.load({0xcb, 0x46});
 
         const StepResult step = h.step();
@@ -115,9 +115,9 @@ TEST_CASE("BIT copies undocumented flag bits from the tested source", "[undocume
     SECTION("BIT (HL) observes MEMPTR seeded by LD SP,(nn)") {
         CpuHarness h;
         h.cpu.hl.set(0x4000);
-        h.mem[0x2000] = 0x00;
-        h.mem[0x2001] = 0x40;
-        h.mem[0x4000] = 0x00;
+        h.mem.poke_mapped_for_test(0x2000, 0x00);
+        h.mem.poke_mapped_for_test(0x2001, 0x40);
+        h.mem.poke_mapped_for_test(0x4000, 0x00);
         h.load({0xed, 0x7b, 0x00, 0x20, 0xcb, 0x46});
 
         const StepResult load_sp = h.step();
@@ -146,8 +146,8 @@ TEST_CASE("MEMPTR seed instructions are visible through a following BIT (HL) pro
         CpuHarness h;
         h.cpu.hl.set(0x5000);
         h.cpu.bc.set(0x2800);
-        h.mem[0x2800] = 0x12;
-        h.mem[0x5000] = 0x00;
+        h.mem.poke_mapped_for_test(0x2800, 0x12);
+        h.mem.poke_mapped_for_test(0x5000, 0x00);
         h.load({0x0a, 0xcb, 0x46});
 
         const StepResult seed = h.step();
@@ -161,7 +161,7 @@ TEST_CASE("MEMPTR seed instructions are visible through a following BIT (HL) pro
         h.cpu.hl.set(0x5000);
         h.cpu.af.accum(0x28);
         h.cpu.de.set(0x8401);
-        h.mem[0x5000] = 0x00;
+        h.mem.poke_mapped_for_test(0x5000, 0x00);
         h.load({0x12, 0xcb, 0x46});
 
         const StepResult seed = h.step();
@@ -173,8 +173,8 @@ TEST_CASE("MEMPTR seed instructions are visible through a following BIT (HL) pro
     SECTION("LD A,(nn) seeds MEMPTR with nn+1") {
         CpuHarness h;
         h.cpu.hl.set(0x5000);
-        h.mem[0x3456] = 0x99;
-        h.mem[0x5000] = 0x00;
+        h.mem.poke_mapped_for_test(0x3456, 0x99);
+        h.mem.poke_mapped_for_test(0x5000, 0x00);
         h.load({0x3a, 0x56, 0x34, 0xcb, 0x46});
 
         const StepResult seed = h.step();
@@ -187,7 +187,7 @@ TEST_CASE("MEMPTR seed instructions are visible through a following BIT (HL) pro
         CpuHarness h;
         h.cpu.hl.set(0x5000);
         h.cpu.af.accum(0x20);
-        h.mem[0x5000] = 0x00;
+        h.mem.poke_mapped_for_test(0x5000, 0x00);
         h.load({0x32, 0x56, 0x84, 0xcb, 0x46});
 
         const StepResult seed = h.step();
@@ -199,9 +199,9 @@ TEST_CASE("MEMPTR seed instructions are visible through a following BIT (HL) pro
     SECTION("JP nn seeds MEMPTR with the jump target even before BIT (HL)") {
         CpuHarness h;
         h.cpu.hl.set(0x5000);
-        h.mem[0x5000] = 0x00;
-        h.mem[0x2860] = 0xcb;
-        h.mem[0x2861] = 0x46;
+        h.mem.poke_mapped_for_test(0x5000, 0x00);
+        h.mem.poke_mapped_for_test(0x2860, 0xcb);
+        h.mem.poke_mapped_for_test(0x2861, 0x46);
         h.load({0xc3, 0x60, 0x28});
 
         const StepResult seed = h.step();
@@ -213,9 +213,9 @@ TEST_CASE("MEMPTR seed instructions are visible through a following BIT (HL) pro
     SECTION("Taken JR seeds MEMPTR with the branch destination") {
         CpuHarness h;
         h.cpu.hl.set(0x5000);
-        h.mem[0x5000] = 0x00;
-        h.mem[0x0004] = 0xcb;
-        h.mem[0x0005] = 0x46;
+        h.mem.poke_mapped_for_test(0x5000, 0x00);
+        h.mem.poke_mapped_for_test(0x0004, 0xcb);
+        h.mem.poke_mapped_for_test(0x0005, 0x46);
         h.load({0x18, 0x02});
 
         const StepResult seed = h.step();
@@ -228,9 +228,9 @@ TEST_CASE("MEMPTR seed instructions are visible through a following BIT (HL) pro
         CpuHarness h;
         h.cpu.hl.set(0x5000);
         h.cpu.bc.hi(0x02);
-        h.mem[0x5000] = 0x00;
-        h.mem[0x0004] = 0xcb;
-        h.mem[0x0005] = 0x46;
+        h.mem.poke_mapped_for_test(0x5000, 0x00);
+        h.mem.poke_mapped_for_test(0x0004, 0xcb);
+        h.mem.poke_mapped_for_test(0x0005, 0x46);
         h.load({0x10, 0x02});
 
         const StepResult seed = h.step();
@@ -244,9 +244,9 @@ TEST_CASE("MEMPTR seed instructions are visible through a following BIT (HL) pro
         CpuHarness h;
         h.cpu.hl.set(0x5000);
         h.cpu.sp.set(0xfffe);
-        h.mem[0x5000] = 0x00;
-        h.mem[0x2860] = 0xcb;
-        h.mem[0x2861] = 0x46;
+        h.mem.poke_mapped_for_test(0x5000, 0x00);
+        h.mem.poke_mapped_for_test(0x2860, 0xcb);
+        h.mem.poke_mapped_for_test(0x2861, 0x46);
         h.load({0xcd, 0x60, 0x28});
 
         const StepResult seed = h.step();
@@ -261,9 +261,9 @@ TEST_CASE("MEMPTR seed instructions are visible through a following BIT (HL) pro
         h.cpu.hl.set(0x5000);
         h.cpu.sp.set(0xfffc);
         h.mem.write_addr_to_mem(0xfffc, 0x2860);
-        h.mem[0x5000] = 0x00;
-        h.mem[0x2860] = 0xcb;
-        h.mem[0x2861] = 0x46;
+        h.mem.poke_mapped_for_test(0x5000, 0x00);
+        h.mem.poke_mapped_for_test(0x2860, 0xcb);
+        h.mem.poke_mapped_for_test(0x2861, 0x46);
         h.load({0xc9});
 
         const StepResult seed = h.step();
@@ -276,8 +276,8 @@ TEST_CASE("MEMPTR seed instructions are visible through a following BIT (HL) pro
         CpuHarness h;
         h.cpu.hl.set(0x5000);
         h.cpu.ix.set(0x2804);
-        h.mem[0x2802] = 0x44;
-        h.mem[0x5000] = 0x00;
+        h.mem.poke_mapped_for_test(0x2802, 0x44);
+        h.mem.poke_mapped_for_test(0x5000, 0x00);
         h.load({0xdd, 0x7e, 0xfe, 0xcb, 0x46});
 
         const StepResult seed = h.step();
@@ -291,7 +291,7 @@ TEST_CASE("MEMPTR seed instructions are visible through a following BIT (HL) pro
         h.cpu.hl.set(0x5000);
         h.cpu.iy.set(0xa003);
         h.cpu.af.accum(0x77);
-        h.mem[0x5000] = 0x00;
+        h.mem.poke_mapped_for_test(0x5000, 0x00);
         h.load({0xfd, 0x77, 0xff, 0xcb, 0x46});
 
         const StepResult seed = h.step();
@@ -529,7 +529,7 @@ TEST_CASE("CCF after selected instructions uses the authentic previous-instructi
         h.cpu.af.flags(0x01);
         h.cpu.hl.set(0x8800);
         h.cpu.memptr.set(0x1200);
-        h.mem[0x8800] = 0x01;
+        h.mem.poke_mapped_for_test(0x8800, 0x01);
         h.load({0xcb, 0x46, 0x3f});
 
         const StepResult first = h.step();
@@ -548,7 +548,7 @@ TEST_CASE("CCF after selected instructions uses the authentic previous-instructi
         h.cpu.af.accum(0x08);
         h.cpu.af.flags(0x01);
         h.cpu.ix.set(0x2401);
-        h.mem[0x2400] = 0x01;
+        h.mem.poke_mapped_for_test(0x2400, 0x01);
         h.load({0xdd, 0xcb, 0xff, 0x46, 0x3f});
 
         const StepResult first = h.step();
@@ -606,7 +606,7 @@ TEST_CASE("CCF after selected instructions uses the authentic previous-instructi
         h.cpu.hl.set(0x8a00);
         h.cpu.de.set(0x8b00);
         h.cpu.bc.set(0x0001);
-        h.mem[0x8a00] = 0x08;
+        h.mem.poke_mapped_for_test(0x8a00, 0x08);
         h.load({0xed, 0xa0, 0x3f});
 
         const StepResult first = h.step();
@@ -627,7 +627,7 @@ TEST_CASE("CCF after selected instructions uses the authentic previous-instructi
         h.cpu.af.flags(0x01);
         h.cpu.hl.set(0x8c00);
         h.cpu.bc.set(0x0001);
-        h.mem[0x8c00] = 0x07;
+        h.mem.poke_mapped_for_test(0x8c00, 0x07);
         h.load({0xed, 0xb1, 0x3f});
 
         const StepResult first = h.step();
@@ -647,7 +647,7 @@ TEST_CASE("CCF after selected instructions uses the authentic previous-instructi
         h.cpu.af.flags(0x01);
         h.cpu.bc.set(0x01fe);
         h.cpu.hl.set(0x8d00);
-        h.mem[0x8d00] = 0x08;
+        h.mem.poke_mapped_for_test(0x8d00, 0x08);
         h.load({0xed, 0xa3, 0x3f});
 
         const StepResult first = h.step();

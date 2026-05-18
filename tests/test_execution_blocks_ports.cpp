@@ -9,7 +9,7 @@ TEST_CASE("Decrementing block instructions follow documented transfer and compar
         h.cpu.hl.set(0x8d01);
         h.cpu.de.set(0x8e01);
         h.cpu.bc.set(0x0002);
-        h.mem[0x8d01] = 0x5c;
+        h.mem.poke_mapped_for_test(0x8d01, 0x5c);
         h.load({0xed, 0xa8});
 
         const StepResult step = h.step();
@@ -31,8 +31,8 @@ TEST_CASE("Decrementing block instructions follow documented transfer and compar
         h.cpu.hl.set(0x8f01);
         h.cpu.de.set(0x9001);
         h.cpu.bc.set(0x0002);
-        h.mem[0x8f01] = 0xaa;
-        h.mem[0x8f00] = 0xbb;
+        h.mem.poke_mapped_for_test(0x8f01, 0xaa);
+        h.mem.poke_mapped_for_test(0x8f00, 0xbb);
         h.load({0xed, 0xb8});
 
         const StepResult first = h.step();
@@ -58,7 +58,7 @@ TEST_CASE("Decrementing block instructions follow documented transfer and compar
         h.cpu.af.accum(0x20);
         h.cpu.hl.set(0x9100);
         h.cpu.bc.set(0x0002);
-        h.mem[0x9100] = 0x10;
+        h.mem.poke_mapped_for_test(0x9100, 0x10);
         h.load({0xed, 0xa1, 0xed, 0xa9});
 
         const StepResult cpi = h.step();
@@ -72,7 +72,7 @@ TEST_CASE("Decrementing block instructions follow documented transfer and compar
 
         h.cpu.hl.set(0x9101);
         h.cpu.bc.set(0x0002);
-        h.mem[0x9101] = 0x20;
+        h.mem.poke_mapped_for_test(0x9101, 0x20);
 
         const StepResult cpd = h.step();
         REQUIRE(cpd.cycle_delta() == 16);
@@ -89,8 +89,8 @@ TEST_CASE("Decrementing block instructions follow documented transfer and compar
         h.cpu.af.accum(0x44);
         h.cpu.hl.set(0x9201);
         h.cpu.bc.set(0x0002);
-        h.mem[0x9201] = 0x12;
-        h.mem[0x9200] = 0x44;
+        h.mem.poke_mapped_for_test(0x9201, 0x12);
+        h.mem.poke_mapped_for_test(0x9200, 0x44);
         h.load({0xed, 0xb9});
 
         const StepResult first = h.step();
@@ -115,7 +115,7 @@ TEST_CASE("Decrementing block instructions follow documented transfer and compar
         h.cpu.hl.set(0x9300);
         h.cpu.de.set(0x9400);
         h.cpu.bc.set(0x0001);
-        h.mem[0x9300] = 0x3d;
+        h.mem.poke_mapped_for_test(0x9300, 0x3d);
         h.load({0xed, 0xb8});
 
         const StepResult step = h.step();
@@ -133,8 +133,8 @@ TEST_CASE("Decrementing block instructions follow documented transfer and compar
         h.cpu.af.accum(0x7e);
         h.cpu.hl.set(0x9501);
         h.cpu.bc.set(0x0002);
-        h.mem[0x9501] = 0x10;
-        h.mem[0x9500] = 0x20;
+        h.mem.poke_mapped_for_test(0x9501, 0x10);
+        h.mem.poke_mapped_for_test(0x9500, 0x20);
         h.load({0xed, 0xb9});
 
         const StepResult first = h.step();
@@ -160,7 +160,7 @@ TEST_CASE("Documented port instructions use the expected ports and flag rules", 
         CpuHarness h;
         h.cpu.af.set(0x12c3);
         h.mem.floating_counter = 0;
-        h.mem[0x4000] = 0x7e;
+        h.mem.poke_mapped_for_test(0x4000, 0x7e);
         h.load({0xdb, 0x01});
 
         const StepResult step = h.step();

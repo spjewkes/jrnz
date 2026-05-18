@@ -22,7 +22,7 @@ TEST_CASE("Undocumented SLL register and memory forms behave consistently", "[un
     SECTION("SLL (HL) updates memory and flags") {
         CpuHarness h;
         h.cpu.hl.set(0xa000);
-        h.mem[0xa000] = 0x40;
+        h.mem.poke_mapped_for_test(0xa000, 0x40);
         h.load({0xcb, 0x36});
 
         const StepResult step = h.step();
@@ -37,7 +37,7 @@ TEST_CASE("Undocumented SLL register and memory forms behave consistently", "[un
     SECTION("SLL (IX+d) uses indexed memory") {
         CpuHarness h;
         h.cpu.ix.set(0xa100);
-        h.mem[0xa102] = 0x80;
+        h.mem.poke_mapped_for_test(0xa102, 0x80);
         h.load({0xdd, 0xcb, 0x02, 0x36});
 
         const StepResult step = h.step();
@@ -51,7 +51,7 @@ TEST_CASE("Undocumented SLL register and memory forms behave consistently", "[un
     SECTION("SLL (IY+d) uses indexed memory") {
         CpuHarness h;
         h.cpu.iy.set(0xa200);
-        h.mem[0xa1ff] = 0x01;
+        h.mem.poke_mapped_for_test(0xa1ff, 0x01);
         h.load({0xfd, 0xcb, 0xff, 0x36});
 
         const StepResult step = h.step();

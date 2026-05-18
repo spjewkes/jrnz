@@ -166,7 +166,7 @@ TEST_CASE("Prefix-heavy execution paths honor the last effective prefix and cons
             h.cpu.af.accum(0x70);
             h.cpu.ix.set(tc.ix);
             h.cpu.iy.set(tc.iy);
-            h.mem[tc.addr] = tc.initial;
+            h.mem.poke_mapped_for_test(tc.addr, tc.initial);
             h.load({tc.code[0], tc.code[1], tc.code[2], tc.code[3], tc.code[4]});
 
             const StepResult step = h.step();

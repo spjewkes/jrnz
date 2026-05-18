@@ -77,7 +77,7 @@ TEST_CASE("Ignored prefix combinations follow last-prefix or no-effect rules",
         CpuHarness h;
         h.cpu.ix.set(0xa300);
         h.cpu.af.accum(0x55);
-        h.mem[0xa301] = 0x81;
+        h.mem.poke_mapped_for_test(0xa301, 0x81);
         h.load({0xdd, 0xdd, 0xcb, 0x01, 0x07});
 
         const StepResult step = h.step();
@@ -93,7 +93,7 @@ TEST_CASE("Ignored prefix combinations follow last-prefix or no-effect rules",
         h.cpu.ix.set(0xa340);
         h.cpu.iy.set(0xb000);
         h.cpu.bc.hi(0x12);
-        h.mem[0xa33f] = 0x80;
+        h.mem.poke_mapped_for_test(0xa33f, 0x80);
         h.load({0xfd, 0xdd, 0xcb, 0xff, 0x00});
 
         const StepResult step = h.step();
@@ -135,7 +135,7 @@ TEST_CASE("Undocumented indexed CB register-copy forms populate every destinatio
             h.cpu.hl.set(0x5060);
             h.cpu.af.accum(0x70);
             h.cpu.ix.set(0xa400);
-            h.mem[0xa401] = 0x81;
+            h.mem.poke_mapped_for_test(0xa401, 0x81);
             h.load({0xdd, 0xcb, 0x01, tc.opcode});
 
             const StepResult step = h.step();
@@ -181,7 +181,7 @@ TEST_CASE("Undocumented indexed CB register-copy forms populate every destinatio
             h.cpu.hl.set(0x5161);
             h.cpu.af.accum(0x71);
             h.cpu.iy.set(0xa501);
-            h.mem[0xa500] = 0xff;
+            h.mem.poke_mapped_for_test(0xa500, 0xff);
             h.load({0xfd, 0xcb, 0xff, tc.opcode});
 
             const StepResult step = h.step();

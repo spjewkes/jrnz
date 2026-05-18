@@ -100,7 +100,7 @@ TEST_CASE("Opcode fetch preserves prefix semantics and operand offsets", "[decod
     auto load = [](Bus &bus, std::initializer_list<uint8_t> bytes, uint16_t start = 0x0000) {
         size_t offset = 0;
         for (uint8_t byte : bytes) {
-            bus[static_cast<uint16_t>(start + offset)] = byte;
+            bus.poke_mapped_for_test(static_cast<uint16_t>(start + offset), byte);
             ++offset;
         }
     };

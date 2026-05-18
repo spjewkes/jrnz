@@ -28,7 +28,7 @@ struct CpuHarness {
     void load(std::initializer_list<uint8_t> bytes, uint16_t start = 0x0000) {
         size_t offset = 0;
         for (uint8_t byte : bytes) {
-            mem[static_cast<uint16_t>(start + offset)] = byte;
+            mem.poke_mapped_for_test(static_cast<uint16_t>(start + offset), byte);
             ++offset;
         }
         cpu.pc.set(start);
