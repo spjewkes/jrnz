@@ -17,6 +17,7 @@ void Options::print_help() {
     std::cout << "\t--sna <filename>  - Loads the specified SNA file into memory "
                  "(at address 16384)\n";
     std::cout << "\t--z80 <filename>  - Loads the specified Z80 file into memory\n";
+    std::cout << "\t--tap <filename>  - Attach the specified TAP file for ROM fast loading\n";
     std::cout << "\t--debug           - switched on debug output\n";
     std::cout << "\t--break <line_no> - Enable breakpoint at the specified line "
                  "number\n";
@@ -28,18 +29,24 @@ void Options::print_help() {
 }
 
 void Options::process() {
-    static struct option long_options[] = {{"help", no_argument, 0, 'h'},          {"debug", no_argument, 0, 'd'},
-                                           {"fast", no_argument, 0, 'f'},          {"pause", no_argument, 0, 'p'},
-                                           {"rom", required_argument, 0, 'r'},     {"break", required_argument, 0, 'b'},
-                                           {"sna", required_argument, 0, 's'},     {"z80", required_argument, 0, 'z'},
-                                           {"machine", required_argument, 0, 'm'}, {0, 0, 0, 0}};
+    static struct option long_options[] = {{"help", no_argument, 0, 'h'},
+                                           {"debug", no_argument, 0, 'd'},
+                                           {"fast", no_argument, 0, 'f'},
+                                           {"pause", no_argument, 0, 'p'},
+                                           {"rom", required_argument, 0, 'r'},
+                                           {"break", required_argument, 0, 'b'},
+                                           {"sna", required_argument, 0, 's'},
+                                           {"z80", required_argument, 0, 'z'},
+                                           {"tap", required_argument, 0, 't'},
+                                           {"machine", required_argument, 0, 'm'},
+                                           {0, 0, 0, 0}};
 
     int c;
 
     while (1) {
         int option_index = 0;
 
-        c = getopt_long(m_argc, m_argv, "hdfpr:s:z:m:", long_options, &option_index);
+        c = getopt_long(m_argc, m_argv, "hdfpr:s:z:t:m:", long_options, &option_index);
 
         if (c == -1) {
             break;
@@ -81,6 +88,12 @@ void Options::process() {
             case 'z': {
                 z80_file = optarg;
                 z80_on = true;
+                break;
+            }
+
+            case 't': {
+                tap_file = optarg;
+                tap_on = true;
                 break;
             }
 

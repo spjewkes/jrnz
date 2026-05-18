@@ -23,6 +23,9 @@ bool System::clock() {
         // so publish the current frame t-state before advancing the ULA.
         _bus.set_frame_tstate(_ula.frame_tstate());
         _ula.clock(do_exit, do_break);
+        if (_tape != nullptr && _tape->try_fast_load(_z80)) {
+            return !do_exit;
+        }
         // _beeper.clock(false, false, 0);
         return _z80.clock(_debugger.is_break_enabled()) && !do_exit;
     }

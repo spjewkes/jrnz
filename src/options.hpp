@@ -26,6 +26,9 @@ public:
     std::string z80_file = {""};
     bool z80_on = {false};
 
+    std::string tap_file = {""};
+    bool tap_on = {false};
+
     bool debug_mode = {false};
 
     uint16_t break_addr = {0};

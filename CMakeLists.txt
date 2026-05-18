@@ -43,6 +43,7 @@ add_library(
   src/ula.cpp
   src/options.cpp
   src/keyboard.cpp
+  src/tape.cpp
   src/bus.cpp
   src/formats/format_sna.cpp
   src/formats/format_z80.cpp)
@@ -62,6 +63,7 @@ add_executable(
   tests/test_neg.cpp
   tests/test_snapshot_sna.cpp
   tests/test_snapshot_z80.cpp
+  tests/test_tape.cpp
   tests/test_decoder.cpp
   tests/test_bus.cpp
   tests/test_control_flow.cpp

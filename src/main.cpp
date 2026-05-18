@@ -11,6 +11,7 @@
 #include "machine_config.hpp"
 #include "options.hpp"
 #include "system.hpp"
+#include "tape.hpp"
 #include "ula.hpp"
 #include "z80.hpp"
 
@@ -93,8 +94,9 @@ int main(int argc, char **argv) {
     ULA ula(machine, state, mem, options.fast_mode);
     Debugger debug(state, mem);
     Beeper beeper(machine);
+    TapeDeck tape;
 
-    System sys(state, ula, mem, debug, beeper);
+    System sys(state, ula, mem, debug, beeper, options.tap_on ? &tape : nullptr);
 
     // Use options to set up system
     std::string rom_file = options.rom_file;
@@ -108,6 +110,9 @@ int main(int argc, char **argv) {
         mem.load_snapshot(options.sna_file, state);
     } else if (options.z80_on) {
         mem.load_z80(options.z80_file, state);
+    }
+    if (options.tap_on && !tape.load_tap(options.tap_file)) {
+        return EXIT_FAILURE;
     }
 
     debug.set_dout(options.debug_mode);
