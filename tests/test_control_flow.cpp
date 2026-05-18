@@ -1,6 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include "bus.hpp"
+#include "test_support.hpp"
 #include "z80.hpp"
 
 TEST_CASE("CALL and RET round-trip the return address through the stack", "[control]") {
@@ -68,31 +69,26 @@ TEST_CASE("DJNZ decrements B and only branches while non-zero", "[control]") {
 }
 
 TEST_CASE("EI only enables maskable interrupts after the following instruction", "[control]") {
-    Bus mem(65536);
-    Z80 state(mem, true);
+    CpuHarness h;
+    h.load({0xfb, 0x00});  // ei; nop
 
-    mem.poke_mapped_for_test(0x0000, 0xfb);  // ei
-    mem.poke_mapped_for_test(0x0001, 0x00);  // nop
+    h.cpu.interrupt = true;
+    h.cpu.int_mode = 1;
 
-    state.pc.set(0x0000);
-    state.sp.set(0xfffe);
-    state.interrupt = true;
-    state.int_mode = 1;
+    REQUIRE(h.cpu.clock());
+    REQUIRE(h.cpu.pc.get() == 0x0001);
+    REQUIRE_FALSE(h.cpu.iff1);
+    REQUIRE(h.cpu.ei_pending);
 
-    REQUIRE(state.clock());
-    REQUIRE(state.pc.get() == 0x0001);
-    REQUIRE_FALSE(state.iff1);
-    REQUIRE(state.ei_pending);
+    REQUIRE(h.cpu.clock());
+    REQUIRE(h.cpu.pc.get() == 0x0002);
+    REQUIRE(h.cpu.iff1);
+    REQUIRE(h.cpu.iff2);
+    REQUIRE_FALSE(h.cpu.ei_pending);
 
-    REQUIRE(state.clock());
-    REQUIRE(state.pc.get() == 0x0002);
-    REQUIRE(state.iff1);
-    REQUIRE(state.iff2);
-    REQUIRE_FALSE(state.ei_pending);
-
-    REQUIRE(state.clock());
-    REQUIRE(state.pc.get() == 0x0038);
-    REQUIRE_FALSE(state.interrupt);
-    REQUIRE(state.sp.get() == 0xfffc);
-    REQUIRE(mem.read_addr_from_mem(0xfffc) == 0x0002);
+    REQUIRE(h.cpu.clock());
+    REQUIRE(h.cpu.pc.get() == 0x0038);
+    REQUIRE_FALSE(h.cpu.interrupt);
+    REQUIRE(h.cpu.sp.get() == 0xfffc);
+    REQUIRE(h.mem.read_addr_from_mem(0xfffc) == 0x0002);
 }

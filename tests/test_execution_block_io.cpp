@@ -7,13 +7,13 @@ TEST_CASE("INI reads from the port into memory and updates registers", "[block-i
     h.cpu.bc.set(0x03ff);
     h.cpu.hl.set(0x8000);
     h.mem.floating_counter = 0;
-    h.mem.poke_mapped_for_test(0x4000, 0x5a);
+    h.poke(0x4000, 0x5a);
     h.load({0xed, 0xa2});
 
     const StepResult step = h.step();
 
     REQUIRE(step.cycle_delta() == 16);
-    REQUIRE(h.mem[0x8000] == 0x5a);
+    REQUIRE(h.peek(0x8000) == 0x5a);
     REQUIRE(h.cpu.hl.get() == 0x8001);
     REQUIRE(h.cpu.bc.get() == 0x02ff);
     REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Sign));
@@ -29,21 +29,21 @@ TEST_CASE("INIR repeats until B becomes zero", "[block-io]") {
     h.cpu.bc.set(0x02ff);
     h.cpu.hl.set(0x8100);
     h.mem.floating_counter = 0;
-    h.mem.poke_mapped_for_test(0x4000, 0x11);
-    h.mem.poke_mapped_for_test(0x4001, 0x22);
+    h.poke(0x4000, 0x11);
+    h.poke(0x4001, 0x22);
     h.load({0xed, 0xb2});
 
     const StepResult first = h.step();
     REQUIRE(first.cycle_delta() == 21);
     REQUIRE(h.cpu.pc.get() == 0x0000);
-    REQUIRE(h.mem[0x8100] == 0x11);
+    REQUIRE(h.peek(0x8100) == 0x11);
     REQUIRE(h.cpu.hl.get() == 0x8101);
     REQUIRE(h.cpu.bc.get() == 0x01ff);
 
     const StepResult second = h.step();
     REQUIRE(second.cycle_delta() == 16);
     REQUIRE(h.cpu.pc.get() == 0x0002);
-    REQUIRE(h.mem[0x8101] == 0x22);
+    REQUIRE(h.peek(0x8101) == 0x22);
     REQUIRE(h.cpu.hl.get() == 0x8102);
     REQUIRE(h.cpu.bc.get() == 0x00ff);
     REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Zero));
@@ -56,13 +56,13 @@ TEST_CASE("Repeating block I/O instructions switch between looping and terminal 
         h.cpu.bc.set(0x01ff);
         h.cpu.hl.set(0x8400);
         h.mem.floating_counter = 0;
-        h.mem.poke_mapped_for_test(0x4000, 0x6a);
+        h.poke(0x4000, 0x6a);
         h.load({0xed, 0xb2});
 
         const StepResult step = h.step();
         REQUIRE(step.cycle_delta() == 16);
         REQUIRE(h.cpu.pc.get() == 0x0002);
-        REQUIRE(h.mem[0x8400] == 0x6a);
+        REQUIRE(h.peek(0x8400) == 0x6a);
         REQUIRE(h.cpu.hl.get() == 0x8401);
         REQUIRE(h.cpu.bc.get() == 0x00ff);
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Zero));
@@ -74,13 +74,13 @@ TEST_CASE("Repeating block I/O instructions switch between looping and terminal 
         h.cpu.bc.set(0x01ff);
         h.cpu.hl.set(0x8500);
         h.mem.floating_counter = 0;
-        h.mem.poke_mapped_for_test(0x4000, 0x91);
+        h.poke(0x4000, 0x91);
         h.load({0xed, 0xba});
 
         const StepResult step = h.step();
         REQUIRE(step.cycle_delta() == 16);
         REQUIRE(h.cpu.pc.get() == 0x0002);
-        REQUIRE(h.mem[0x8500] == 0x91);
+        REQUIRE(h.peek(0x8500) == 0x91);
         REQUIRE(h.cpu.hl.get() == 0x84ff);
         REQUIRE(h.cpu.bc.get() == 0x00ff);
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Zero));
@@ -90,7 +90,7 @@ TEST_CASE("Repeating block I/O instructions switch between looping and terminal 
         CpuHarness h;
         h.cpu.bc.set(0x01fe);
         h.cpu.hl.set(0x9600);
-        h.mem.poke_mapped_for_test(0x9600, 0x5d);
+        h.poke(0x9600, 0x5d);
         h.load({0xed, 0xb3});
 
         const StepResult step = h.step();
@@ -106,7 +106,7 @@ TEST_CASE("Repeating block I/O instructions switch between looping and terminal 
         CpuHarness h;
         h.cpu.bc.set(0x01fe);
         h.cpu.hl.set(0x9700);
-        h.mem.poke_mapped_for_test(0x9700, 0xa7);
+        h.poke(0x9700, 0xa7);
         h.load({0xed, 0xbb});
 
         const StepResult step = h.step();
@@ -124,13 +124,13 @@ TEST_CASE("IND reads from the port into memory and decrements HL", "[block-io]")
     h.cpu.bc.set(0x02ff);
     h.cpu.hl.set(0x8201);
     h.mem.floating_counter = 0;
-    h.mem.poke_mapped_for_test(0x4000, 0x77);
+    h.poke(0x4000, 0x77);
     h.load({0xed, 0xaa});
 
     const StepResult step = h.step();
 
     REQUIRE(step.cycle_delta() == 16);
-    REQUIRE(h.mem[0x8201] == 0x77);
+    REQUIRE(h.peek(0x8201) == 0x77);
     REQUIRE(h.cpu.hl.get() == 0x8200);
     REQUIRE(h.cpu.bc.get() == 0x01ff);
     REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Zero));
@@ -145,21 +145,21 @@ TEST_CASE("INDR repeats while decrementing HL until B becomes zero", "[block-io]
     h.cpu.bc.set(0x02ff);
     h.cpu.hl.set(0x8301);
     h.mem.floating_counter = 0;
-    h.mem.poke_mapped_for_test(0x4000, 0xc1);
-    h.mem.poke_mapped_for_test(0x4001, 0xc2);
+    h.poke(0x4000, 0xc1);
+    h.poke(0x4001, 0xc2);
     h.load({0xed, 0xba});
 
     const StepResult first = h.step();
     REQUIRE(first.cycle_delta() == 21);
     REQUIRE(h.cpu.pc.get() == 0x0000);
-    REQUIRE(h.mem[0x8301] == 0xc1);
+    REQUIRE(h.peek(0x8301) == 0xc1);
     REQUIRE(h.cpu.hl.get() == 0x8300);
     REQUIRE(h.cpu.bc.get() == 0x01ff);
 
     const StepResult second = h.step();
     REQUIRE(second.cycle_delta() == 16);
     REQUIRE(h.cpu.pc.get() == 0x0002);
-    REQUIRE(h.mem[0x8300] == 0xc2);
+    REQUIRE(h.peek(0x8300) == 0xc2);
     REQUIRE(h.cpu.hl.get() == 0x82ff);
     REQUIRE(h.cpu.bc.get() == 0x00ff);
     REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Zero));
@@ -170,7 +170,7 @@ TEST_CASE("OUTI writes memory to the port and increments HL", "[block-io]") {
     CpuHarness h;
     h.cpu.bc.set(0x02fe);
     h.cpu.hl.set(0x9000);
-    h.mem.poke_mapped_for_test(0x9000, 0x12);
+    h.poke(0x9000, 0x12);
     h.load({0xed, 0xa3});
 
     const StepResult step = h.step();
@@ -190,8 +190,8 @@ TEST_CASE("OTIR repeats until B becomes zero", "[block-io]") {
     CpuHarness h;
     h.cpu.bc.set(0x02fe);
     h.cpu.hl.set(0x9100);
-    h.mem.poke_mapped_for_test(0x9100, 0x12);
-    h.mem.poke_mapped_for_test(0x9101, 0x34);
+    h.poke(0x9100, 0x12);
+    h.poke(0x9101, 0x34);
     h.load({0xed, 0xb3});
 
     const StepResult first = h.step();
@@ -215,7 +215,7 @@ TEST_CASE("OUTD writes memory to the port and decrements HL", "[block-io]") {
     CpuHarness h;
     h.cpu.bc.set(0x02fe);
     h.cpu.hl.set(0x9201);
-    h.mem.poke_mapped_for_test(0x9201, 0xab);
+    h.poke(0x9201, 0xab);
     h.load({0xed, 0xab});
 
     const StepResult step = h.step();
@@ -235,8 +235,8 @@ TEST_CASE("OTDR repeats while decrementing HL until B becomes zero", "[block-io]
     CpuHarness h;
     h.cpu.bc.set(0x02fe);
     h.cpu.hl.set(0x9301);
-    h.mem.poke_mapped_for_test(0x9301, 0xde);
-    h.mem.poke_mapped_for_test(0x9300, 0xad);
+    h.poke(0x9301, 0xde);
+    h.poke(0x9300, 0xad);
     h.load({0xed, 0xbb});
 
     const StepResult first = h.step();
@@ -267,7 +267,7 @@ TEST_CASE("Self-modifying INIR and INDR can turn into ED NOPs on the next iterat
         const StepResult first = h.step();
         REQUIRE(first.cycle_delta() == 21);
         REQUIRE(h.cpu.pc.get() == 0x4000);
-        REQUIRE(h.mem[0x4001] == 0xff);
+        REQUIRE(h.peek(0x4001) == 0xff);
         REQUIRE(h.cpu.hl.get() == 0x4002);
         REQUIRE(h.cpu.bc.get() == 0x01fe);
 
@@ -288,7 +288,7 @@ TEST_CASE("Self-modifying INIR and INDR can turn into ED NOPs on the next iterat
         const StepResult first = h.step();
         REQUIRE(first.cycle_delta() == 21);
         REQUIRE(h.cpu.pc.get() == 0x4000);
-        REQUIRE(h.mem[0x4001] == 0xff);
+        REQUIRE(h.peek(0x4001) == 0xff);
         REQUIRE(h.cpu.hl.get() == 0x4000);
         REQUIRE(h.cpu.bc.get() == 0x01fe);
 

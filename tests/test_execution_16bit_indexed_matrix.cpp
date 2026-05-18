@@ -88,7 +88,7 @@ TEST_CASE("16-bit pair and increment-decrement opcodes update targets consistent
             h.cpu.af.flag(RegisterAF::Flags::Carry, true);
             if (tc.opcode == 0x34) {
                 h.cpu.hl.set(0x9500);
-                h.mem.poke_mapped_for_test(0x9500, tc.initial);
+                h.poke(0x9500, tc.initial);
             } else if (tc.opcode == 0x04) {
                 h.cpu.bc.hi(tc.initial);
             } else if (tc.opcode == 0x0d) {
@@ -103,7 +103,7 @@ TEST_CASE("16-bit pair and increment-decrement opcodes update targets consistent
             REQUIRE(step.cycle_delta() == (tc.opcode == 0x34 ? 11 : 4));
             REQUIRE(step.pc_after == 0x0001);
             if (tc.opcode == 0x34) {
-                REQUIRE(h.mem[0x9500] == tc.expected);
+                REQUIRE(h.peek(0x9500) == tc.expected);
             } else if (tc.opcode == 0x04) {
                 REQUIRE(h.cpu.bc.hi() == tc.expected);
             } else if (tc.opcode == 0x0d) {
@@ -195,14 +195,14 @@ TEST_CASE("Indexed and extended 16-bit arithmetic opcodes honor their selected o
             } else {
                 h.cpu.iy.set(tc.base);
             }
-            h.mem.poke_mapped_for_test(tc.addr, tc.initial);
+            h.poke(tc.addr, tc.initial);
             h.load({tc.code[0], tc.code[1], tc.code[2]});
 
             const StepResult step = h.step();
 
             REQUIRE(step.cycle_delta() == 23);
             REQUIRE(step.pc_after == 0x0003);
-            REQUIRE(h.mem[tc.addr] == tc.expected);
+            REQUIRE(h.peek(tc.addr) == tc.expected);
             REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Carry));
             REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Zero) == tc.zero);
             REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Sign) == tc.sign);

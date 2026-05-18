@@ -22,13 +22,13 @@ TEST_CASE("Undocumented SLL register and memory forms behave consistently", "[un
     SECTION("SLL (HL) updates memory and flags") {
         CpuHarness h;
         h.cpu.hl.set(0xa000);
-        h.mem.poke_mapped_for_test(0xa000, 0x40);
+        h.poke(0xa000, 0x40);
         h.load({0xcb, 0x36});
 
         const StepResult step = h.step();
 
         REQUIRE(step.cycle_delta() == 15);
-        REQUIRE(h.mem[0xa000] == 0x81);
+        REQUIRE(h.peek(0xa000) == 0x81);
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Carry));
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Sign));
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));
@@ -37,13 +37,13 @@ TEST_CASE("Undocumented SLL register and memory forms behave consistently", "[un
     SECTION("SLL (IX+d) uses indexed memory") {
         CpuHarness h;
         h.cpu.ix.set(0xa100);
-        h.mem.poke_mapped_for_test(0xa102, 0x80);
+        h.poke(0xa102, 0x80);
         h.load({0xdd, 0xcb, 0x02, 0x36});
 
         const StepResult step = h.step();
 
         REQUIRE(step.cycle_delta() == 23);
-        REQUIRE(h.mem[0xa102] == 0x01);
+        REQUIRE(h.peek(0xa102) == 0x01);
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Carry));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Zero));
     }
@@ -51,13 +51,13 @@ TEST_CASE("Undocumented SLL register and memory forms behave consistently", "[un
     SECTION("SLL (IY+d) uses indexed memory") {
         CpuHarness h;
         h.cpu.iy.set(0xa200);
-        h.mem.poke_mapped_for_test(0xa1ff, 0x01);
+        h.poke(0xa1ff, 0x01);
         h.load({0xfd, 0xcb, 0xff, 0x36});
 
         const StepResult step = h.step();
 
         REQUIRE(step.cycle_delta() == 23);
-        REQUIRE(h.mem[0xa1ff] == 0x03);
+        REQUIRE(h.peek(0xa1ff) == 0x03);
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Carry));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Zero));
     }

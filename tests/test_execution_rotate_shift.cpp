@@ -217,13 +217,13 @@ TEST_CASE("Rotate and shift instructions operate on memory through HL", "[rotate
     SECTION("RLC (HL)") {
         CpuHarness h;
         h.cpu.hl.set(0x9400);
-        h.mem.poke_mapped_for_test(0x9400, 0x80);
+        h.poke(0x9400, 0x80);
         h.load({0xcb, 0x06});
 
         const StepResult step = h.step();
 
         REQUIRE(step.cycle_delta() == 15);
-        REQUIRE(h.mem[0x9400] == 0x01);
+        REQUIRE(h.peek(0x9400) == 0x01);
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Carry));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Zero));
         REQUIRE_FALSE(h.cpu.af.flag(RegisterAF::Flags::Sign));
@@ -235,13 +235,13 @@ TEST_CASE("Rotate and shift instructions operate on memory through HL", "[rotate
     SECTION("SRL (HL)") {
         CpuHarness h;
         h.cpu.hl.set(0x9401);
-        h.mem.poke_mapped_for_test(0x9401, 0x01);
+        h.poke(0x9401, 0x01);
         h.load({0xcb, 0x3e});
 
         const StepResult step = h.step();
 
         REQUIRE(step.cycle_delta() == 15);
-        REQUIRE(h.mem[0x9401] == 0x00);
+        REQUIRE(h.peek(0x9401) == 0x00);
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Carry));
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Zero));
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::ParityOverflow));

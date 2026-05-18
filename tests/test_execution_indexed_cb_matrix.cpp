@@ -61,14 +61,14 @@ TEST_CASE("Indexed CB opcodes update memory and register targets consistently", 
             } else {
                 h.cpu.iy.set(tc.base);
             }
-            h.mem.poke_mapped_for_test(tc.addr, tc.initial);
+            h.poke(tc.addr, tc.initial);
             h.load({tc.code[0], tc.code[1], tc.code[2], tc.code[3]});
 
             const StepResult step = h.step();
 
             REQUIRE(step.cycle_delta() == 23);
             REQUIRE(step.pc_after == 0x0004);
-            REQUIRE(h.mem[tc.addr] == tc.expected);
+            REQUIRE(h.peek(tc.addr) == tc.expected);
             REQUIRE(h.cpu.bc.hi() == tc.expect_b);
             REQUIRE(h.cpu.af.accum() == tc.expect_a);
             REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Carry) == tc.carry);
@@ -108,14 +108,14 @@ TEST_CASE("Indexed CB opcodes update memory and register targets consistently", 
             } else {
                 h.cpu.iy.set(tc.base);
             }
-            h.mem.poke_mapped_for_test(tc.addr, tc.initial);
+            h.poke(tc.addr, tc.initial);
             h.load({tc.code[0], tc.code[1], tc.code[2], tc.code[3]});
 
             const StepResult step = h.step();
 
             REQUIRE(step.cycle_delta() == 23);
             REQUIRE(step.pc_after == 0x0004);
-            REQUIRE(h.mem[tc.addr] == tc.expected);
+            REQUIRE(h.peek(tc.addr) == tc.expected);
             REQUIRE(h.cpu.de.hi() == tc.expect_d);
             REQUIRE(h.cpu.hl.lo() == tc.expect_l);
             REQUIRE(h.cpu.af.flags() == 0xa5);

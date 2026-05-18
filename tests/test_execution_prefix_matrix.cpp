@@ -76,7 +76,7 @@ TEST_CASE("Prefix-heavy execution paths honor the last effective prefix and cons
             REQUIRE(h.cpu.ix.get() == tc.expected_ix);
             REQUIRE(h.cpu.iy.get() == tc.expected_iy);
             if (tc.expected_mem_addr != 0x0000) {
-                REQUIRE(h.mem[tc.expected_mem_addr] == tc.expected_mem_value);
+                REQUIRE(h.peek(tc.expected_mem_addr) == tc.expected_mem_value);
             }
         }
     }
@@ -166,14 +166,14 @@ TEST_CASE("Prefix-heavy execution paths honor the last effective prefix and cons
             h.cpu.af.accum(0x70);
             h.cpu.ix.set(tc.ix);
             h.cpu.iy.set(tc.iy);
-            h.mem.poke_mapped_for_test(tc.addr, tc.initial);
+            h.poke(tc.addr, tc.initial);
             h.load({tc.code[0], tc.code[1], tc.code[2], tc.code[3], tc.code[4]});
 
             const StepResult step = h.step();
 
             REQUIRE(step.cycle_delta() == 27);
             REQUIRE(h.cpu.pc.get() == 0x0005);
-            REQUIRE(h.mem[tc.addr] == tc.expected_mem);
+            REQUIRE(h.peek(tc.addr) == tc.expected_mem);
             REQUIRE(h.cpu.bc.hi() == tc.expected_b);
             REQUIRE(h.cpu.af.accum() == tc.expected_a);
         }

@@ -40,7 +40,7 @@ void run_alu_source_cases(const AluSourceCase *cases, size_t count) {
             h.cpu.hl.set(tc.base);
         }
         if (tc.addr != 0x0000) {
-            h.mem.poke_mapped_for_test(tc.addr, tc.mem_value);
+            h.poke(tc.addr, tc.mem_value);
         }
         h.load({tc.code[0], tc.code[1], tc.code[2]});
 
@@ -50,7 +50,7 @@ void run_alu_source_cases(const AluSourceCase *cases, size_t count) {
         REQUIRE(step.pc_after == tc.size);
         REQUIRE(h.cpu.af.accum() == tc.expected_a);
         if (tc.addr != 0x0000) {
-            REQUIRE(h.mem[tc.addr] == tc.mem_value);
+            REQUIRE(h.peek(tc.addr) == tc.mem_value);
         }
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::Carry) == tc.carry);
         REQUIRE(h.cpu.af.flag(RegisterAF::Flags::HalfCarry) == tc.half);

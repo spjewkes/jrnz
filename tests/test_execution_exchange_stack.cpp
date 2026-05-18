@@ -13,8 +13,8 @@ TEST_CASE("PUSH and POP round-trip register pairs through the stack", "[exchange
         REQUIRE(push.cycle_delta() == 11);
         REQUIRE(h.cpu.sp.get() == 0xfffc);
         REQUIRE(h.mem.read_addr_from_mem(0xfffc) == 0x1234);
-        REQUIRE(h.mem[0xfffc] == 0x34);
-        REQUIRE(h.mem[0xfffd] == 0x12);
+        REQUIRE(h.peek(0xfffc) == 0x34);
+        REQUIRE(h.peek(0xfffd) == 0x12);
 
         h.cpu.bc.set(0x0000);
         const StepResult pop = h.step();
@@ -34,8 +34,8 @@ TEST_CASE("PUSH and POP round-trip register pairs through the stack", "[exchange
         REQUIRE(push.cycle_delta() == 11);
         REQUIRE(h.cpu.sp.get() == 0xfffc);
         REQUIRE(h.mem.read_addr_from_mem(0xfffc) == 0xa55a);
-        REQUIRE(h.mem[0xfffc] == 0x5a);
-        REQUIRE(h.mem[0xfffd] == 0xa5);
+        REQUIRE(h.peek(0xfffc) == 0x5a);
+        REQUIRE(h.peek(0xfffd) == 0xa5);
 
         h.cpu.af.set(0x0000);
         const StepResult pop = h.step();
@@ -55,8 +55,8 @@ TEST_CASE("PUSH and POP round-trip register pairs through the stack", "[exchange
         REQUIRE(push.cycle_delta() == 15);
         REQUIRE(h.cpu.sp.get() == 0xfffc);
         REQUIRE(h.mem.read_addr_from_mem(0xfffc) == 0xbeef);
-        REQUIRE(h.mem[0xfffc] == 0xef);
-        REQUIRE(h.mem[0xfffd] == 0xbe);
+        REQUIRE(h.peek(0xfffc) == 0xef);
+        REQUIRE(h.peek(0xfffd) == 0xbe);
 
         h.cpu.ix.set(0x0000);
         const StepResult pop = h.step();
@@ -78,16 +78,16 @@ TEST_CASE("PUSH and POP round-trip register pairs through the stack", "[exchange
         REQUIRE(push_de.cycle_delta() == 11);
         REQUIRE(push_de.pc_after == 0x0001);
         REQUIRE(h.cpu.sp.get() == 0xfffc);
-        REQUIRE(h.mem[0xfffc] == 0x68);
-        REQUIRE(h.mem[0xfffd] == 0x24);
+        REQUIRE(h.peek(0xfffc) == 0x68);
+        REQUIRE(h.peek(0xfffd) == 0x24);
         REQUIRE(h.cpu.af.flags() == 0x96);
 
         const StepResult push_hl = h.step();
         REQUIRE(push_hl.cycle_delta() == 11);
         REQUIRE(push_hl.pc_after == 0x0002);
         REQUIRE(h.cpu.sp.get() == 0xfffa);
-        REQUIRE(h.mem[0xfffa] == 0x57);
-        REQUIRE(h.mem[0xfffb] == 0x13);
+        REQUIRE(h.peek(0xfffa) == 0x57);
+        REQUIRE(h.peek(0xfffb) == 0x13);
         REQUIRE(h.cpu.af.flags() == 0x96);
 
         h.cpu.hl.set(0x0000);
@@ -127,8 +127,8 @@ TEST_CASE("POP then PUSH AF preserves the packed flag byte and stack ordering", 
     REQUIRE(h.cpu.af.get() == 0xa55a);
     REQUIRE(h.cpu.sp.get() == 0xfffc);
     REQUIRE(h.mem.read_addr_from_mem(0xfffc) == 0xa55a);
-    REQUIRE(h.mem[0xfffc] == 0x5a);
-    REQUIRE(h.mem[0xfffd] == 0xa5);
+    REQUIRE(h.peek(0xfffc) == 0x5a);
+    REQUIRE(h.peek(0xfffd) == 0xa5);
     REQUIRE(h.cpu.pc.get() == 0x0002);
 }
 
@@ -244,16 +244,16 @@ TEST_CASE("EX (SP),rr swaps stack memory with register pairs", "[exchange-stack]
         CpuHarness h;
         h.cpu.hl.set(0x1234);
         h.cpu.sp.set(0x004e);
-        h.mem.poke_mapped_for_test(0x004e, 0xc1);
-        h.mem.poke_mapped_for_test(0x004f, 0xe1);
+        h.poke(0x004e, 0xc1);
+        h.poke(0x004f, 0xe1);
         h.load({0xe3}, 0x8000);
 
         const StepResult step = h.step();
 
         REQUIRE(step.cycle_delta() == 19);
         REQUIRE(h.cpu.hl.get() == 0xe1c1);
-        REQUIRE(h.mem[0x004e] == 0xc1);
-        REQUIRE(h.mem[0x004f] == 0xe1);
+        REQUIRE(h.peek(0x004e) == 0xc1);
+        REQUIRE(h.peek(0x004f) == 0xe1);
         REQUIRE(h.cpu.sp.get() == 0x004e);
     }
 }

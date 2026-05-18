@@ -57,8 +57,8 @@ TEST_CASE("Indexed pair control and stack forms use IX and IY exactly as documen
         REQUIRE(push.cycle_delta() == 15);
         REQUIRE(push.pc_after == 0x0002);
         REQUIRE(h.cpu.sp.get() == 0x8ffe);
-        REQUIRE(h.mem[0x8ffe] == 0xfe);
-        REQUIRE(h.mem[0x8fff] == 0xca);
+        REQUIRE(h.peek(0x8ffe) == 0xfe);
+        REQUIRE(h.peek(0x8fff) == 0xca);
 
         h.cpu.iy.set(0x0000);
         const StepResult pop = h.step();
@@ -81,8 +81,8 @@ TEST_CASE("Indexed pair control and stack forms use IX and IY exactly as documen
         REQUIRE(push.cycle_delta() == 15);
         REQUIRE(push.pc_after == 0x0002);
         REQUIRE(h.cpu.sp.get() == 0x90fe);
-        REQUIRE(h.mem[0x90fe] == 0x34);
-        REQUIRE(h.mem[0x90ff] == 0x12);
+        REQUIRE(h.peek(0x90fe) == 0x34);
+        REQUIRE(h.peek(0x90ff) == 0x12);
         REQUIRE(h.cpu.iy.get() == 0xabcd);
         REQUIRE(h.cpu.af.flags() == 0x3c);
 

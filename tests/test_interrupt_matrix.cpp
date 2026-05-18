@@ -119,8 +119,8 @@ TEST_CASE("Interrupt state transitions follow the current compliance matrix",
             h.cpu.ir.hi(tc.r_hi);
             h.cpu.ir.lo(tc.r_lo);
             if (tc.int_mode == 2 && tc.vector_addr != 0x0000) {
-                h.mem.poke_mapped_for_test(tc.vector_addr, static_cast<uint8_t>(tc.vector_target & 0xff));
-                h.mem.poke_mapped_for_test(tc.vector_addr + 1, static_cast<uint8_t>((tc.vector_target >> 8) & 0xff));
+                h.poke(tc.vector_addr, static_cast<uint8_t>(tc.vector_target & 0xff));
+                h.poke(tc.vector_addr + 1, static_cast<uint8_t>((tc.vector_target >> 8) & 0xff));
             }
 
             const StepResult step = h.step();

@@ -97,7 +97,7 @@ TEST_CASE("BIT register and HL forms match documented and undocumented flag form
 
                     h.cpu.hl.set(0x9800);
                     h.cpu.memptr.set(0x2800);
-                    h.mem.poke_mapped_for_test(0x9800, value);
+                    h.poke(0x9800, value);
                     h.cpu.af.flags(0x00);
                     h.cpu.af.flag(RegisterAF::Flags::Carry, carry_in);
                     h.load({0xcb, opcode});
@@ -106,7 +106,7 @@ TEST_CASE("BIT register and HL forms match documented and undocumented flag form
 
                     REQUIRE(step.cycle_delta() == 12);
                     REQUIRE(step.pc_after == 0x0002);
-                    REQUIRE(h.mem[0x9800] == value);
+                    REQUIRE(h.peek(0x9800) == value);
                     require_flags(h.cpu.af.flags(), expected_bit_flags(value, bit, carry_in, 0x28));
                 }
             }

@@ -9,14 +9,14 @@ TEST_CASE("LDI copies a byte and updates registers and flags", "[extended]") {
     h.cpu.de.set(0x6000);
     h.cpu.bc.set(0x0002);
     h.cpu.af.flag(RegisterAF::Flags::Carry, true);
-    h.mem.poke_mapped_for_test(0x5000, 0xa5);
+    h.poke(0x5000, 0xa5);
     h.load({0xed, 0xa0});
 
     const StepResult step = h.step();
 
     REQUIRE(step.cycle_delta() == 16);
     REQUIRE(step.pc_after == 0x0002);
-    REQUIRE(h.mem[0x6000] == 0xa5);
+    REQUIRE(h.peek(0x6000) == 0xa5);
     REQUIRE(h.cpu.hl.get() == 0x5001);
     REQUIRE(h.cpu.de.get() == 0x6001);
     REQUIRE(h.cpu.bc.get() == 0x0001);
@@ -32,14 +32,14 @@ TEST_CASE("LDIR repeats until BC becomes zero", "[extended]") {
     h.cpu.hl.set(0x5000);
     h.cpu.de.set(0x6000);
     h.cpu.bc.set(0x0002);
-    h.mem.poke_mapped_for_test(0x5000, 0x12);
-    h.mem.poke_mapped_for_test(0x5001, 0x34);
+    h.poke(0x5000, 0x12);
+    h.poke(0x5001, 0x34);
     h.load({0xed, 0xb0});
 
     const StepResult first = h.step();
     REQUIRE(first.cycle_delta() == 21);
     REQUIRE(h.cpu.pc.get() == 0x0000);
-    REQUIRE(h.mem[0x6000] == 0x12);
+    REQUIRE(h.peek(0x6000) == 0x12);
     REQUIRE(h.cpu.hl.get() == 0x5001);
     REQUIRE(h.cpu.de.get() == 0x6001);
     REQUIRE(h.cpu.bc.get() == 0x0001);
@@ -50,7 +50,7 @@ TEST_CASE("LDIR repeats until BC becomes zero", "[extended]") {
     const StepResult second = h.step();
     REQUIRE(second.cycle_delta() == 16);
     REQUIRE(h.cpu.pc.get() == 0x0002);
-    REQUIRE(h.mem[0x6001] == 0x34);
+    REQUIRE(h.peek(0x6001) == 0x34);
     REQUIRE(h.cpu.hl.get() == 0x5002);
     REQUIRE(h.cpu.de.get() == 0x6002);
     REQUIRE(h.cpu.bc.get() == 0x0000);
@@ -64,9 +64,9 @@ TEST_CASE("CPIR repeats until match and leaves HL and BC in the matched state", 
     h.cpu.af.accum(0x34);
     h.cpu.hl.set(0x5200);
     h.cpu.bc.set(0x0003);
-    h.mem.poke_mapped_for_test(0x5200, 0x12);
-    h.mem.poke_mapped_for_test(0x5201, 0x34);
-    h.mem.poke_mapped_for_test(0x5202, 0x56);
+    h.poke(0x5200, 0x12);
+    h.poke(0x5201, 0x34);
+    h.poke(0x5202, 0x56);
     h.load({0xed, 0xb1});
 
     const StepResult first = h.step();
@@ -99,7 +99,7 @@ TEST_CASE("Indexed addressing uses signed displacement with IX and IY", "[indexe
         const StepResult store = h.step();
         REQUIRE(store.cycle_delta() == 19);
         REQUIRE(store.pc_after == 0x0004);
-        REQUIRE(h.mem[0x7002] == 0x9a);
+        REQUIRE(h.peek(0x7002) == 0x9a);
         REQUIRE(h.cpu.ix.get() == 0x7004);
 
         const StepResult load = h.step();
@@ -117,7 +117,7 @@ TEST_CASE("Indexed addressing uses signed displacement with IX and IY", "[indexe
         const StepResult step = h.step();
         REQUIRE(step.cycle_delta() == 19);
         REQUIRE(step.pc_after == 0x0004);
-        REQUIRE(h.mem[0x7105] == 0x33);
+        REQUIRE(h.peek(0x7105) == 0x33);
         REQUIRE(h.cpu.iy.get() == 0x7100);
     }
 }
@@ -131,7 +131,7 @@ TEST_CASE("Indexed execution counts ignored prefixes while still choosing the fi
         const StepResult step = h.step();
         REQUIRE(step.cycle_delta() == 23);
         REQUIRE(h.cpu.pc.get() == 0x0005);
-        REQUIRE(h.mem[0x7202] == 0xa5);
+        REQUIRE(h.peek(0x7202) == 0xa5);
         REQUIRE(h.cpu.ix.get() == 0x7204);
     }
 
@@ -139,7 +139,7 @@ TEST_CASE("Indexed execution counts ignored prefixes while still choosing the fi
         CpuHarness h;
         h.cpu.ix.set(0x7300);
         h.cpu.iy.set(0x7402);
-        h.mem.poke_mapped_for_test(0x7401, 0x6c);
+        h.poke(0x7401, 0x6c);
         h.load({0xdd, 0xfd, 0x7e, 0xff});
 
         const StepResult step = h.step();
@@ -183,14 +183,14 @@ TEST_CASE("Block repeat instructions distinguish repeating and terminal iteratio
         h.cpu.hl.set(0x5400);
         h.cpu.de.set(0x6400);
         h.cpu.bc.set(0x0001);
-        h.mem.poke_mapped_for_test(0x5400, 0x9c);
+        h.poke(0x5400, 0x9c);
         h.load({0xed, 0xb0});
 
         const StepResult step = h.step();
 
         REQUIRE(step.cycle_delta() == 16);
         REQUIRE(h.cpu.pc.get() == 0x0002);
-        REQUIRE(h.mem[0x6400] == 0x9c);
+        REQUIRE(h.peek(0x6400) == 0x9c);
         REQUIRE(h.cpu.hl.get() == 0x5401);
         REQUIRE(h.cpu.de.get() == 0x6401);
         REQUIRE(h.cpu.bc.get() == 0x0000);
@@ -202,8 +202,8 @@ TEST_CASE("Block repeat instructions distinguish repeating and terminal iteratio
         h.cpu.af.accum(0x44);
         h.cpu.hl.set(0x5500);
         h.cpu.bc.set(0x0002);
-        h.mem.poke_mapped_for_test(0x5500, 0x11);
-        h.mem.poke_mapped_for_test(0x5501, 0x22);
+        h.poke(0x5500, 0x11);
+        h.poke(0x5501, 0x22);
         h.load({0xed, 0xb1});
 
         const StepResult first = h.step();
@@ -230,14 +230,14 @@ TEST_CASE("Self-modifying LDIR and LDDR can turn into ED NOPs on the next iterat
         h.cpu.hl.set(0x4000);
         h.cpu.de.set(0x8001);
         h.cpu.bc.set(0x0002);
-        h.mem.poke_mapped_for_test(0x4000, 0x00);
-        h.mem.poke_mapped_for_test(0x4001, 0x9a);
+        h.poke(0x4000, 0x00);
+        h.poke(0x4001, 0x9a);
         h.load({0xed, 0xb0, 0x00}, 0x8000);
 
         const StepResult first = h.step();
         REQUIRE(first.cycle_delta() == 21);
         REQUIRE(h.cpu.pc.get() == 0x8000);
-        REQUIRE(h.mem[0x8001] == 0x00);
+        REQUIRE(h.peek(0x8001) == 0x00);
         REQUIRE(h.cpu.hl.get() == 0x4001);
         REQUIRE(h.cpu.de.get() == 0x8002);
         REQUIRE(h.cpu.bc.get() == 0x0001);
@@ -255,14 +255,14 @@ TEST_CASE("Self-modifying LDIR and LDDR can turn into ED NOPs on the next iterat
         h.cpu.hl.set(0x4101);
         h.cpu.de.set(0x8001);
         h.cpu.bc.set(0x0002);
-        h.mem.poke_mapped_for_test(0x4101, 0x00);
-        h.mem.poke_mapped_for_test(0x4100, 0x9a);
+        h.poke(0x4101, 0x00);
+        h.poke(0x4100, 0x9a);
         h.load({0xed, 0xb8, 0x00}, 0x8000);
 
         const StepResult first = h.step();
         REQUIRE(first.cycle_delta() == 21);
         REQUIRE(h.cpu.pc.get() == 0x8000);
-        REQUIRE(h.mem[0x8001] == 0x00);
+        REQUIRE(h.peek(0x8001) == 0x00);
         REQUIRE(h.cpu.hl.get() == 0x4100);
         REQUIRE(h.cpu.de.get() == 0x8000);
         REQUIRE(h.cpu.bc.get() == 0x0001);
@@ -280,7 +280,7 @@ TEST_CASE("BIT on indexed memory updates flags from the fetched byte", "[indexed
     CpuHarness h;
     h.cpu.ix.set(0x7200);
     h.cpu.af.flag(RegisterAF::Flags::Carry, true);
-    h.mem.poke_mapped_for_test(0x71ff, 0x80);
+    h.poke(0x71ff, 0x80);
     h.load({0xdd, 0xcb, 0xff, 0x7e});
 
     const StepResult step = h.step();
@@ -329,7 +329,7 @@ TEST_CASE("R register increments according to fetched opcode length", "[rreg]") 
         CpuHarness h;
         h.cpu.ix.set(0x7300);
         h.cpu.ir.lo(0x00);
-        h.mem.poke_mapped_for_test(0x7300, 0x01);
+        h.poke(0x7300, 0x01);
         h.load({0xdd, 0xcb, 0x00, 0x46});
 
         h.step();
@@ -391,7 +391,7 @@ TEST_CASE("R register increments according to fetched opcode length", "[rreg]") 
         CpuHarness h;
         h.cpu.ix.set(0x6200);
         h.cpu.ir.lo(0x30);
-        h.mem.poke_mapped_for_test(0x6200, 0x01);
+        h.poke(0x6200, 0x01);
         h.load({0xdd, 0xdd, 0xcb, 0x00, 0x46});
 
         h.step();
@@ -421,8 +421,8 @@ TEST_CASE("R register increments according to fetched opcode length", "[rreg]") 
         h.cpu.iff2 = true;
         h.cpu.interrupt = true;
         h.cpu.int_mode = 2;
-        h.mem.poke_mapped_for_test(0x12ff, 0x67);
-        h.mem.poke_mapped_for_test(0x1300, 0x45);
+        h.poke(0x12ff, 0x67);
+        h.poke(0x1300, 0x45);
 
         h.step();
         REQUIRE(h.cpu.ir.lo() == 0x51);

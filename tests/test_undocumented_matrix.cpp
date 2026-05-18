@@ -77,14 +77,14 @@ TEST_CASE("Ignored prefix combinations follow last-prefix or no-effect rules",
         CpuHarness h;
         h.cpu.ix.set(0xa300);
         h.cpu.af.accum(0x55);
-        h.mem.poke_mapped_for_test(0xa301, 0x81);
+        h.poke(0xa301, 0x81);
         h.load({0xdd, 0xdd, 0xcb, 0x01, 0x07});
 
         const StepResult step = h.step();
 
         REQUIRE(step.cycle_delta() == 27);
         REQUIRE(h.cpu.pc.get() == 0x0005);
-        REQUIRE(h.mem[0xa301] == 0x03);
+        REQUIRE(h.peek(0xa301) == 0x03);
         REQUIRE(h.cpu.af.accum() == 0x03);
     }
 
@@ -93,14 +93,14 @@ TEST_CASE("Ignored prefix combinations follow last-prefix or no-effect rules",
         h.cpu.ix.set(0xa340);
         h.cpu.iy.set(0xb000);
         h.cpu.bc.hi(0x12);
-        h.mem.poke_mapped_for_test(0xa33f, 0x80);
+        h.poke(0xa33f, 0x80);
         h.load({0xfd, 0xdd, 0xcb, 0xff, 0x00});
 
         const StepResult step = h.step();
 
         REQUIRE(step.cycle_delta() == 27);
         REQUIRE(h.cpu.pc.get() == 0x0005);
-        REQUIRE(h.mem[0xa33f] == 0x01);
+        REQUIRE(h.peek(0xa33f) == 0x01);
         REQUIRE(h.cpu.bc.hi() == 0x01);
         REQUIRE(h.cpu.iy.get() == 0xb000);
     }
@@ -135,14 +135,14 @@ TEST_CASE("Undocumented indexed CB register-copy forms populate every destinatio
             h.cpu.hl.set(0x5060);
             h.cpu.af.accum(0x70);
             h.cpu.ix.set(0xa400);
-            h.mem.poke_mapped_for_test(0xa401, 0x81);
+            h.poke(0xa401, 0x81);
             h.load({0xdd, 0xcb, 0x01, tc.opcode});
 
             const StepResult step = h.step();
 
             REQUIRE(step.cycle_delta() == 23);
             REQUIRE(h.cpu.pc.get() == 0x0004);
-            REQUIRE(h.mem[0xa401] == 0x03);
+            REQUIRE(h.peek(0xa401) == 0x03);
             REQUIRE(h.cpu.bc.hi() == tc.expected_b);
             REQUIRE(h.cpu.bc.lo() == tc.expected_c);
             REQUIRE(h.cpu.de.hi() == tc.expected_d);
@@ -181,14 +181,14 @@ TEST_CASE("Undocumented indexed CB register-copy forms populate every destinatio
             h.cpu.hl.set(0x5161);
             h.cpu.af.accum(0x71);
             h.cpu.iy.set(0xa501);
-            h.mem.poke_mapped_for_test(0xa500, 0xff);
+            h.poke(0xa500, 0xff);
             h.load({0xfd, 0xcb, 0xff, tc.opcode});
 
             const StepResult step = h.step();
 
             REQUIRE(step.cycle_delta() == 23);
             REQUIRE(h.cpu.pc.get() == 0x0004);
-            REQUIRE(h.mem[0xa500] == 0xfe);
+            REQUIRE(h.peek(0xa500) == 0xfe);
             REQUIRE(h.cpu.bc.hi() == tc.expected_b);
             REQUIRE(h.cpu.bc.lo() == tc.expected_c);
             REQUIRE(h.cpu.de.hi() == tc.expected_d);

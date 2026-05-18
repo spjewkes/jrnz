@@ -28,11 +28,15 @@ struct CpuHarness {
     void load(std::initializer_list<uint8_t> bytes, uint16_t start = 0x0000) {
         size_t offset = 0;
         for (uint8_t byte : bytes) {
-            mem.poke_mapped_for_test(static_cast<uint16_t>(start + offset), byte);
+            poke(static_cast<uint16_t>(start + offset), byte);
             ++offset;
         }
         cpu.pc.set(start);
     }
+
+    void poke(uint16_t addr, uint8_t value) { mem.poke_mapped_for_test(addr, value); }
+
+    uint8_t peek(uint16_t addr) const { return mem.peek(addr); }
 
     StepResult step() {
         StepResult result{cpu.pc.get(), 0, cpu.total_cycles, 0};
