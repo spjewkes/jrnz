@@ -166,7 +166,8 @@ void ULA::record_screen_tstate(uint64_t frame_pos) {
 
     for (std::size_t x = 0; x < bytes_per_line; ++x) {
         screen_bitmap_snapshot[line_offset + x] = _bus.read_ula_screen(static_cast<uint16_t>(bitmap_addr + x));
-        screen_attr_snapshot[line_offset + x] = _bus.read_ula_screen(static_cast<uint16_t>(attr_addr + x));
+        screen_attr_snapshot[line_offset + x] =
+            _bus.read_ula_attribute_at(static_cast<uint16_t>(attr_addr + x), frame_pos);
     }
 }
 

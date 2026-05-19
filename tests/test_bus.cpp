@@ -290,6 +290,37 @@ TEST_CASE("Timed display write recording ignores non-attribute writes", "[bus]")
     REQUIRE(bus.display_writes().empty());
 }
 
+TEST_CASE("ULA attribute reads hide future timed writes", "[bus]") {
+    Bus bus(65536);
+    const uint16_t attr = bus.model().screen_attr_base;
+
+    bus.poke_mapped_for_test(attr, 0x11);
+    bus.set_display_write_recording_enabled(true);
+    bus.set_frame_tstate(100);
+    bus.write_data(attr, 0x22);
+
+    REQUIRE(bus.read_ula_attribute_at(attr, 99) == 0x11);
+    REQUIRE(bus.read_ula_attribute_at(attr, 100) == 0x22);
+    REQUIRE(bus.read_ula_attribute_at(attr, 101) == 0x22);
+}
+
+TEST_CASE("ULA attribute reads use the latest timed write at the sample point", "[bus]") {
+    Bus bus(65536);
+    const uint16_t attr = bus.model().screen_attr_base;
+
+    bus.poke_mapped_for_test(attr, 0x11);
+    bus.set_display_write_recording_enabled(true);
+    bus.set_frame_tstate(100);
+    bus.write_data(attr, 0x22);
+    bus.set_frame_tstate(120);
+    bus.write_data(attr, 0x33);
+
+    REQUIRE(bus.read_ula_attribute_at(attr, 90) == 0x11);
+    REQUIRE(bus.read_ula_attribute_at(attr, 110) == 0x22);
+    REQUIRE(bus.read_ula_attribute_at(attr, 120) == 0x33);
+    REQUIRE(bus.read_ula_attribute_at(attr, 130) == 0x33);
+}
+
 TEST_CASE("Port reads distinguish even keyboard ports from the floating bus path", "[bus]") {
     Bus bus(65536);
     bus.poke_mapped_for_test(0x4000, 0x81);

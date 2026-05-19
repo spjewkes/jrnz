@@ -220,6 +220,43 @@ public:
         assert(addr < static_cast<uint16_t>(machine.screen_bitmap_base + bank_size));
         return read_physical_ram(ula_screen_bank(), static_cast<uint16_t>(addr - machine.screen_bitmap_base));
     }
+    uint8_t read_ula_attribute_at(uint16_t addr, uint64_t frame_tstate) const {
+        // CPU writes update RAM immediately; the timed log lets the ULA sample
+        // the value that would have existed at this beam position.
+        uint8_t value = read_ula_screen(addr);
+        bool have_past = false;
+        uint64_t latest_past_tstate = 0;
+        uint8_t latest_past_value = value;
+        bool have_future = false;
+        uint64_t earliest_future_tstate = 0;
+        uint8_t earliest_future_old_value = value;
+
+        for (const TimedDisplayWrite &write : timed_display_writes) {
+            if (write.addr != addr) {
+                continue;
+            }
+
+            if (write.frame_tstate <= frame_tstate) {
+                if (!have_past || write.frame_tstate >= latest_past_tstate) {
+                    have_past = true;
+                    latest_past_tstate = write.frame_tstate;
+                    latest_past_value = write.value;
+                }
+            } else if (!have_future || write.frame_tstate < earliest_future_tstate) {
+                have_future = true;
+                earliest_future_tstate = write.frame_tstate;
+                earliest_future_old_value = write.old_value;
+            }
+        }
+
+        if (have_past) {
+            return latest_past_value;
+        }
+        if (have_future) {
+            return earliest_future_old_value;
+        }
+        return value;
+    }
 
 private:
     static constexpr uint16_t bank_size = 0x4000;
