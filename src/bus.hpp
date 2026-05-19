@@ -35,6 +35,13 @@ struct FetchedOpcode {
     uint8_t ignored_prefixes = {0};
 };
 
+struct TimedDisplayWrite {
+    uint64_t frame_tstate = {0};
+    uint16_t addr = {0};
+    uint8_t old_value = {0};
+    uint8_t value = {0};
+};
+
 /**
  * @brief Defines the memory/data bus of the device.
  */
@@ -169,6 +176,8 @@ public:
         contention_access_phase += tstates;
     }
     void delay_next_beam_port_latch(uint32_t tstates) { next_beam_port_latch_extra_tstates += tstates; }
+    void clear_timed_display_writes() { timed_display_writes.clear(); }
+    const std::vector<TimedDisplayWrite> &display_writes() const { return timed_display_writes; }
 
     void clock() {
         // Not actively used at the moment but may be useful for debugging
@@ -457,4 +466,5 @@ private:
     uint8_t beam_port_254 = {0};
     std::deque<PendingBeamPortWrite> pending_beam_port_254_writes;
     uint32_t next_beam_port_latch_extra_tstates = {0};
+    std::vector<TimedDisplayWrite> timed_display_writes;
 };
