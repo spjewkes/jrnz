@@ -279,6 +279,22 @@ TEST_CASE("Timed display write recording captures attribute RAM writes", "[bus]"
     REQUIRE(bus.display_writes()[0].value == 0x42);
 }
 
+TEST_CASE("Timed display write recording captures bitmap RAM writes", "[bus]") {
+    Bus bus(65536);
+    const uint16_t bitmap = bus.model().screen_bitmap_base;
+
+    bus.poke_mapped_for_test(bitmap, 0x11);
+    bus.set_display_write_recording_enabled(true);
+    bus.set_frame_tstate(123);
+    bus.write_data(bitmap, 0x42);
+
+    REQUIRE(bus.display_writes().size() == 1);
+    REQUIRE(bus.display_writes()[0].frame_tstate == 123);
+    REQUIRE(bus.display_writes()[0].addr == bitmap);
+    REQUIRE(bus.display_writes()[0].old_value == 0x11);
+    REQUIRE(bus.display_writes()[0].value == 0x42);
+}
+
 TEST_CASE("Timed display write recording captures memory operand write-back", "[bus]") {
     Bus bus(65536);
     const uint16_t attr = bus.model().screen_attr_base;
@@ -298,13 +314,13 @@ TEST_CASE("Timed display write recording captures memory operand write-back", "[
     REQUIRE(bus.display_writes()[0].value == 0x42);
 }
 
-TEST_CASE("Timed display write recording ignores non-attribute writes", "[bus]") {
+TEST_CASE("Timed display write recording ignores non-display writes", "[bus]") {
     Bus bus(65536);
 
     bus.set_display_write_recording_enabled(true);
     bus.set_frame_tstate(123);
-    bus.write_data(bus.model().screen_bitmap_base, 0x42);
     bus.write_data(static_cast<uint16_t>(bus.model().screen_attr_base + 0x0300), 0x24);
+    bus.write_data(0x8000, 0x42);
 
     REQUIRE(bus.display_writes().empty());
 }
@@ -321,6 +337,20 @@ TEST_CASE("ULA attribute reads hide future timed writes", "[bus]") {
     REQUIRE(bus.read_ula_attribute_at(attr, 99) == 0x11);
     REQUIRE(bus.read_ula_attribute_at(attr, 100) == 0x22);
     REQUIRE(bus.read_ula_attribute_at(attr, 101) == 0x22);
+}
+
+TEST_CASE("ULA bitmap reads hide future timed writes", "[bus]") {
+    Bus bus(65536);
+    const uint16_t bitmap = bus.model().screen_bitmap_base;
+
+    bus.poke_mapped_for_test(bitmap, 0x11);
+    bus.set_display_write_recording_enabled(true);
+    bus.set_frame_tstate(100);
+    bus.write_data(bitmap, 0x22);
+
+    REQUIRE(bus.read_ula_bitmap_at(bitmap, 99) == 0x11);
+    REQUIRE(bus.read_ula_bitmap_at(bitmap, 100) == 0x22);
+    REQUIRE(bus.read_ula_bitmap_at(bitmap, 101) == 0x22);
 }
 
 TEST_CASE("ULA attribute reads use the latest timed write at the sample point", "[bus]") {

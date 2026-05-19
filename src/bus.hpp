@@ -227,7 +227,7 @@ public:
         assert(addr < static_cast<uint16_t>(machine.screen_bitmap_base + bank_size));
         return read_physical_ram(ula_screen_bank(), static_cast<uint16_t>(addr - machine.screen_bitmap_base));
     }
-    uint8_t read_ula_attribute_at(uint16_t addr, uint64_t frame_tstate) const {
+    uint8_t read_ula_display_at(uint16_t addr, uint64_t frame_tstate) const {
         // CPU writes update RAM immediately; the timed log lets the ULA sample
         // the value that would have existed at this beam position.
         uint8_t value = read_ula_screen(addr);
@@ -263,6 +263,12 @@ public:
             return earliest_future_old_value;
         }
         return value;
+    }
+    uint8_t read_ula_bitmap_at(uint16_t addr, uint64_t frame_tstate) const {
+        return read_ula_display_at(addr, frame_tstate);
+    }
+    uint8_t read_ula_attribute_at(uint16_t addr, uint64_t frame_tstate) const {
+        return read_ula_display_at(addr, frame_tstate);
     }
 
 private:
@@ -475,14 +481,18 @@ private:
         contention_access_phase += 1;
     }
 
-    bool tracked_attribute_addr(uint16_t addr) const {
+    bool tracked_display_addr(uint16_t addr) const {
         const uint16_t attr_size = static_cast<uint16_t>((machine.screen_width / machine.attr_cell_size) *
                                                          (machine.screen_height / machine.attr_cell_size));
-        return addr >= machine.screen_attr_base && addr < static_cast<uint16_t>(machine.screen_attr_base + attr_size);
+        const bool in_bitmap =
+            addr >= machine.screen_bitmap_base && addr < static_cast<uint16_t>(machine.screen_attr_base);
+        const bool in_attributes =
+            addr >= machine.screen_attr_base && addr < static_cast<uint16_t>(machine.screen_attr_base + attr_size);
+        return in_bitmap || in_attributes;
     }
 
     void record_timed_display_write(uint16_t addr, uint8_t old_value, uint8_t value) {
-        if (!display_write_recording_enabled_value || !frame_tstate_valid || !tracked_attribute_addr(addr)) {
+        if (!display_write_recording_enabled_value || !frame_tstate_valid || !tracked_display_addr(addr)) {
             return;
         }
 

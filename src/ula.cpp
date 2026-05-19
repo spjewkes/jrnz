@@ -165,17 +165,17 @@ void ULA::record_screen_tstate(uint64_t frame_pos) {
     const std::size_t line_offset = static_cast<std::size_t>(display_y) * bytes_per_line;
 
     const std::size_t fetch_column = static_cast<std::size_t>(line_pos / 4);
-    if (fetch_column < bytes_per_line && (line_pos & 0x3) == 2) {
-        screen_attr_snapshot[line_offset + fetch_column] =
-            _bus.read_ula_attribute_at(static_cast<uint16_t>(attr_addr + fetch_column), frame_pos);
-    }
-
-    if (line_pos != static_cast<uint64_t>(machine.contention_visible_tstates - 1)) {
+    if (fetch_column >= bytes_per_line) {
         return;
     }
 
-    for (std::size_t x = 0; x < bytes_per_line; ++x) {
-        screen_bitmap_snapshot[line_offset + x] = _bus.read_ula_screen(static_cast<uint16_t>(bitmap_addr + x));
+    const uint64_t fetch_phase = line_pos & 0x3;
+    if (fetch_phase == 0) {
+        screen_bitmap_snapshot[line_offset + fetch_column] =
+            _bus.read_ula_bitmap_at(static_cast<uint16_t>(bitmap_addr + fetch_column), frame_pos);
+    } else if (fetch_phase == 2) {
+        screen_attr_snapshot[line_offset + fetch_column] =
+            _bus.read_ula_attribute_at(static_cast<uint16_t>(attr_addr + fetch_column), frame_pos);
     }
 }
 
