@@ -305,6 +305,7 @@ void ULA::clock(bool &do_exit, bool &do_break) {
             capture_fast_frame_snapshot();
         }
         render_frame();
+        _bus.clear_timed_display_writes();
 
         frame_counter++;
         if (frame_counter % 16 == 0) {

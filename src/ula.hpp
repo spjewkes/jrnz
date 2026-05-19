@@ -35,7 +35,9 @@ public:
                                    static_cast<std::size_t>(machine.screen_height),
                                0),
           fast_mode(fast_mode),
-          video_timing_mode(fast_mode ? VideoTimingMode::Fast : VideoTimingMode::BeamAware) {}
+          video_timing_mode(fast_mode ? VideoTimingMode::Fast : VideoTimingMode::BeamAware) {
+        _bus.set_display_write_recording_enabled(beam_timing_enabled());
+    }
     virtual ~ULA() {}
 
     void clock(bool &do_exit, bool &do_break);

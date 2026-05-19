@@ -106,7 +106,9 @@ public:
     void write_data(uint16_t addr, uint8_t v) {
         account_contention(addr);
         if (!is_read_only_addr(addr)) {
+            const uint8_t old_value = mapped_byte(addr);
             mapped_byte(addr) = v;
+            record_timed_display_write(addr, old_value, v);
         }
     }
 
@@ -176,6 +178,8 @@ public:
         contention_access_phase += tstates;
     }
     void delay_next_beam_port_latch(uint32_t tstates) { next_beam_port_latch_extra_tstates += tstates; }
+    void set_display_write_recording_enabled(bool enabled) { display_write_recording_enabled_value = enabled; }
+    bool display_write_recording_enabled() const { return display_write_recording_enabled_value; }
     void clear_timed_display_writes() { timed_display_writes.clear(); }
     const std::vector<TimedDisplayWrite> &display_writes() const { return timed_display_writes; }
 
@@ -427,6 +431,21 @@ private:
         contention_access_phase += 1;
     }
 
+    bool tracked_attribute_addr(uint16_t addr) const {
+        const uint16_t attr_size = static_cast<uint16_t>((machine.screen_width / machine.attr_cell_size) *
+                                                         (machine.screen_height / machine.attr_cell_size));
+        return addr >= machine.screen_attr_base && addr < static_cast<uint16_t>(machine.screen_attr_base + attr_size);
+    }
+
+    void record_timed_display_write(uint16_t addr, uint8_t old_value, uint8_t value) {
+        if (!display_write_recording_enabled_value || !frame_tstate_valid || !tracked_attribute_addr(addr)) {
+            return;
+        }
+
+        const uint64_t write_tstate = (current_frame_tstate + contention_access_phase) % machine.frame_tstates;
+        timed_display_writes.push_back(TimedDisplayWrite{write_tstate, addr, old_value, value});
+    }
+
     uint8_t contention_delay(uint64_t tstate) const {
         const uint64_t frame_pos = tstate % machine.frame_tstates;
         const uint64_t contention_span =
@@ -466,5 +485,6 @@ private:
     uint8_t beam_port_254 = {0};
     std::deque<PendingBeamPortWrite> pending_beam_port_254_writes;
     uint32_t next_beam_port_latch_extra_tstates = {0};
+    bool display_write_recording_enabled_value = {false};
     std::vector<TimedDisplayWrite> timed_display_writes;
 };

@@ -252,6 +252,44 @@ TEST_CASE("Word writes respect the ROM to RAM boundary one byte at a time", "[bu
     REQUIRE(bus.read_data(0x4000) == 0xab);
 }
 
+TEST_CASE("Timed display write recording is disabled by default", "[bus]") {
+    Bus bus(65536);
+    const uint16_t attr = bus.model().screen_attr_base;
+
+    bus.set_frame_tstate(123);
+    bus.write_data(attr, 0x42);
+
+    REQUIRE_FALSE(bus.display_write_recording_enabled());
+    REQUIRE(bus.display_writes().empty());
+}
+
+TEST_CASE("Timed display write recording captures attribute RAM writes", "[bus]") {
+    Bus bus(65536);
+    const uint16_t attr = bus.model().screen_attr_base;
+
+    bus.poke_mapped_for_test(attr, 0x11);
+    bus.set_display_write_recording_enabled(true);
+    bus.set_frame_tstate(123);
+    bus.write_data(attr, 0x42);
+
+    REQUIRE(bus.display_writes().size() == 1);
+    REQUIRE(bus.display_writes()[0].frame_tstate == 123);
+    REQUIRE(bus.display_writes()[0].addr == attr);
+    REQUIRE(bus.display_writes()[0].old_value == 0x11);
+    REQUIRE(bus.display_writes()[0].value == 0x42);
+}
+
+TEST_CASE("Timed display write recording ignores non-attribute writes", "[bus]") {
+    Bus bus(65536);
+
+    bus.set_display_write_recording_enabled(true);
+    bus.set_frame_tstate(123);
+    bus.write_data(bus.model().screen_bitmap_base, 0x42);
+    bus.write_data(static_cast<uint16_t>(bus.model().screen_attr_base + 0x0300), 0x24);
+
+    REQUIRE(bus.display_writes().empty());
+}
+
 TEST_CASE("Port reads distinguish even keyboard ports from the floating bus path", "[bus]") {
     Bus bus(65536);
     bus.poke_mapped_for_test(0x4000, 0x81);
