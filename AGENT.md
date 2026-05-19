@@ -208,6 +208,9 @@ Current display support includes:
 - border rendering that now records colour history across the visible frame and can show at least coarse mid-frame border changes
 - scanline-based bitmap/attribute snapshots, which are enough for some raster-sensitive titles that update display memory during the frame
 - frame pacing to approximately 50 Hz unless `--fast` is used
+- `--fast` also selects the cheap video path: it skips per-tick border/screen
+  history, uses a solid current border colour, and snapshots display RAM only
+  when rendering a frame
 
 Important limitation:
 
@@ -215,12 +218,17 @@ Important limitation:
 - Border colour is tracked across the visible frame and bitmap/attribute data is snapshotted per scanline, which improves many mid-frame effects.
 - The current draw routine still does not render mid-frame or mid-scanline bitmap/attribute changes correctly.
 - This means color bars, border effects, and timing-sensitive raster tricks are not faithfully represented.
+- In `--fast`, those raster effects are intentionally less accurate because
+  beam-aware video bookkeeping is bypassed.
 
 ## Timing Notes That Matter
 
 - The system publishes the current ULA frame t-state to the bus before advancing the ULA for the next tick. Moving that ordering can shift contention and interrupt phase by one t-state.
 - Z80 instruction scheduling assumes the current `clock()` call already consumes the first T-state of the decoded instruction. Future cycle-accounting changes need to preserve that convention.
 - `HALT` should wake as soon as an interrupt becomes visible, even if the core is part-way through the synthetic halt wait. Delaying that wake can cause stable two-position frame jitter in timing-sensitive software.
+- `ULA` has a `VideoTimingMode` split. Normal execution uses `BeamAware` for
+  border/screen history. `--fast` uses `Fast`, which should stay cheap and
+  bypass any future beam-aware display write tracking.
 - ULA port writes have two observable states: `port_254` changes immediately for CPU-level state, while `beam_ula_port()` is delayed to the I/O write phase for border rendering. Do not collapse them unless the CPU becomes genuinely per-T-state internally.
 - Block-output instructions (`OUTI`/`OUTD`/repeat forms) add an extra beam-latch delay through `block_io_port_write_latch_extra_tstates`. This is a deliberately signposted tuning point for border effects such as Paperboy; avoid applying it to all `OUT` instructions unless simple-output timing has been revalidated.
 - Manual visual timing references used so far: Paperboy exercises the delayed

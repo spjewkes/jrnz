@@ -170,6 +170,26 @@ void ULA::record_screen_tstate(uint64_t frame_pos) {
     }
 }
 
+void ULA::capture_fast_frame_snapshot() {
+    const uint8_t border = static_cast<uint8_t>(_bus.port_254 & 0x07);
+    std::fill(border_timeline.begin(), border_timeline.end(), border);
+
+    const std::size_t bytes_per_line = static_cast<std::size_t>(machine.screen_width / machine.attr_cell_size);
+    for (int y = 0; y < machine.screen_height; ++y) {
+        const uint8_t display_y = static_cast<uint8_t>(y);
+        const uint8_t memory_y = remap_spectrum_y(display_y);
+        const uint16_t bitmap_addr = static_cast<uint16_t>(machine.screen_bitmap_base + (memory_y * bytes_per_line));
+        const uint16_t attr_addr =
+            static_cast<uint16_t>(machine.screen_attr_base + ((display_y >> 3) * bytes_per_line));
+        const std::size_t line_offset = static_cast<std::size_t>(display_y) * bytes_per_line;
+
+        for (std::size_t x = 0; x < bytes_per_line; ++x) {
+            screen_bitmap_snapshot[line_offset + x] = _bus.read_ula_screen(static_cast<uint16_t>(bitmap_addr + x));
+            screen_attr_snapshot[line_offset + x] = _bus.read_ula_screen(static_cast<uint16_t>(attr_addr + x));
+        }
+    }
+}
+
 void ULA::render_frame() const {
 #ifdef HAVE_DISPLAY
     set_rendercolor(renderer, 0, false);
@@ -256,8 +276,10 @@ void ULA::clock(bool &do_exit, bool &do_break) {
     }
 
     const uint64_t frame_pos = counter % machine.frame_tstates;
-    record_border_tstate(frame_pos);
-    record_screen_tstate(frame_pos);
+    if (beam_timing_enabled()) {
+        record_border_tstate(frame_pos);
+        record_screen_tstate(frame_pos);
+    }
 
     // Frame-start side effects are keyed off the wrapped frame position rather
     // than the raw counter so they stay aligned across counter rollover.
@@ -279,6 +301,9 @@ void ULA::clock(bool &do_exit, bool &do_break) {
     }
 
     if (frame_pos == machine.frame_tstates - 1) {
+        if (!beam_timing_enabled()) {
+            capture_fast_frame_snapshot();
+        }
         render_frame();
 
         frame_counter++;
