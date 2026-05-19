@@ -105,6 +105,13 @@ public:
 
     void write_data(uint16_t addr, uint8_t v) {
         account_contention(addr);
+        write_observed_data(addr, v);
+    }
+
+    // StorageElement write-back uses this after instruction timing has already
+    // reached the write phase. It updates mapped RAM and records beam-visible
+    // writes without adding another contention access.
+    void write_observed_data(uint16_t addr, uint8_t v) {
         if (!is_read_only_addr(addr)) {
             const uint8_t old_value = mapped_byte(addr);
             mapped_byte(addr) = v;
@@ -126,7 +133,7 @@ public:
         if (count > 1) {
             assert(page_index(addr) == page_index(static_cast<uint16_t>(addr + count - 1)));
         }
-        return StorageElement(&mapped_byte(addr), count, is_read_only_addr(addr));
+        return StorageElement(this, addr, &mapped_byte(addr), count, is_read_only_addr(addr));
     }
 
     FetchedOpcode read_opcode_from_mem(uint16_t addr) const;

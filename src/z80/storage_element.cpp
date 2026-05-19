@@ -20,6 +20,14 @@ StorageElement::StorageElement(uint8_t *_ptr, size_t _count, bool _readonly)
     }
 }
 
+StorageElement::StorageElement(Bus *_bus, uint16_t _addr, uint8_t *_ptr, size_t _count, bool _readonly)
+    : StorageElement(_ptr, _count, _readonly) {
+    if (!readonly) {
+        bus = _bus;
+        bus_addr = _addr;
+    }
+}
+
 StorageElement::StorageElement(uint8_t v) : ptr(nullptr), count(1), readonly(true) {
     read_only.push_back(v);
     ptr = &read_only[0];
@@ -180,7 +188,9 @@ StorageElement StorageElement::create_element(Z80 &state, Operand operand) {
 StorageElement &StorageElement::operator=(const StorageElement &rhs) {
     assert(count == rhs.count);
     if ((this != &rhs) && (!readonly)) {
-        std::memcpy(ptr, rhs.ptr, count);
+        for (size_t index = 0; index < count; ++index) {
+            write_byte(index, rhs.ptr[index]);
+        }
         flag_carry = rhs.flag_carry;
         flag_half_carry = rhs.flag_half_carry;
         flag_overflow = rhs.flag_overflow;
@@ -191,7 +201,7 @@ StorageElement &StorageElement::operator=(const StorageElement &rhs) {
 StorageElement &StorageElement::operator=(const uint8_t rhs) {
     assert(count == 1);
     if (!readonly) {
-        ptr[0] = rhs;
+        write_byte(0, rhs);
     }
     return *this;
 }
@@ -276,14 +286,18 @@ bool StorageElement::operator==(const StorageElement &rhs) const {
 }
 
 void StorageElement::swap(StorageElement &rhs) {
+    assert(count == 2);
+    assert(rhs.count == 2);
     uint8_t tmp_lo = ptr[WORD_LO_BYTE_IDX];
     uint8_t tmp_hi = ptr[WORD_HI_BYTE_IDX];
+    uint8_t rhs_lo = rhs.ptr[WORD_LO_BYTE_IDX];
+    uint8_t rhs_hi = rhs.ptr[WORD_HI_BYTE_IDX];
 
-    ptr[WORD_LO_BYTE_IDX] = rhs.ptr[WORD_LO_BYTE_IDX];
-    ptr[WORD_HI_BYTE_IDX] = rhs.ptr[WORD_HI_BYTE_IDX];
+    write_byte(WORD_LO_BYTE_IDX, rhs_lo);
+    write_byte(WORD_HI_BYTE_IDX, rhs_hi);
 
-    rhs.ptr[WORD_LO_BYTE_IDX] = tmp_lo;
-    rhs.ptr[WORD_HI_BYTE_IDX] = tmp_hi;
+    rhs.write_byte(WORD_LO_BYTE_IDX, tmp_lo);
+    rhs.write_byte(WORD_HI_BYTE_IDX, tmp_hi);
 }
 
 bool StorageElement::get_bit(StorageElement &rhs) {
@@ -311,8 +325,8 @@ uint16_t StorageElement::push(Bus &bus, uint16_t addr) {
 }
 
 uint16_t StorageElement::pop(Bus &bus, uint16_t addr) {
-    ptr[WORD_LO_BYTE_IDX] = bus.read_data(addr);
-    ptr[WORD_HI_BYTE_IDX] = bus.read_data(addr + 1);
+    write_byte(WORD_LO_BYTE_IDX, bus.read_data(addr));
+    write_byte(WORD_HI_BYTE_IDX, bus.read_data(addr + 1));
     return addr + 2;
 }
 
@@ -464,14 +478,26 @@ int StorageElement::to_s32() const {
     return v;
 }
 
+void StorageElement::write_byte(size_t index, uint8_t v) {
+    assert(index < count);
+    if (readonly) {
+        return;
+    }
+    if (bus != nullptr) {
+        bus->write_observed_data(static_cast<uint16_t>(bus_addr + index), v);
+        return;
+    }
+    ptr[index] = v;
+}
+
 void StorageElement::from_u32(uint32_t v) {
     switch (count) {
         case 1:
-            *static_cast<uint8_t *>(ptr) = static_cast<uint8_t>(v);
+            write_byte(0, static_cast<uint8_t>(v));
             break;
         case 2:
-            ptr[WORD_LO_BYTE_IDX] = static_cast<uint8_t>(v & 0xff);
-            ptr[WORD_HI_BYTE_IDX] = static_cast<uint8_t>((v >> 8) & 0xff);
+            write_byte(WORD_LO_BYTE_IDX, static_cast<uint8_t>(v & 0xff));
+            write_byte(WORD_HI_BYTE_IDX, static_cast<uint8_t>((v >> 8) & 0xff));
             break;
         default:
             assert(false);  // Should not get here

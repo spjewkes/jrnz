@@ -21,6 +21,7 @@ class Bus;
 class StorageElement {
 public:
     explicit StorageElement(uint8_t *_ptr, size_t _count, bool _readonly = false);
+    explicit StorageElement(Bus *_bus, uint16_t _addr, uint8_t *_ptr, size_t _count, bool _readonly = false);
     explicit StorageElement(uint8_t v = 0);
     explicit StorageElement(uint8_t lo, uint8_t hi);
     StorageElement(const StorageElement &) = default;
@@ -76,6 +77,7 @@ private:
     uint32_t to_u32() const;
     uint32_t to_u32_half() const;
     int to_s32() const;
+    void write_byte(size_t index, uint8_t v);
     void from_u32(uint32_t v);
 
     /**
@@ -88,6 +90,8 @@ private:
 
     uint8_t *ptr = {nullptr};
     size_t count = {0};
+    Bus *bus = {nullptr};
+    uint16_t bus_addr = {0};
 
     bool flag_carry = false;
     bool flag_half_carry = false;

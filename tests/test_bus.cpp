@@ -279,6 +279,25 @@ TEST_CASE("Timed display write recording captures attribute RAM writes", "[bus]"
     REQUIRE(bus.display_writes()[0].value == 0x42);
 }
 
+TEST_CASE("Timed display write recording captures memory operand write-back", "[bus]") {
+    Bus bus(65536);
+    const uint16_t attr = bus.model().screen_attr_base;
+
+    bus.poke_mapped_for_test(attr, 0x11);
+    bus.set_display_write_recording_enabled(true);
+    bus.set_frame_tstate(123);
+
+    StorageElement elem = bus.read_element_from_mem(attr, 1);
+    elem = static_cast<uint8_t>(0x42);
+
+    REQUIRE(bus[attr] == 0x42);
+    REQUIRE(bus.display_writes().size() == 1);
+    REQUIRE(bus.display_writes()[0].frame_tstate == 123);
+    REQUIRE(bus.display_writes()[0].addr == attr);
+    REQUIRE(bus.display_writes()[0].old_value == 0x11);
+    REQUIRE(bus.display_writes()[0].value == 0x42);
+}
+
 TEST_CASE("Timed display write recording ignores non-attribute writes", "[bus]") {
     Bus bus(65536);
 
