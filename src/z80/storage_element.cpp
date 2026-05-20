@@ -324,6 +324,14 @@ uint16_t StorageElement::push(Bus &bus, uint16_t addr) {
     return addr - 2;
 }
 
+uint16_t StorageElement::push(Bus &bus, uint16_t addr, uint32_t first_write_phase) {
+    bus.advance_instruction_timing_to(first_write_phase);
+    bus.write_observed_data(addr - 1, ptr[WORD_HI_BYTE_IDX]);
+    bus.advance_instruction_timing_to(first_write_phase + 3);
+    bus.write_observed_data(addr - 2, ptr[WORD_LO_BYTE_IDX]);
+    return addr - 2;
+}
+
 uint16_t StorageElement::pop(Bus &bus, uint16_t addr) {
     write_byte(WORD_LO_BYTE_IDX, bus.read_data(addr));
     write_byte(WORD_HI_BYTE_IDX, bus.read_data(addr + 1));
@@ -484,6 +492,9 @@ void StorageElement::write_byte(size_t index, uint8_t v) {
         return;
     }
     if (bus != nullptr) {
+        if (writeback_phase_valid) {
+            bus->advance_instruction_timing_to(writeback_phase + static_cast<uint32_t>(index * 3));
+        }
         bus->write_observed_data(static_cast<uint16_t>(bus_addr + index), v);
         return;
     }

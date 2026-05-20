@@ -12,6 +12,7 @@
 #include <iomanip>
 #include <iostream>
 #include <sstream>
+#include <unordered_map>
 #include <vector>
 
 #include "common.hpp"
@@ -38,6 +39,8 @@ struct FetchedOpcode {
 struct TimedDisplayWrite {
     uint64_t frame_tstate = {0};
     uint16_t addr = {0};
+    uint8_t ram_bank = {0};
+    uint16_t ram_offset = {0};
     uint8_t old_value = {0};
     uint8_t value = {0};
 };
@@ -184,10 +187,19 @@ public:
         }
         contention_access_phase += tstates;
     }
+    void advance_instruction_timing_to(uint32_t tstates) const {
+        if (!contention_active || contention_access_phase >= tstates) {
+            return;
+        }
+        contention_access_phase = tstates;
+    }
     void delay_next_beam_port_latch(uint32_t tstates) { next_beam_port_latch_extra_tstates += tstates; }
     void set_display_write_recording_enabled(bool enabled) { display_write_recording_enabled_value = enabled; }
     bool display_write_recording_enabled() const { return display_write_recording_enabled_value; }
-    void clear_timed_display_writes() { timed_display_writes.clear(); }
+    void clear_timed_display_writes() {
+        timed_display_writes.clear();
+        timed_display_write_index.clear();
+    }
     const std::vector<TimedDisplayWrite> &display_writes() const { return timed_display_writes; }
 
     void clock() {
@@ -230,29 +242,32 @@ public:
     uint8_t read_ula_display_at(uint16_t addr, uint64_t frame_tstate) const {
         // CPU writes update RAM immediately; the timed log lets the ULA sample
         // the value that would have existed at this beam position.
+        const uint8_t target_bank = ula_screen_bank();
+        const uint16_t target_offset = static_cast<uint16_t>(addr - machine.screen_bitmap_base);
         uint8_t value = read_ula_screen(addr);
         bool have_past = false;
-        uint64_t latest_past_tstate = 0;
         uint8_t latest_past_value = value;
         bool have_future = false;
-        uint64_t earliest_future_tstate = 0;
         uint8_t earliest_future_old_value = value;
 
-        for (const TimedDisplayWrite &write : timed_display_writes) {
-            if (write.addr != addr) {
-                continue;
-            }
-
-            if (write.frame_tstate <= frame_tstate) {
-                if (!have_past || write.frame_tstate >= latest_past_tstate) {
+        const auto writes_for_addr = timed_display_write_index.find(display_write_key(target_bank, target_offset));
+        if (writes_for_addr != timed_display_write_index.end()) {
+            const std::vector<std::size_t> &indices = writes_for_addr->second;
+            for (auto it = indices.rbegin(); it != indices.rend(); ++it) {
+                const TimedDisplayWrite &write = timed_display_writes[*it];
+                if (write.frame_tstate <= frame_tstate) {
                     have_past = true;
-                    latest_past_tstate = write.frame_tstate;
                     latest_past_value = write.value;
+                    break;
                 }
-            } else if (!have_future || write.frame_tstate < earliest_future_tstate) {
-                have_future = true;
-                earliest_future_tstate = write.frame_tstate;
-                earliest_future_old_value = write.old_value;
+            }
+            for (const std::size_t index : indices) {
+                const TimedDisplayWrite &write = timed_display_writes[index];
+                if (write.frame_tstate > frame_tstate) {
+                    have_future = true;
+                    earliest_future_old_value = write.old_value;
+                    break;
+                }
             }
         }
 
@@ -481,23 +496,45 @@ private:
         contention_access_phase += 1;
     }
 
-    bool tracked_display_addr(uint16_t addr) const {
+    bool tracked_display_mapping(uint16_t addr, uint8_t &ram_bank, uint16_t &ram_offset) const {
+        const PageMapping page = cpu_pages[page_index(addr)];
+        if (page.kind != PhysicalMemoryKind::Ram) {
+            return false;
+        }
+
+        if (page.bank != machine.default_screen_bank && page.bank != machine.shadow_screen_bank) {
+            return false;
+        }
+
         const uint16_t attr_size = static_cast<uint16_t>((machine.screen_width / machine.attr_cell_size) *
                                                          (machine.screen_height / machine.attr_cell_size));
-        const bool in_bitmap =
-            addr >= machine.screen_bitmap_base && addr < static_cast<uint16_t>(machine.screen_attr_base);
-        const bool in_attributes =
-            addr >= machine.screen_attr_base && addr < static_cast<uint16_t>(machine.screen_attr_base + attr_size);
-        return in_bitmap || in_attributes;
+        const uint16_t display_size =
+            static_cast<uint16_t>((machine.screen_attr_base - machine.screen_bitmap_base) + attr_size);
+        const uint16_t offset = page_offset(addr);
+        if (offset >= display_size) {
+            return false;
+        }
+
+        ram_bank = page.bank;
+        ram_offset = offset;
+        return true;
     }
 
     void record_timed_display_write(uint16_t addr, uint8_t old_value, uint8_t value) {
-        if (!display_write_recording_enabled_value || !frame_tstate_valid || !tracked_display_addr(addr)) {
+        uint8_t ram_bank = 0;
+        uint16_t ram_offset = 0;
+        if (!display_write_recording_enabled_value || !frame_tstate_valid ||
+            !tracked_display_mapping(addr, ram_bank, ram_offset)) {
             return;
         }
 
         const uint64_t write_tstate = (current_frame_tstate + contention_access_phase) % machine.frame_tstates;
-        timed_display_writes.push_back(TimedDisplayWrite{write_tstate, addr, old_value, value});
+        timed_display_writes.push_back(TimedDisplayWrite{write_tstate, addr, ram_bank, ram_offset, old_value, value});
+        timed_display_write_index[display_write_key(ram_bank, ram_offset)].push_back(timed_display_writes.size() - 1);
+    }
+
+    static uint32_t display_write_key(uint8_t ram_bank, uint16_t ram_offset) {
+        return (static_cast<uint32_t>(ram_bank) << 16) | ram_offset;
     }
 
     uint8_t contention_delay(uint64_t tstate) const {
@@ -541,4 +578,5 @@ private:
     uint32_t next_beam_port_latch_extra_tstates = {0};
     bool display_write_recording_enabled_value = {false};
     std::vector<TimedDisplayWrite> timed_display_writes;
+    std::unordered_map<uint32_t, std::vector<std::size_t>> timed_display_write_index;
 };

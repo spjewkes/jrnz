@@ -104,6 +104,27 @@ TEST_CASE("Documented load instructions move bytes and words without disturbing 
     }
 }
 
+TEST_CASE("Memory operand load write-back is timestamped near the write phase", "[loads]") {
+    CpuHarness h;
+    const uint16_t attr = h.mem.model().screen_attr_base;
+
+    h.cpu.af.set(0x42a5);
+    h.cpu.hl.set(attr);
+    h.poke(attr, 0x11);
+    h.mem.set_display_write_recording_enabled(true);
+    h.mem.set_frame_tstate(1000);
+    h.load({0x77});  // LD (HL),A
+
+    const StepResult store = h.step();
+
+    REQUIRE(store.cycle_delta() == 7);
+    REQUIRE(h.mem.display_writes().size() == 1);
+    REQUIRE(h.mem.display_writes()[0].addr == attr);
+    REQUIRE(h.mem.display_writes()[0].old_value == 0x11);
+    REQUIRE(h.mem.display_writes()[0].value == 0x42);
+    REQUIRE(h.mem.display_writes()[0].frame_tstate == 1006);
+}
+
 TEST_CASE("Extended and indexed load instructions preserve byte order and target registers", "[loads]") {
     SECTION("LD (nn),HL and LD HL,(nn)") {
         CpuHarness h;

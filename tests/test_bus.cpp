@@ -370,6 +370,37 @@ TEST_CASE("ULA attribute reads use the latest timed write at the sample point", 
     REQUIRE(bus.read_ula_attribute_at(attr, 130) == 0x33);
 }
 
+TEST_CASE("128K timed display writes are matched by physical screen bank", "[bus]") {
+    Bus bus(spectrum_128k_model());
+    const uint16_t attr = bus.model().screen_attr_base;
+    const uint16_t attr_offset = static_cast<uint16_t>(attr - bus.model().screen_bitmap_base);
+    const uint16_t paged_attr_addr = static_cast<uint16_t>(0xc000 + attr_offset);
+
+    bus.write_physical_ram(5, attr_offset, 0x11);
+    bus.write_physical_ram(7, attr_offset, 0x44);
+
+    bus.write_port(0x7ffd, 0x0f);
+    REQUIRE(bus.shadow_screen_enabled());
+    REQUIRE(bus.ula_screen_bank() == 7);
+
+    bus.set_display_write_recording_enabled(true);
+    bus.set_frame_tstate(100);
+    bus.write_data(paged_attr_addr, 0x55);
+
+    REQUIRE(bus.display_writes().size() == 1);
+    REQUIRE(bus.display_writes()[0].addr == paged_attr_addr);
+    REQUIRE(bus.display_writes()[0].ram_bank == 7);
+    REQUIRE(bus.display_writes()[0].ram_offset == attr_offset);
+
+    REQUIRE(bus.read_ula_attribute_at(attr, 99) == 0x44);
+    REQUIRE(bus.read_ula_attribute_at(attr, 100) == 0x55);
+
+    bus.write_port(0x7ffd, 0x07);
+    REQUIRE_FALSE(bus.shadow_screen_enabled());
+    REQUIRE(bus.ula_screen_bank() == 5);
+    REQUIRE(bus.read_ula_attribute_at(attr, 100) == 0x11);
+}
+
 TEST_CASE("Port reads distinguish even keyboard ports from the floating bus path", "[bus]") {
     Bus bus(65536);
     bus.poke_mapped_for_test(0x4000, 0x81);

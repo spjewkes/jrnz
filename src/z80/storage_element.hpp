@@ -46,6 +46,7 @@ public:
     void set_bit(StorageElement &rhs);
     void reset_bit(StorageElement &rhs);
     uint16_t push(Bus &bus, uint16_t addr);
+    uint16_t push(Bus &bus, uint16_t addr, uint32_t first_write_phase);
     uint16_t pop(Bus &bus, uint16_t addr);
     void rotate_right(bool rot_9bit, bool carry);
     void rotate_left(bool rot_9bit, bool carry);
@@ -65,6 +66,11 @@ public:
     bool is_8bit() const { return count == 1; }
     bool is_16bit() const { return count == 2; }
     void get_value(uint32_t &val) const { val = to_u32(); }
+    bool is_bus_backed() const { return bus != nullptr; }
+    void set_writeback_phase(uint32_t phase) {
+        writeback_phase = phase;
+        writeback_phase_valid = true;
+    }
 
     friend std::ostream &operator<<(std::ostream &stream, const StorageElement &e);
 
@@ -92,6 +98,8 @@ private:
     size_t count = {0};
     Bus *bus = {nullptr};
     uint16_t bus_addr = {0};
+    uint32_t writeback_phase = {0};
+    bool writeback_phase_valid = {false};
 
     bool flag_carry = false;
     bool flag_half_carry = false;

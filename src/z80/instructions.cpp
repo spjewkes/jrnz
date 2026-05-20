@@ -91,6 +91,25 @@ void set_memptr_low_plus_one_high_from_a(Z80 &state, uint16_t value) {
 
 bool is_indexed_memory_operand(Operand operand) { return operand == Operand::indIXN || operand == Operand::indIYN; }
 
+bool is_memory_operand(Operand operand) {
+    return operand == Operand::indBC || operand == Operand::indDE || operand == Operand::indHL ||
+           operand == Operand::indN || operand == Operand::indNN || operand == Operand::indIXN ||
+           operand == Operand::indIYN || operand == Operand::indSP;
+}
+
+void prepare_memory_writeback_at_phase(StorageElement &elem, Operand operand, uint32_t writeback_phase) {
+    if (!is_memory_operand(operand) || !elem.is_bus_backed()) {
+        return;
+    }
+
+    elem.set_writeback_phase(writeback_phase);
+}
+
+void prepare_memory_writeback(StorageElement &elem, Operand operand, size_t instruction_cycles) {
+    const uint32_t phase = static_cast<uint32_t>(instruction_cycles > 0 ? instruction_cycles - 1 : 0);
+    prepare_memory_writeback_at_phase(elem, operand, phase);
+}
+
 uint16_t indexed_effective_addr(Z80 &state, Operand operand) {
     const int8_t displacement = static_cast<int8_t>(state.bus.read_data(state.curr_operand_pc - 1));
     const uint16_t base = (operand == Operand::indIXN) ? state.ix.get() : state.iy.get();
@@ -399,6 +418,7 @@ size_t Instruction::do_ld(Z80 &state, StorageElement &dst_elem, StorageElement &
         src_elem.get_value(new_sp);
         state.top_of_stack = static_cast<uint16_t>(new_sp);
     }
+    prepare_memory_writeback(dst_elem, dst, cycles);
     dst_elem = src_elem;
 
     if (is_indexed_memory_operand(dst)) {
@@ -463,6 +483,7 @@ size_t Instruction::impl_ld_block(Z80 &state, StorageElement &dst_elem, StorageE
                                   bool repeat) {
     uint32_t transferred = 0;
     src_elem.get_value(transferred);
+    prepare_memory_writeback_at_phase(dst_elem, dst, 11);
     dst_elem = src_elem;
 
     int adjust = (inc ? 1 : -1);
@@ -780,6 +801,7 @@ size_t Instruction::do_res(Z80 &state, StorageElement &dst_elem, StorageElement 
 }
 
 size_t Instruction::impl_set_bit(Z80 &state, StorageElement &dst_elem, StorageElement &src_elem, bool set) {
+    prepare_memory_writeback(dst_elem, dst, cycles);
     if (set) {
         dst_elem.set_bit(src_elem);
     } else {
@@ -842,6 +864,7 @@ size_t Instruction::impl_add(Z80 &state, StorageElement &dst_elem, StorageElemen
     }
 
     if (store) {
+        prepare_memory_writeback(dst_elem, dst, cycles);
         dst_elem = result;
     }
 
@@ -859,6 +882,7 @@ size_t Instruction::impl_adc(Z80 &state, StorageElement &dst_elem, StorageElemen
     state.af.flag(RegisterAF::Flags::Sign, result.is_neg());
     set_f3_f5(state.af, flag_value(result, dst_elem.is_16bit()));
 
+    prepare_memory_writeback(dst_elem, dst, cycles);
     dst_elem = result;
 
     return cycles;
@@ -891,6 +915,7 @@ size_t Instruction::impl_sub(Z80 &state, StorageElement &dst_elem, StorageElemen
     }
 
     if (store) {
+        prepare_memory_writeback(dst_elem, dst, cycles);
         dst_elem = result;
     }
 
@@ -908,6 +933,7 @@ size_t Instruction::impl_sbc(Z80 &state, StorageElement &dst_elem, StorageElemen
     state.af.flag(RegisterAF::Flags::Sign, result.is_neg());
     set_f3_f5(state.af, flag_value(result, dst_elem.is_16bit()));
 
+    prepare_memory_writeback(dst_elem, dst, cycles);
     dst_elem = result;
 
     return cycles;
@@ -918,7 +944,8 @@ size_t Instruction::do_push(Z80 &state, StorageElement &dst_elem, StorageElement
 
     assert(Operand::UNUSED == dst);
 
-    size_t new_sp = src_elem.push(state.bus, state.sp.get());
+    const uint32_t first_write_phase = static_cast<uint32_t>(cycles >= 6 ? cycles - 6 : 0);
+    size_t new_sp = src_elem.push(state.bus, state.sp.get(), first_write_phase);
     state.sp.set(new_sp);
 
     return cycles;
@@ -939,6 +966,7 @@ size_t Instruction::do_rlc(Z80 &state, StorageElement &dst_elem, StorageElement 
     UNUSED(src_elem);
     assert(Operand::UNUSED == src);
 
+    prepare_memory_writeback(dst_elem, dst, cycles);
     impl_rotate_left(state, dst_elem, true /* set_state */, false /* rot_9bit */);
     if (dst == Operand::indIXN || dst == Operand::indIYN) {
         copy_indexed_cb_result(state, dst_elem);
@@ -951,6 +979,7 @@ size_t Instruction::do_rl(Z80 &state, StorageElement &dst_elem, StorageElement &
     UNUSED(src_elem);
     assert(Operand::UNUSED == src);
 
+    prepare_memory_writeback(dst_elem, dst, cycles);
     impl_rotate_left(state, dst_elem, true /* set_state */, true /* rot_9bit */);
     if (dst == Operand::indIXN || dst == Operand::indIYN) {
         copy_indexed_cb_result(state, dst_elem);
@@ -963,6 +992,7 @@ size_t Instruction::do_rrc(Z80 &state, StorageElement &dst_elem, StorageElement 
     UNUSED(src_elem);
     assert(Operand::UNUSED == src);
 
+    prepare_memory_writeback(dst_elem, dst, cycles);
     impl_rotate_right(state, dst_elem, true /* set_state */, false /* rot_9bit */);
     if (dst == Operand::indIXN || dst == Operand::indIYN) {
         copy_indexed_cb_result(state, dst_elem);
@@ -975,6 +1005,7 @@ size_t Instruction::do_rr(Z80 &state, StorageElement &dst_elem, StorageElement &
     UNUSED(src_elem);
     assert(Operand::UNUSED == src);
 
+    prepare_memory_writeback(dst_elem, dst, cycles);
     impl_rotate_right(state, dst_elem, true /* set_state */, true /* rot_9bit */);
     if (dst == Operand::indIXN || dst == Operand::indIYN) {
         copy_indexed_cb_result(state, dst_elem);
@@ -987,6 +1018,7 @@ size_t Instruction::do_sla(Z80 &state, StorageElement &dst_elem, StorageElement 
     UNUSED(src_elem);
     assert(Operand::UNUSED == src);
 
+    prepare_memory_writeback(dst_elem, dst, cycles);
     impl_shift_left(state, dst_elem, false /* logical */);
     if (dst == Operand::indIXN || dst == Operand::indIYN) {
         copy_indexed_cb_result(state, dst_elem);
@@ -999,6 +1031,7 @@ size_t Instruction::do_sll(Z80 &state, StorageElement &dst_elem, StorageElement 
     UNUSED(src_elem);
     assert(Operand::UNUSED == src);
 
+    prepare_memory_writeback(dst_elem, dst, cycles);
     impl_shift_left(state, dst_elem, true /* logical */);
     if (dst == Operand::indIXN || dst == Operand::indIYN) {
         copy_indexed_cb_result(state, dst_elem);
@@ -1011,6 +1044,7 @@ size_t Instruction::do_sra(Z80 &state, StorageElement &dst_elem, StorageElement 
     UNUSED(src_elem);
     assert(Operand::UNUSED == src);
 
+    prepare_memory_writeback(dst_elem, dst, cycles);
     impl_shift_right(state, dst_elem, false /* logical */);
     if (dst == Operand::indIXN || dst == Operand::indIYN) {
         copy_indexed_cb_result(state, dst_elem);
@@ -1023,6 +1057,7 @@ size_t Instruction::do_srl(Z80 &state, StorageElement &dst_elem, StorageElement 
     UNUSED(src_elem);
     assert(Operand::UNUSED == src);
 
+    prepare_memory_writeback(dst_elem, dst, cycles);
     impl_shift_right(state, dst_elem, true /* logical */);
     if (dst == Operand::indIXN || dst == Operand::indIYN) {
         copy_indexed_cb_result(state, dst_elem);
