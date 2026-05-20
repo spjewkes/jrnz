@@ -22,7 +22,9 @@
 constexpr uint32_t num_buffers = 4;
 constexpr uint16_t frequency = 22050;
 constexpr float beeper_gain = 0.10f;
-constexpr float ay_gain = 0.60f;
+// Match one full-volume AY channel roughly to the beeper's peak after scaling.
+// The AY can still sound louder when multiple channels are active, as on hardware.
+constexpr float ay_gain = 0.15f;
 
 /**
  * @brief Class describing the beeper
